@@ -1,6 +1,7 @@
-import { Button, TextField, Divider, Typography } from "@mui/material";
+import { Button, TextField, Divider, Typography, Checkbox, FormControlLabel } from "@mui/material";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import Footer from "../components/reusable/Footer";
 
 // import axios from 'axios';
 
@@ -60,119 +61,120 @@ function Login() {
   };
 
   return (
-    <div className="login-container" style={{
-      maxWidth: '400px',
-      margin: '40px auto',
-      padding: '20px',
-      boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-      borderRadius: '8px'
-    }}>
-      <h1 style={{ textAlign: 'center', marginBottom: '10px' }}>ĐĂNG NHẬP</h1>
+    <div className="d-flex vh-100">
+      <div className="login-container" style={{
+        maxWidth: '400px',
+        margin: '40px auto',
+        padding: '20px',
+        boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+        borderRadius: '8px'
+      }}>
+        <h1 style={{ textAlign: 'center', marginBottom: '10px' }}>ĐĂNG NHẬP</h1>
 
-      <div style={{ textAlign: 'center', marginTop: '15px', marginBottom: '15px'}}>
-        Nếu bạn chưa có tài khoản,&nbsp;
-        <Link 
-          to="/account/register" 
-          style={{ 
-            color: '#1976d2', 
-            textDecoration: 'none' 
-          }}
-        >
-          đăng ký tại đây
-        </Link>
-      </div>
-
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        <TextField
-          required
-          fullWidth
-          id="email"
-          label="Email"
-          name="email"
-          autoComplete="email"
-          value={formData.email}
-          onChange={handleChange}
-        />
-        
-        <TextField
-          required
-          fullWidth
-          name="password"
-          label="Mật khẩu"
-          type="password"
-          id="password"
-          autoComplete="current-password"
-          value={formData.password}
-          onChange={handleChange}
-        />
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <input
-            type="checkbox"
-            id="rememberMe" 
-            name="rememberMe"
-            checked={formData.rememberMe}
-            onChange={handleChange}
-          />
-          <label htmlFor="rememberMe">Nhớ đến tôi</label>
-        </div>
-
-        <Button
-          type="submit"
-          fullWidth
-          variant="contained"
-          style={{ marginTop: '5px', padding: '10px' }}
-        >
-          Đăng Nhập
-        </Button>
-
-        <div style={{ textAlign: 'center', marginTop: '5px' }}>
-          <Link 
-            to="/account/forgotpassword" 
-            style={{ 
-              display: 'block', 
-              marginBottom: '5px', 
-              color: 'black', 
-              textDecoration: 'none' 
+        <div style={{ textAlign: 'center', marginTop: '15px', marginBottom: '15px' }}>
+          Nếu bạn chưa có tài khoản,&nbsp;
+          <Link
+            to="/account/register"
+            style={{
+              color: '#1976d2',
+              textDecoration: 'none'
             }}
           >
-            Quên mật khẩu
+            đăng ký tại đây
           </Link>
         </div>
-        
-        <Divider sx={{ mb: 2 }}>
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          <TextField
+            required
+            fullWidth
+            id="email"
+            label="Email"
+            name="email"
+            autoComplete="email"
+            value={formData.email}
+            onChange={handleChange}
+          />
+
+          <TextField
+            required
+            fullWidth
+            name="password"
+            label="Mật khẩu"
+            type="password"
+            id="password"
+            autoComplete="current-password"
+            value={formData.password}
+            onChange={handleChange}
+          />
+
+          <FormControlLabel
+            control={
+              <Checkbox onChange={handleChange} name="remember me" />
+            }
+            label="Nhớ đến tôi"
+          />
+
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            style={{ marginTop: '5px', padding: '10px' }}
+          >
+            Đăng Nhập
+          </Button>
+          <div style={{ textAlign: 'center', marginTop: '5px' }}>
+            <Link
+              to="/account/forgotpassword"
+              sx={{
+                display: 'block',
+                marginBottom: '5px',
+                color: 'black',
+                textDecoration: 'none',
+                '&:hover': {
+                  color: 'primary.main',
+                  textDecoration: 'none'
+                }
+              }}
+            >
+              Quên mật khẩu
+            </Link>
+          </div>
+          <Divider sx={{ mb: 2 }}>
             <Typography variant="body2" color="text.secondary">
               Hoặc đăng nhập bằng
             </Typography>
-        </Divider>
+          </Divider>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <Button
-            variant="outlined"
-            onClick={handleGoogleLogin}
-            sx={facebookButtonStyle}
-          >
-            <img 
-              src="https://www.facebook.com/favicon.ico" 
-              alt="Facebook icon" 
-              style={{ width: '16px', height: '16px', marginRight: '8px' }} 
-            />
-            Facebook
-          </Button>
-          <Button
-            variant="outlined"
-            onClick={handleGoogleLogin}
-            sx={googleButtonStyle}
-          >
-            <img 
-              src="https://www.google.com/favicon.ico" 
-              alt="Google icon" 
-              style={{ width: '16px', height: '16px', marginRight: '8px' }} 
-            />
-            Google
-          </Button>
-        </div>
-      </form>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <Button
+              variant="outlined"
+              onClick={handleGoogleLogin}
+              sx={facebookButtonStyle}
+            >
+              <img
+                src="https://www.facebook.com/favicon.ico"
+                alt="Facebook icon"
+                style={{ width: '16px', height: '16px', marginRight: '8px' }}
+              />
+              Facebook
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={handleGoogleLogin}
+              sx={googleButtonStyle}
+            >
+              <img
+                src="https://www.google.com/favicon.ico"
+                alt="Google icon"
+                style={{ width: '16px', height: '16px', marginRight: '8px' }}
+              />
+              Google
+            </Button>
+          </div>
+        </form>
+      </div>
+      <Footer/>
     </div>
   );
 }

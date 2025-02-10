@@ -3,6 +3,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Resgiter from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
+import '@fontsource/roboto/300.css'; // Light
+import '@fontsource/roboto/400.css'; // Regular
+import '@fontsource/roboto/500.css'; // Medium
+import '@fontsource/roboto/700.css'; // Bold
 
 function App() {
   return (

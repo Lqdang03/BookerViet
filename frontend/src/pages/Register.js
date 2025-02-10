@@ -1,7 +1,7 @@
 import { Button, TextField, Divider, Typography } from "@mui/material";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-
+import Footer from "../components/reusable/Footer";
 // import axios from 'axios';
 
 function Register() {
@@ -60,7 +60,8 @@ function Register() {
   };
 
   return (
-    <div className="login-container" style={{
+    <div className="d-flex vh-100">
+          <div className="login-container" style={{
       maxWidth: '400px',
       margin: '40px auto',
       padding: '20px',
@@ -182,6 +183,9 @@ function Register() {
         </div>
       </form>
     </div>
+    <Footer/>
+    </div>
+
   );
 }
 
