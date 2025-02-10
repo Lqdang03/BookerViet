@@ -111,6 +111,7 @@ function Register() {
           fullWidth
           id="number"
           label="Số điện thoại"
+          type="number"
           name="number"
           autoComplete="number"
           value={formData.number}

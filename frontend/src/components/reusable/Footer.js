@@ -58,7 +58,7 @@ const Footer = () => {
                     {/* Company Information */}
                     <Grid item xs={12} md={4}>
                         <Box>
-                            <img src="/pictures/logo.png" alt="BookerViet" style={{ height: 150, width: 150, margin: -25, marginLeft: 1}} />
+                            <img src="/pictures/logo.png" alt="BookerViet" style={{ height: 150, width: 150, marginTop: -35, marginBottom: -20, marginLeft: 1}} />
                             <Typography variant="body2" sx={{ mb: 2, fontWeight: "bold", fontSize: 20 }}>
                                 {companyInfo.name}
                             </Typography>
