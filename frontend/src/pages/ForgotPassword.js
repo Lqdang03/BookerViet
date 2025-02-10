@@ -1,6 +1,7 @@
 import { Button, TextField, Divider, Typography } from "@mui/material";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import Footer from "../components/reusable/Footer";
 
 // import axios from 'axios';
 
@@ -60,7 +61,8 @@ function ForgotPassword() {
   };
 
   return (
-    <div className="login-container" style={{
+    <div>
+        <div className="login-container" style={{
       maxWidth: '400px',
       margin: '40px auto',
       padding: '20px',
@@ -137,6 +139,9 @@ function ForgotPassword() {
         </div>
       </form>
     </div>
+    <Footer/>
+    </div>
+    
   );
 }
 
