@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema({
   password: String,
   phone: String,
   address: String,
-  point: Number,
+  point: {type: Number, default: 0},
   wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Book' }],
   role: {
     type: String,
