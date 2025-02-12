@@ -41,7 +41,7 @@ const Footer = () => {
             bgcolor: '#f5f5f5', 
             pt: 6, 
             pb: 0, 
-            mt: 8, 
+            mt: 6, 
             position: 'relative', 
             '&::before': {
                 content: '""',
@@ -101,7 +101,7 @@ const Footer = () => {
 
                         {/* Social Media Links */}
                         <Box sx={{ mt: 4 }}>
-                            <Typography variant="h6" sx={{ mb: 1 }}>
+                            <Typography variant="h6" sx={{ mb: 1, fontWeight:'bold'}}>
                                 THEO DÕI CHÚNG TÔI
                             </Typography>
                             <IconButton color="primary" aria-label="Facebook">
