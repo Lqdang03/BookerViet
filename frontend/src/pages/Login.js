@@ -2,6 +2,7 @@ import { Button, TextField, Divider, Typography, Checkbox, FormControlLabel } fr
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import Footer from "../components/reusable/Footer";
+import Header from "../components/reusable/Header";
 
 // import axios from 'axios';
 
@@ -61,14 +62,16 @@ function Login() {
   };
 
   return (
-    <div className="d-flex vh-100">
+    <div>
+      <Header />
       <div className="login-container" style={{
         maxWidth: '400px',
-        margin: '40px auto',
+        margin: 'auto', // Căn giữa màn hình
         padding: '20px',
         boxShadow: '0 0 10px rgba(0,0,0,0.1)',
         borderRadius: '8px'
       }}>
+
         <h1 style={{ textAlign: 'center', marginBottom: '10px' }}>ĐĂNG NHẬP</h1>
 
         <div style={{ textAlign: 'center', marginTop: '15px', marginBottom: '15px' }}>
@@ -174,7 +177,7 @@ function Login() {
           </div>
         </form>
       </div>
-      <Footer/>
+      <Footer />
     </div>
   );
 }
