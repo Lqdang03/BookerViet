@@ -1,21 +1,37 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const dotenv = require('dotenv');
-dotenv.config();
+// Load environment variables from .env file
+require("dotenv").config();
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const authRoutes = require("./routes/authRoute");
+const { checkAuthorize } = require("./middleware/authMiddleware");
+
 const app = express();
+const port = process.env.PORT || 9999;
+
+// Middleware
 app.use(cors());
-app.use(express.json()); // Middleware để xử lý request body dạng JSON 
+app.use(express.json());
 
-const { db } = require('./config/db');
+// Database connection
+mongoose
+  .connect(process.env.DB_CONNECTION, { dbName: process.env.DB_NAME })
+  .then(() => console.log("Connected to the database"))
+  .catch((err) => console.error("Could not connect to the database", err));
 
+// Routes
+app.use("/auth", authRoutes);
+app.get("/open", (req, res) => {
+    res.status(200).json({ message: "Đây là API công khai." });
+});
+app.get("/admin-only", checkAuthorize(["admin"]), (req, res) => {
+    res.status(200).json({ message: "Chào Admin!" });
+});
+app.get("/user-or-admin", checkAuthorize(["user", "admin"]), (req, res) => {
+    res.status(200).json({ message: "Chào User hoặc Admin!" });
+});
 
-// Basic route 
-app.get('/', (req, res) => res.send('Hello World!'));
-app.get('/ntn', (req, res) => res.send('Hello NTN!'));
-
-
-app.listen(process.env.PORT, 'localhost', async () => {
-    console.log(`Server is listening on port ${process.env.PORT}`);
-    db.ConnectDB();
+// Start server
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
