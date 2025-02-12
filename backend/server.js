@@ -7,7 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.json()); // Middleware để xử lý request body dạng JSON 
 
-const { db } = require('./models/db');
+const { db } = require('./config/db');
 
 
 // Basic route 
