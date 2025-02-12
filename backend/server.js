@@ -12,6 +12,7 @@ const { db } = require('./config/db');
 
 // Basic route 
 app.get('/', (req, res) => res.send('Hello World!'));
+app.get('/ntn', (req, res) => res.send('Hello NTN!'));
 
 
 app.listen(process.env.PORT, 'localhost', async () => {
