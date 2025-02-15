@@ -4,6 +4,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const authRoutes = require("./routes/authRoute");
+const userRoutes = require("./routes/userRoute");
 const { checkAuthorize } = require("./middleware/authMiddleware");
 
 const app = express();
@@ -21,6 +22,9 @@ mongoose
 
 // Routes
 app.use("/auth", authRoutes);
+app.use("/user", userRoutes);
+
+// Test phân quyền
 app.get("/open", (req, res) => {
     res.status(200).json({ message: "Đây là API công khai." });
 });
