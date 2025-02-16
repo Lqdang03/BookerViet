@@ -7,7 +7,6 @@ const checkAuthorize = (roles = []) => async(req, res, next) => {
 
   try {
     // Verify token
-    console.log('token = ' + token.replace("Bearer ", ""));
     const decoded = jwt.verify(token.replace("Bearer ", ""), process.env.JWT_SECRET);
 
     // Kiểm tra xem id trong token có hợp lệ không (tồn tại trong DB)
