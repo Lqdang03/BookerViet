@@ -89,22 +89,11 @@ function Register() {
           <TextField
             required
             fullWidth
-            id="lastname"
-            label="Họ"
-            name="lastname"
-            autoComplete="lastname"
-            value={formData.lastname}
-            onChange={handleChange}
-          />
-
-          <TextField
-            required
-            fullWidth
-            id="firstname"
-            label="Tên"
-            name="firstname"
-            autoComplete="firstname"
-            value={formData.firstname}
+            id="name"
+            label="Họ & tên"
+            name="name"
+            autoComplete="name"
+            value={formData.name}
             onChange={handleChange}
           />
 
