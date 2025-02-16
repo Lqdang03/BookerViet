@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const authRoutes = require("./routes/authRoute");
 const userRoutes = require("./routes/userRoute");
+const cartRoutes = require("./routes/cartRoute");
 const { checkAuthorize } = require("./middleware/authMiddleware");
 
 const app = express();
@@ -23,6 +24,7 @@ mongoose
 // Routes
 app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
+app.use("/cart", cartRoutes);
 
 // Test phân quyền
 app.get("/open", (req, res) => {
