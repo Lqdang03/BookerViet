@@ -1,40 +1,136 @@
-import { Button, TextField, Divider, Typography } from "@mui/material";
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState } from 'react';
+import { Button, TextField, Divider, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, Alert } from "@mui/material";
+import { Link, useNavigate } from "react-router-dom";
+import axios from 'axios';
 import Footer from "../components/reusable/Footer";
 import Header from "../components/reusable/Header";
-// import axios from 'axios';
 
 function Register() {
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
+    name: '',
+    phone: '',
     email: '',
     password: '',
-    rememberMe: false
   });
+  const [otpDialogOpen, setOtpDialogOpen] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState({ open: false, message: "", severity: "info" });
+
+  const handleAlert = (message, severity = "info") => {
+    setAlert({ open: true, message, severity });
+  };
+
+  const handleCloseAlert = () => {
+    setAlert({ ...alert, open: false });
+  };
 
   const handleChange = (e) => {
-    const { name, value, checked } = e.target;
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'rememberMe' ? checked : value
+      [name]: value
     }));
+    // Clear error when user types
+    setError('');
   };
+
+  const handleSendOTP = async () => {
+    if (!formData.email || !formData.password || !formData.name || !formData.phone) {
+      handleAlert('Vui lòng điền đầy đủ thông tin', 'error');
+      return;
+    }
+
+    // Validate password length
+    if (formData.password.length < 6) {
+      handleAlert('Mật khẩu phải có ít nhất 6 ký tự', 'error');
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(formData.email)) {
+    handleAlert('Email không hợp lệ', 'error');
+    return;
+  }
+
+    // Validate phone number
+    const phoneRegex = /^[0-9]{10}$/;
+  if (!phoneRegex.test(formData.phone)) {
+    handleAlert('Số điện thoại không hợp lệ (10 số)', 'error');
+    return;
+  }
+
+  try {
+    setLoading(true);
+    await axios.post('http://localhost:9999/auth/send-otp', {
+      email: formData.email,
+      type: 'register'
+    });
+    setOtpDialogOpen(true);
+    handleAlert('Mã OTP đã được gửi đến email của bạn', 'success');
+  } catch (error) {
+    handleAlert(error.response?.data?.message || 'Có lỗi xảy ra khi gửi OTP. Vui lòng thử lại sau.', 'error');
+  } finally {
+    setLoading(false);
+  }
+};
+
+const handleVerifyOTP = async () => {
+  if (!otp) {
+    handleAlert('Vui lòng nhập mã OTP', 'error');
+    return;
+  }
+
+  try {
+    setLoading(true);
+    await axios.post('http://localhost:9999/auth/verify-otp', {
+      email: formData.email,
+      otp,
+      type: 'register'
+    });
+
+    await axios.post('http://localhost:9999/auth/register', formData);
+
+    setOtpDialogOpen(false);
+    navigate('/account/login', {
+      state: {
+        message: 'Đăng ký thành công! Vui lòng đăng nhập.',
+        credentials: {
+          email: formData.email,
+          password: formData.password
+        }
+      }
+    });
+  } catch (error) {
+    handleAlert(error.response?.data?.message || 'Có lỗi xảy ra khi xác thực OTP. Vui lòng thử lại.', 'error');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleSubmit = async (e) => {
-    // e.preventDefault();
-    // try {
-    //   const response = await axios.post('/api/login', formData);
-    //   // Handle successful login
-    //   navigate('/dashboard');
-    // } catch (error) {
-    //   console.error('Login failed:', error);
-    // }
+    e.preventDefault();
+    handleSendOTP();
   };
 
-  const handleGoogleLogin = () => {
-    // Implement Google login logic
-    console.log('Google login clicked');
+  // Social login handlers
+  const handleFacebookLogin = async () => {
+    try {
+      window.open(`${process.env.REACT_APP_API_URL}/auth/facebook`, '_self');
+    } catch (error) {
+      setError('Đăng nhập bằng Facebook thất bại. Vui lòng thử lại.');
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      window.open(`${process.env.REACT_APP_API_URL}/auth/google`, '_self');
+    } catch (error) {
+      setError('Đăng nhập bằng Google thất bại. Vui lòng thử lại.');
+    }
   };
 
   // Styles for social login buttons
@@ -60,9 +156,21 @@ function Register() {
     }
   };
 
+  const resendOTP = async () => {
+    try {
+      setLoading(true);
+      await handleSendOTP();
+      handleAlert('Mã OTP mới đã được gửi đến email của bạn', 'success');
+    } catch (error) {
+      handleAlert('Không thể gửi lại mã OTP. Vui lòng thử lại sau.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div>
-      <Header/>
+      <Header />
       <div className="login-container" style={{
         maxWidth: '400px',
         margin: '40px auto',
@@ -74,16 +182,16 @@ function Register() {
 
         <div style={{ textAlign: 'center', marginTop: '15px', marginBottom: '15px' }}>
           Đã có tài khoản, đăng nhập&nbsp;
-          <Link
-            to="/account/login"
-            style={{
-              color: '#1976d2',
-              textDecoration: 'none'
-            }}
-          >
+          <Link to="/account/login" style={{ color: '#1976d2', textDecoration: 'none' }}>
             tại đây
           </Link>
         </div>
+
+        {error && (
+          <Typography color="error" style={{ marginBottom: '10px', textAlign: 'center' }}>
+            {error}
+          </Typography>
+        )}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
           <TextField
@@ -92,21 +200,20 @@ function Register() {
             id="name"
             label="Họ & tên"
             name="name"
-            autoComplete="name"
             value={formData.name}
             onChange={handleChange}
+            error={!!error && !formData.name}
           />
 
           <TextField
             required
             fullWidth
-            id="number"
+            id="phone"
             label="Số điện thoại"
-            type="number"
-            name="number"
-            autoComplete="number"
-            value={formData.number}
+            name="phone"
+            value={formData.phone}
             onChange={handleChange}
+            error={!!error && !formData.phone}
           />
 
           <TextField
@@ -115,9 +222,10 @@ function Register() {
             id="email"
             label="Email"
             name="email"
-            autoComplete="email"
+            type="email"
             value={formData.email}
             onChange={handleChange}
+            error={!!error && !formData.email}
           />
 
           <TextField
@@ -126,22 +234,24 @@ function Register() {
             name="password"
             label="Mật khẩu"
             type="password"
-            id="password"
-            autoComplete="current-password"
             value={formData.password}
             onChange={handleChange}
+            error={!!error && (formData.password.length < 6)}
+            helperText={formData.password.length < 6 ? "Mật khẩu phải có ít nhất 6 ký tự" : ""}
           />
+
 
           <Button
             type="submit"
             fullWidth
             variant="contained"
+            disabled={loading}
             style={{ marginTop: '5px', padding: '10px' }}
           >
-            Đăng ký
+            {loading ? 'Đang xử lý...' : 'Đăng ký'}
           </Button>
 
-          <Divider sx={{ mb: 2 }} style={{ marginTop: '10px' }}>
+          <Divider sx={{ mt: 2, mb: 2 }}>
             <Typography variant="body2" color="text.secondary">
               Hoặc đăng nhập bằng
             </Typography>
@@ -150,8 +260,9 @@ function Register() {
           <div style={{ display: 'flex', gap: '10px' }}>
             <Button
               variant="outlined"
-              onClick={handleGoogleLogin}
+              onClick={handleFacebookLogin}
               sx={facebookButtonStyle}
+              disabled={loading}
             >
               <img
                 src="https://www.facebook.com/favicon.ico"
@@ -164,6 +275,7 @@ function Register() {
               variant="outlined"
               onClick={handleGoogleLogin}
               sx={googleButtonStyle}
+              disabled={loading}
             >
               <img
                 src="https://www.google.com/favicon.ico"
@@ -174,10 +286,60 @@ function Register() {
             </Button>
           </div>
         </form>
+
+        {/* OTP Dialog */}
+        <Dialog open={otpDialogOpen} onClose={() => !loading && setOtpDialogOpen(false)} style={{ marginRight: "17px" }}>
+          <DialogTitle>Xác thực OTP</DialogTitle>
+          <DialogContent>
+            <Typography variant="body2" style={{ marginBottom: '15px' }}>
+              Mã OTP đã được gửi đến email {formData.email}
+            </Typography>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Nhập mã OTP"
+              fullWidth
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              error={!!error}
+              helperText={error}
+            />
+            <Button
+              onClick={resendOTP}
+              disabled={loading}
+              style={{ marginTop: '10px' }}
+            >
+              Gửi lại mã OTP
+            </Button>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => !loading && setOtpDialogOpen(false)} disabled={loading}>
+              Hủy
+            </Button>
+            <Button onClick={handleVerifyOTP} disabled={loading}>
+              {loading ? 'Đang xác thực...' : 'Xác nhận'}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </div>
       <Footer />
-    </div>
 
+      {/* Snackbar to show OTP resend success message */}
+       <>
+    {/* Snackbar giống ForgotPassword */}
+    <Snackbar 
+      open={alert.open} 
+      autoHideDuration={6000} 
+      onClose={handleCloseAlert}
+      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+    >
+      <Alert onClose={handleCloseAlert} severity={alert.severity}>
+        {alert.message}
+      </Alert>
+    </Snackbar>
+  </>
+
+    </div>
   );
 }
 
