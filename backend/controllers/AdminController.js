@@ -1,7 +1,7 @@
 const User = require("../models/User");
 const Order = require("../models/Order");
 
-// 1️⃣ Admin lấy danh sách user
+
 exports.getAllUsers = async (req, res) => {
     try {
         const users = await User.find().select("-password");
@@ -11,7 +11,7 @@ exports.getAllUsers = async (req, res) => {
     }
 };
 
-// 2️⃣ Admin xem thông tin user theo ID
+
 exports.getUserById = async (req, res) => {
     try {
         const user = await User.findById(req.params.id).select("-password");
@@ -22,7 +22,7 @@ exports.getUserById = async (req, res) => {
     }
 };
 
-// 3️⃣ Admin cập nhật user
+
 exports.updateUser = async (req, res) => {
     try {
         const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, { new: true }).select("-password");
@@ -33,7 +33,7 @@ exports.updateUser = async (req, res) => {
     }
 };
 
-// 4️⃣ Admin xóa user
+
 exports.deleteUser = async (req, res) => {
     try {
         const deletedUser = await User.findByIdAndDelete(req.params.id);
@@ -44,7 +44,7 @@ exports.deleteUser = async (req, res) => {
     }
 };
 
-// 5️⃣ Admin xem lịch sử đơn hàng & điểm tích lũy của user
+
 exports.getUserOrders = async (req, res) => {
     try {
         const user = await User.findById(req.params.id).select("name email point");
@@ -57,7 +57,7 @@ exports.getUserOrders = async (req, res) => {
     }
 };
 
-// 6️⃣ Admin lấy tất cả đơn hàng
+
 exports.getAllOrders = async (req, res) => {
     try {
         const orders = await Order.find().populate("user", "name email").populate("items.book", "title price");
@@ -67,7 +67,7 @@ exports.getAllOrders = async (req, res) => {
     }
 };
 
-// 7️⃣ Admin cập nhật trạng thái đơn hàng
+
 exports.updateOrderStatus = async (req, res) => {
     try {
         const updatedOrder = await Order.findByIdAndUpdate(req.params.id, { orderStatus: req.body.orderStatus }, { new: true });
