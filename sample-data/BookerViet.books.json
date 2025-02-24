@@ -1,0 +1,198 @@
+[{
+  "_id": {
+    "$oid": "67b09f7137ee5d7ec44f5f1d"
+  },
+  "title": "The Time Machine",
+  "author": "H.G. Wells",
+  "genre": "Science Fiction",
+  "description": "A classic sci-fi novel about time travel.",
+  "language": "English",
+  "translator": null,
+  "publisher": "Penguin Books",
+  "publishDate": "1895-05-07",
+  "price": 12.99,
+  "originalPrice": 15.99,
+  "stock": 50,
+  "isActivated": true,
+  "isNewRelease": false,
+  "images": [],
+  "categories": [
+    "67b09cea37ee5d7ec44f5f12"
+  ]
+},
+{
+  "_id": {
+    "$oid": "67b09f7137ee5d7ec44f5f1e"
+  },
+  "title": "Pride and Prejudice",
+  "author": "Jane Austen",
+  "genre": "Romance",
+  "description": "A novel of manners that explores love and social standing.",
+  "language": "English",
+  "translator": null,
+  "publisher": "Oxford University Press",
+  "publishDate": "1813-01-28",
+  "price": 10.99,
+  "originalPrice": 14.99,
+  "stock": 40,
+  "isActivated": true,
+  "isNewRelease": false,
+  "images": [],
+  "categories": [
+    "67b09cea37ee5d7ec44f5f18"
+  ]
+},
+{
+  "_id": {
+    "$oid": "67b09f7137ee5d7ec44f5f1f"
+  },
+  "title": "1984",
+  "author": "George Orwell",
+  "genre": "Fiction",
+  "description": "A dystopian novel about totalitarian government surveillance.",
+  "language": "English",
+  "translator": null,
+  "publisher": "Secker & Warburg",
+  "publishDate": "1949-06-08",
+  "price": 13.99,
+  "originalPrice": 16.99,
+  "stock": 60,
+  "isActivated": true,
+  "isNewRelease": false,
+  "images": [],
+  "categories": [
+    "67b09cea37ee5d7ec44f5f10"
+  ]
+},
+{
+  "_id": {
+    "$oid": "67b09f7137ee5d7ec44f5f20"
+  },
+  "title": "The Hobbit",
+  "author": "J.R.R. Tolkien",
+  "genre": "Fantasy",
+  "description": "An adventure story set in Middle-earth.",
+  "language": "English",
+  "translator": null,
+  "publisher": "HarperCollins",
+  "publishDate": "1937-09-21",
+  "price": 14.99,
+  "originalPrice": 18.99,
+  "stock": 70,
+  "isActivated": true,
+  "isNewRelease": false,
+  "images": [],
+  "categories": [
+    "67b09cea37ee5d7ec44f5f13"
+  ]
+},
+{
+  "_id": {
+    "$oid": "67b09f7137ee5d7ec44f5f21"
+  },
+  "title": "Sherlock Holmes: The Complete Collection",
+  "author": "Arthur Conan Doyle",
+  "genre": "Mystery",
+  "description": "A collection of detective stories featuring Sherlock Holmes.",
+  "language": "English",
+  "translator": null,
+  "publisher": "Wordsworth Editions",
+  "publishDate": "1892-10-14",
+  "price": 20.99,
+  "originalPrice": 24.99,
+  "stock": 30,
+  "isActivated": true,
+  "isNewRelease": false,
+  "images": [],
+  "categories": [
+    "67b09cea37ee5d7ec44f5f14"
+  ]
+},
+{
+  "_id": {
+    "$oid": "67b09f7137ee5d7ec44f5f22"
+  },
+  "title": "Becoming",
+  "author": "Michelle Obama",
+  "genre": "Biography",
+  "description": "A memoir by the former First Lady of the United States.",
+  "language": "English",
+  "translator": null,
+  "publisher": "Crown Publishing",
+  "publishDate": "2018-11-13",
+  "price": 22.99,
+  "originalPrice": 26.99,
+  "stock": 20,
+  "isActivated": true,
+  "isNewRelease": true,
+  "images": [],
+  "categories": [
+    "67b09cea37ee5d7ec44f5f15"
+  ]
+},
+{
+  "_id": {
+    "$oid": "67b09f7137ee5d7ec44f5f23"
+  },
+  "title": "The Power of Habit",
+  "author": "Charles Duhigg",
+  "genre": "Self-Help",
+  "description": "An exploration of the science behind habit formation.",
+  "language": "English",
+  "translator": null,
+  "publisher": "Random House",
+  "publishDate": "2012-02-28",
+  "price": 18.99,
+  "originalPrice": 21.99,
+  "stock": 25,
+  "isActivated": true,
+  "isNewRelease": false,
+  "images": [],
+  "categories": [
+    "67b09cea37ee5d7ec44f5f16"
+  ]
+},
+{
+  "_id": {
+    "$oid": "67b09f7137ee5d7ec44f5f24"
+  },
+  "title": "Sapiens: A Brief History of Humankind",
+  "author": "Yuval Noah Harari",
+  "genre": "History",
+  "description": "A deep dive into the history and evolution of humankind.",
+  "language": "English",
+  "translator": null,
+  "publisher": "Harper",
+  "publishDate": "2011-01-01",
+  "price": 19.99,
+  "originalPrice": 23.99,
+  "stock": 35,
+  "isActivated": true,
+  "isNewRelease": false,
+  "images": [],
+  "categories": [
+    "67b09cea37ee5d7ec44f5f17"
+  ]
+},
+{
+  "_id": {
+    "$oid": "67b09f7137ee5d7ec44f5f25"
+  },
+  "title": "Dracula",
+  "author": "Bram Stoker",
+  "genre": "Horror",
+  "description": "A gothic horror novel featuring Count Dracula.",
+  "language": "English",
+  "translator": null,
+  "publisher": "Archibald Constable and Company",
+  "publishDate": "1897-05-26",
+  "price": 11.99,
+  "originalPrice": 14.99,
+  "stock": 45,
+  "isActivated": false,
+  "isNewRelease": false,
+  "images": [],
+  "categories": [
+    "67b09cea37ee5d7ec44f5f19"
+  ]
+}]

@@ -1,63 +1,179 @@
-import { Button, TextField, Divider, Typography } from "@mui/material";
+import { Button, TextField, Snackbar, Alert } from "@mui/material";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import Footer from "../components/reusable/Footer";
 import Header from "../components/reusable/Header";
-
-// import axios from 'axios';
+import axios from "axios";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 function ForgotPassword() {
-  // const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    rememberMe: false
-  });
+  const navigate = useNavigate(); // Khởi tạo navigate
+  const [step, setStep] = useState(1); // 1: email, 2: OTP, 3: new password
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [alert, setAlert] = useState({ open: false, message: "", severity: "info" });
+  const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
-    const { name, value, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'rememberMe' ? checked : value
-    }));
+
+  const handleAlert = (message, severity = "info") => {
+    setAlert({ open: true, message, severity });
   };
 
-  const handleSubmit = async (e) => {
-    // e.preventDefault();
-    // try {
-    //   const response = await axios.post('/api/login', formData);
-    //   // Handle successful login
-    //   navigate('/dashboard');
-    // } catch (error) {
-    //   console.error('Login failed:', error);
-    // }
+  const handleCloseAlert = () => {
+    setAlert({ ...alert, open: false });
   };
 
-  const handleGoogleLogin = () => {
-    // Implement Google login logic
-    console.log('Google login clicked');
+  const handleSendOTP = async (e) => {
+    e.preventDefault();
+    setLoading(true); // Bắt đầu loading
+    try {
+      const response = await axios.post("http://localhost:9999/auth/send-otp", {
+        email,
+        type: "reset-password"
+      });
+      handleAlert(response.data.message, "success");
+      setStep(2);
+    } catch (error) {
+      handleAlert(error.response?.data?.message || "Lỗi gửi OTP!", "error");
+    } finally {
+      setLoading(false); // Kết thúc loading
+    }
   };
-
-  // Styles for social login buttons
-  const facebookButtonStyle = {
-    flex: 1,
-    borderColor: '#1877F2',
-    color: '#1877F2',
-    '&:hover': {
-      backgroundColor: '#1877F2',
-      borderColor: '#1877F2',
-      color: 'white',
+  
+  const handleVerifyOTP = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const response = await axios.post("http://localhost:9999/auth/verify-otp", {
+        email,
+        otp,
+        type: "reset-password"
+      });
+      handleAlert(response.data.message, "success");
+      setStep(3);
+    } catch (error) {
+      handleAlert(error.response?.data?.message || "OTP không hợp lệ!", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    if (newPassword.length < 6) {
+      handleAlert("Mật khẩu phải có ít nhất 6 ký tự!", "error");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      handleAlert("Mật khẩu xác nhận không khớp!", "error");
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await axios.post("http://localhost:9999/auth/reset-password", {
+        email,
+        newPassword
+      });
+      handleAlert(response.data.message, "success");
+      navigate("/account/login", {
+        state: {
+          credentials: { email, password: newPassword }
+        }
+      });
+    } catch (error) {
+      handleAlert(error.response?.data?.message || "Lỗi đặt lại mật khẩu!", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const googleButtonStyle = {
-    flex: 1,
-    borderColor: '#DB4437',
-    color: '#DB4437',
-    '&:hover': {
-      backgroundColor: '#DB4437',
-      borderColor: '#DB4437',
-      color: 'white',
+  
+
+  const renderStep = () => {
+    switch (step) {
+      case 1:
+        return (
+          <form onSubmit={handleSendOTP} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            <TextField
+              required
+              fullWidth
+              id="email"
+              label="Email"
+              name="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              disabled={loading}
+              style={{ marginTop: '5px', padding: '10px' }}
+            >
+              {loading ? 'Đang xử lý...' : 'Gửi mã OTP'}
+            </Button>
+          </form>
+        );
+      case 2:
+        return (
+          <form onSubmit={handleVerifyOTP} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            <TextField
+              required
+              fullWidth
+              id="otp"
+              label="Mã OTP"
+              name="otp"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+            />
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              style={{ marginTop: '5px', padding: '10px' }}
+            >
+              Xác nhận OTP
+            </Button>
+          </form>
+        );
+      case 3:
+        return (
+          <form onSubmit={handleResetPassword} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            <TextField
+              required
+              fullWidth
+              id="newPassword"
+              label="Mật khẩu mới"
+              name="newPassword"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+            <TextField
+              required
+              fullWidth
+              id="confirmPassword"
+              label="Xác nhận mật khẩu"
+              name="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              style={{ marginTop: '5px', padding: '10px' }}
+            >
+              Đặt lại mật khẩu
+            </Button>
+          </form>
+        );
+      default:
+        return null;
     }
   };
 
@@ -71,79 +187,36 @@ function ForgotPassword() {
         boxShadow: '0 0 10px rgba(0,0,0,0.1)',
         borderRadius: '8px'
       }}>
-        <h1 style={{ textAlign: 'center', marginBottom: '10px' }}>QUÊN MẬT KHẨU</h1>
+        <h1 style={{ textAlign: 'center', marginBottom: '20px' }}>QUÊN MẬT KHẨU</h1>
+        
+        {renderStep()}
 
-        <div style={{ textAlign: 'center', marginTop: '15px', marginBottom: '15px' }}>
-          Nếu bạn chưa có tài khoản,&nbsp;
+        <div style={{ textAlign: 'center', marginTop: '15px' }}>
+          Đã có tài khoản?&nbsp;
           <Link
-            to="/account/register"
+            to="/account/login"
             style={{
               color: '#1976d2',
               textDecoration: 'none'
             }}
           >
-            đăng ký tại đây
+            Đăng nhập
           </Link>
         </div>
-
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          <TextField
-            required
-            fullWidth
-            id="email"
-            label="Email"
-            name="email"
-            autoComplete="email"
-            value={formData.email}
-            onChange={handleChange}
-          />
-
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            style={{ marginTop: '5px', padding: '10px' }}
-          >
-            Lấy lại mật khẩu
-          </Button>
-
-          <Divider sx={{ mb: 2 }}>
-            <Typography variant="body2" color="text.secondary">
-              Hoặc đăng nhập bằng
-            </Typography>
-          </Divider>
-
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <Button
-              variant="outlined"
-              onClick={handleGoogleLogin}
-              sx={facebookButtonStyle}
-            >
-              <img
-                src="https://www.facebook.com/favicon.ico"
-                alt="Facebook icon"
-                style={{ width: '16px', height: '16px', marginRight: '8px' }}
-              />
-              Facebook
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={handleGoogleLogin}
-              sx={googleButtonStyle}
-            >
-              <img
-                src="https://www.google.com/favicon.ico"
-                alt="Google icon"
-                style={{ width: '16px', height: '16px', marginRight: '8px' }}
-              />
-              Google
-            </Button>
-          </div>
-        </form>
       </div>
       <Footer />
+      
+      <Snackbar 
+        open={alert.open} 
+        autoHideDuration={6000} 
+        onClose={handleCloseAlert}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert onClose={handleCloseAlert} severity={alert.severity}>
+          {alert.message}
+        </Alert>
+      </Snackbar>
     </div>
-
   );
 }
 
