@@ -53,11 +53,13 @@ const Header = () => {
     return (
         <Box sx={{ borderBottom: "1px solid rgba(0, 0, 0, 0.1)", mb: 3 }}>
             <AppBar position="static" sx={{ backgroundColor: "#187bcd", boxShadow: "none" }}>
-                <Container>
+            <Container maxWidth="lg">
+
                     <Toolbar>
-                        <Typography variant="h6" sx={{ fontWeight: "bold", mr: 2 }}>
-                            BookerViet
-                        </Typography>
+                    <Typography variant="h6" sx={{ fontWeight: "bold", mr: 2, float: "left" }}>
+    BookerViet
+</Typography>
+
                         <Search sx={{ flexGrow: 1, maxWidth: "500px" }}>
                             <SearchIconWrapper>
                                 <SearchIcon />
