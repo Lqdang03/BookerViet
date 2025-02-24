@@ -8,8 +8,7 @@ const userRoutes = require("./routes/userRoute");
 const cartRoutes = require("./routes/cartRoute");
 const bookRoutes = require("./routes/bookRoute");
 const adminRoutes = require("./routes/adminRoute");
-
-
+const bookRoutes = require("./routes/bookRoute");
 const { checkAuthorize } = require("./middleware/authMiddleware");
 
 const app = express();
@@ -30,8 +29,8 @@ mongoose
 app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use("/cart", cartRoutes);
-app.use("/book", bookRoutes);
 app.use("/admin", adminRoutes);
+app.use("/book", bookRoutes);
 
 // Test phân quyền
 app.get("/open", (req, res) => {
