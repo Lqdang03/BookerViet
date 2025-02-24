@@ -8,7 +8,6 @@ const userRoutes = require("./routes/userRoute");
 const cartRoutes = require("./routes/cartRoute");
 const bookRoutes = require("./routes/bookRoute");
 const adminRoutes = require("./routes/adminRoute");
-const bookRoutes = require("./routes/bookRoute");
 const { checkAuthorize } = require("./middleware/authMiddleware");
 
 const app = express();
