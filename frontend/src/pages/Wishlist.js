@@ -166,7 +166,7 @@ function Wishlist() {
                     </Typography>
                     <Typography variant="body1" color="text.secondary">
                         Bạn chưa có sản phẩm yêu thích,{" "}
-                        <Link to="/products" style={{ color: '#1976d2', textDecoration: 'none' }}>
+                        <Link to="/" style={{ color: '#1976d2', textDecoration: 'none' }}>
                             vào đây
                         </Link>
                         {' '}để thêm thật nhiều sản phẩm vào yêu thích nào.
@@ -256,7 +256,7 @@ function Wishlist() {
                                             >
                                                 <CardMedia
                                                     component="img"
-                                                    image={book.images[0]}
+                                                    image={book?.images[0]} 
                                                     alt={book.title}
                                                     sx={{
                                                         width: '100%',
