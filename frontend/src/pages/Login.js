@@ -1,11 +1,9 @@
 import { Button, TextField, Divider, Typography, Checkbox, FormControlLabel, Snackbar, Alert } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import Footer from "../components/reusable/Footer";
-import Header from "../components/reusable/Header";
 import axios from 'axios';
 
-function Login() {
+function Login({ onLoginSuccess }) {
   const navigate = useNavigate();
   const location = useLocation(); 
   const [formData, setFormData] = useState({
@@ -15,16 +13,17 @@ function Login() {
   });
   const [alert, setAlert] = useState({ open: false, message: "", severity: "info" });
 
-  // Hiển thị thông báo Snackbar
+  // Handle alert display
   const handleAlert = (message, severity = "info") => {
     setAlert({ open: true, message, severity });
   };
 
-  // Đóng thông báo
+  // Close alert
   const handleCloseAlert = () => {
     setAlert({ ...alert, open: false });
   };
 
+  // Handle pre-filled credentials if available
   useEffect(() => {
     if (location.state?.credentials) {
       const { email, password } = location.state.credentials;
@@ -37,6 +36,7 @@ function Login() {
     }
   }, [location.state, location.pathname, navigate]);
   
+  // Handle form input changes
   const handleChange = (e) => {
     const { name, value, checked } = e.target;
     setFormData(prev => ({
@@ -45,42 +45,40 @@ function Login() {
     }));
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:9999/auth/login', {
+      const response = await axios.post("http://localhost:9999/auth/login", {
         email: formData.email,
-        password: formData.password
+        password: formData.password,
       });
-
+  
+      const token = response.data.token;
+  
       if (formData.rememberMe) {
-        localStorage.setItem('token', response.data.token);
-        if (response.data.role) {
-          localStorage.setItem('userRole', response.data.role);
-        }
+        localStorage.setItem("token", token);
+        localStorage.setItem("userEmail", formData.email);
       } else {
-        sessionStorage.setItem('token', response.data.token);
-        if (response.data.role) {
-          sessionStorage.setItem('userRole', response.data.role);
-        }
+        sessionStorage.setItem("token", token);
+        sessionStorage.setItem("userEmail", formData.email);
       }
 
-      setFormData({
-        email: '',
-        password: '',
-        rememberMe: false
-      });
-
+      // Call the onLoginSuccess prop with the email
+      onLoginSuccess(formData.email);
+      
       handleAlert("Đăng nhập thành công!", "success");
-      navigate('/');
+      
+      setFormData({ email: "", password: "", rememberMe: false });
+      navigate("/", { replace: true });
     } catch (error) {
-      handleAlert(error.response?.data?.message || 'Đăng nhập thất bại. Vui lòng thử lại!', "error");
+      console.error("Login error:", error);
+      handleAlert("Đăng nhập thất bại. Vui lòng kiểm tra lại email và mật khẩu.", "error");
     }
   };
 
   return (
     <div>
-      <Header />
       <div className="login-container" style={{
         maxWidth: '400px',
         margin: '40px auto',
@@ -196,9 +194,7 @@ function Login() {
           </div>
         </form>
       </div>
-      <Footer />
 
-      {/* Snackbar giống ForgotPassword */}
       <Snackbar 
         open={alert.open} 
         autoHideDuration={6000} 

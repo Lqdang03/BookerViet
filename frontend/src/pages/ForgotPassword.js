@@ -1,8 +1,6 @@
 import { Button, TextField, Snackbar, Alert } from "@mui/material";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import Footer from "../components/reusable/Footer";
-import Header from "../components/reusable/Header";
 import axios from "axios";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 
@@ -179,7 +177,6 @@ function ForgotPassword() {
 
   return (
     <div>
-      <Header/>
       <div className="login-container" style={{
         maxWidth: '400px',
         margin: '40px auto',
@@ -204,7 +201,6 @@ function ForgotPassword() {
           </Link>
         </div>
       </div>
-      <Footer />
       
       <Snackbar 
         open={alert.open} 

@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { Button, TextField, Divider, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, Alert } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import axios from 'axios';
-import Footer from "../components/reusable/Footer";
-import Header from "../components/reusable/Header";
 
 function Register() {
   const navigate = useNavigate();
@@ -170,7 +168,6 @@ const handleVerifyOTP = async () => {
 
   return (
     <div>
-      <Header />
       <div className="login-container" style={{
         maxWidth: '400px',
         margin: '40px auto',
@@ -322,7 +319,6 @@ const handleVerifyOTP = async () => {
           </DialogActions>
         </Dialog>
       </div>
-      <Footer />
 
       {/* Snackbar to show OTP resend success message */}
        <>
