@@ -17,7 +17,7 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import axios from "axios";
 
-const HomePage = () => {
+const HomePage = ({ updateWishlistCount, updateCartData }) => {
     const [books, setBooks] = useState([]);
     const [notifications, setNotifications] = useState([]);
     const [wishlist, setWishlist] = useState([]);
@@ -31,73 +31,35 @@ const HomePage = () => {
     const addToWishlist = async (bookId) => {
         const token = localStorage.getItem("token") || sessionStorage.getItem("token");
         if (!token) {
-            setNotifications(prev => [...prev, {
-                id: Date.now(),
-                message: "Vui lòng đăng nhập để thêm vào yêu thích",
-                severity: "warning"
-            }]);
+            setNotifications(prev => [...prev, { id: Date.now(), message: "Vui lòng đăng nhập để thêm vào yêu thích", severity: "warning" }]);
             return;
         }
 
         try {
-            await axios.post(`http://localhost:9999/user/wishlist/${bookId}`, {}, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
+            await axios.post(`http://localhost:9999/user/wishlist/${bookId}`, {}, { headers: { Authorization: `Bearer ${token}` } });
 
             setWishlist(prev => [...prev, bookId]);
-            setNotifications(prev => [...prev, {
-                id: Date.now(),
-                message: "Đã thêm vào danh sách yêu thích",
-                severity: "success"
-            }]);
+            updateWishlistCount(prev => prev + 1); // Cập nhật số lượng sản phẩm yêu thích
+            setNotifications(prev => [...prev, { id: Date.now(), message: "Đã thêm vào danh sách yêu thích", severity: "success" }]);
         } catch (error) {
-            setNotifications(prev => [...prev, {
-                id: Date.now(),
-                message: "Không thể thêm vào danh sách yêu thích",
-                severity: "error"
-            }]);
+            setNotifications(prev => [...prev, { id: Date.now(), message: "Không thể thêm vào danh sách yêu thích", severity: "error" }]);
         }
     };
 
     const addToCart = async (bookId) => {
         const token = localStorage.getItem("token") || sessionStorage.getItem("token");
         if (!token) {
-            setNotifications(prev => [...prev, {
-                id: Date.now(),
-                message: "Vui lòng đăng nhập để thêm vào giỏ hàng",
-                severity: "warning"
-            }]);
+            setNotifications(prev => [...prev, { id: Date.now(), message: "Vui lòng đăng nhập để thêm vào giỏ hàng", severity: "warning" }]);
             return;
         }
-    
+
         try {
-            await axios.post("http://localhost:9999/cart/add", { bookId, quantity: 1 }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-    
-            // Kiểm tra API lấy giỏ hàng có bị lỗi không
-            const response = await axios.get("http://localhost:9999/cart", {
-                headers: { Authorization: `Bearer ${token}` } // Thêm token nếu cần
-            });
-    
-            const updatedCart = response.data.cartItems;
-            localStorage.setItem("cart", JSON.stringify(updatedCart));
-            window.dispatchEvent(new Event("cartUpdated"));
-    
-            setNotifications(prev => [...prev, {
-                id: Date.now(),
-                message: "Đã thêm vào giỏ hàng",
-                severity: "success"
-            }]);
+            await axios.post("http://localhost:9999/cart/add", { bookId, quantity: 1 }, { headers: { Authorization: `Bearer ${token}` } });
+
+            updateCartData(); // Cập nhật lại giỏ hàng
+            setNotifications(prev => [...prev, { id: Date.now(), message: "Đã thêm vào giỏ hàng", severity: "success" }]);
         } catch (error) {
-            console.error("Lỗi khi thêm vào giỏ hàng:", error.response?.data || error.message);
-            setNotifications(prev => [...prev, {
-                id: Date.now(),
-                message: "Lỗi: " + (error.response?.data?.message || "Không thể thêm vào giỏ hàng"),
-                severity: "error"
-            }]);
+            setNotifications(prev => [...prev, { id: Date.now(), message: "Không thể thêm vào giỏ hàng", severity: "error" }]);
         }
     };
     

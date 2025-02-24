@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { 
     Typography, 
     Box, 
@@ -16,7 +16,7 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-function Wishlist() {
+function Wishlist({ updateWishlistCount }) {
     const navigate = useNavigate();
     const [wishlist, setWishlist] = useState([]);
     const [notifications, setNotifications] = useState([]);
@@ -40,7 +40,7 @@ function Wishlist() {
         return token;
     };
 
-    const fetchWishlist = async () => {
+    const fetchWishlist = useCallback(async () => {
         const token = verifyAuth();
         if (!token) {
             setLoading(false);
@@ -58,6 +58,10 @@ function Wishlist() {
             
             if (response.data && response.data.wishlist) {
                 setWishlist(response.data.wishlist);
+                // Update count in parent component
+                if (updateWishlistCount) {
+                    updateWishlistCount(response.data.wishlist.length);
+                }
                 setError(null);
             }
         } catch (err) {
@@ -75,7 +79,7 @@ function Wishlist() {
         } finally {
             setLoading(false);
         }
-    };
+    },[]);
 
     const removeFromWishlist = async (bookId) => {
         const token = verifyAuth();
@@ -92,7 +96,14 @@ function Wishlist() {
                 }
             });
             
-            setWishlist(prev => prev.filter(book => book._id !== bookId));
+            const updatedWishlist = wishlist.filter(book => book._id !== bookId);
+            setWishlist(updatedWishlist);
+            
+            // Update count in parent component
+            if (updateWishlistCount) {
+                updateWishlistCount(updatedWishlist.length);
+            }
+            
             setNotifications(prev => [...prev, {
                 id: Date.now(),
                 message: 'Đã xóa sách khỏi danh sách yêu thích',
@@ -118,7 +129,8 @@ function Wishlist() {
 
     useEffect(() => {
         fetchWishlist();
-    }, [navigate]);
+      }, [fetchWishlist]); // Thêm fetchWishlist vào dependencies
+      
 
     const WishlistContent = () => {
         if (!isAuthenticated) {

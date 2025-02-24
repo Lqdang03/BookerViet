@@ -48,7 +48,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
     },
 }));
 
-const Header = ({ userEmail, updateUserEmail, wishlistCount = 0, cartTotal = 0 }) => {
+const Header = ({ userEmail, updateUserEmail, wishlistCount = 0, cartCount = 0, cartTotal = 0 }) => {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     
@@ -193,13 +193,9 @@ const Header = ({ userEmail, updateUserEmail, wishlistCount = 0, cartTotal = 0 }
                             }}
                         >
                             <IconButton size="large" color="inherit">
-                                <Badge 
-                                    badgeContent={wishlistCount} 
-                                    color="error"
-                                    showZero
-                                >
-                                    <FavoriteBorderIcon />
-                                </Badge>
+                            <Badge badgeContent={wishlistCount} color="error" showZero>
+    <FavoriteBorderIcon />
+</Badge>
                             </IconButton>
                             <Box sx={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
                                 <Typography
@@ -242,13 +238,10 @@ const Header = ({ userEmail, updateUserEmail, wishlistCount = 0, cartTotal = 0 }
                             }}
                         >
                             <IconButton size="large" color="inherit">
-                                <Badge 
-                                    badgeContent={cartTotal > 0 ? 1 : 0} 
-                                    color="error"
-                                    showZero
-                                >
-                                    <AddShoppingCartIcon />
-                                </Badge>
+                            <Badge badgeContent={cartCount} color="error" showZero>
+                    <AddShoppingCartIcon />
+                </Badge>
+
                             </IconButton>
                             <Box sx={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
                                 <Typography
@@ -272,7 +265,7 @@ const Header = ({ userEmail, updateUserEmail, wishlistCount = 0, cartTotal = 0 }
                                         cursor: "pointer"
                                     }}
                                 >
-                                    {displayCartTotal}
+                                    {cartTotal.toLocaleString()}đ
                                 </Typography>
                             </Box>
                         </MenuItem>
