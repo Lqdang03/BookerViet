@@ -7,6 +7,7 @@ const authRoutes = require("./routes/authRoute");
 const userRoutes = require("./routes/userRoute");
 const cartRoutes = require("./routes/cartRoute");
 const bookRoutes = require("./routes/bookRoute");
+const categoryRoutes = require("./routes/categoryRoute");
 const { checkAuthorize } = require("./middleware/authMiddleware");
 
 const app = express();
@@ -27,6 +28,7 @@ app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use("/cart", cartRoutes);
 app.use("/book", bookRoutes);
+app.use("/category", categoryRoutes);
 
 // Test phân quyền
 app.get("/open", (req, res) => {
