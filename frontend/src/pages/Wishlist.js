@@ -20,7 +20,6 @@ function Wishlist({ updateWishlistCount }) {
     const navigate = useNavigate();
     const [wishlist, setWishlist] = useState([]);
     const [notifications, setNotifications] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -43,12 +42,10 @@ function Wishlist({ updateWishlistCount }) {
     const fetchWishlist = useCallback(async () => {
         const token = verifyAuth();
         if (!token) {
-            setLoading(false);
             return;
         }
     
         try {
-            setLoading(true);
             const response = await axios.get("http://localhost:9999/user/wishlist", {
                 headers: { 
                     Authorization: `Bearer ${token}`,
@@ -74,10 +71,8 @@ function Wishlist({ updateWishlistCount }) {
                 return;
             }
             setError("Không thể tải danh sách yêu thích. Vui lòng thử lại sau.");
-        } finally {
-            setLoading(false);
         }
-    }, [updateWishlistCount]);  // Add `updateWishlistCount` here
+    }, [updateWishlistCount]);
     
 
     const removeFromWishlist = async (bookId) => {
@@ -128,7 +123,7 @@ function Wishlist({ updateWishlistCount }) {
 
     useEffect(() => {
         fetchWishlist();
-      }, [fetchWishlist]); // Thêm fetchWishlist vào dependencies
+    }, [fetchWishlist]);
       
 
     const WishlistContent = () => {
@@ -149,14 +144,6 @@ function Wishlist({ updateWishlistCount }) {
                         </Link>
                         {" "}để có thể thêm thật nhiều sản phẩm vào yêu thích.
                     </Typography>
-                </Box>
-            );
-        }
-
-        if (loading) {
-            return (
-                <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-                    <Typography>Loading...</Typography>
                 </Box>
             );
         }
@@ -312,9 +299,7 @@ function Wishlist({ updateWishlistCount }) {
                                                     cursor: 'pointer',
                                                     marginBottom: '5px',
                                                     paddingBottom: "5px",
-                                                    '&:hover': {
-                                                        color: "red"
-                                                    }
+                                                    '&:hover': { color: '#187bcd' }
                                                 }}
                                             >
                                                 {book.title}

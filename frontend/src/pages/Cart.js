@@ -167,7 +167,7 @@ function Cart({ updateCartData }) {
                             fontWeight: "bold",
                             fontSize: "1rem",
                             ml: 5,
-                            "&:hover": { color: "red" },
+                            '&:hover': { color: '#187bcd' }
                           }}
                         >
                           <Link

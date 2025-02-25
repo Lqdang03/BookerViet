@@ -202,9 +202,7 @@ const HomePage = ({ updateWishlistCount, updateCartData }) => {
                                                 cursor: 'pointer',
                                                 marginBottom: '5px',
                                                 paddingBottom: "5px",
-                                                '&:hover': {
-                                                    color: "red"
-                                                }
+                                                '&:hover': { color: '#187bcd' }
                                             }}
                                         >
                                             {book.title}
