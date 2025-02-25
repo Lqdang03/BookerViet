@@ -46,7 +46,7 @@ function Wishlist({ updateWishlistCount }) {
             setLoading(false);
             return;
         }
-
+    
         try {
             setLoading(true);
             const response = await axios.get("http://localhost:9999/user/wishlist", {
@@ -58,7 +58,6 @@ function Wishlist({ updateWishlistCount }) {
             
             if (response.data && response.data.wishlist) {
                 setWishlist(response.data.wishlist);
-                // Update count in parent component
                 if (updateWishlistCount) {
                     updateWishlistCount(response.data.wishlist.length);
                 }
@@ -68,7 +67,6 @@ function Wishlist({ updateWishlistCount }) {
             console.error('Wishlist fetch error:', err);
             if (err.response?.status === 401) {
                 setIsAuthenticated(false);
-                // Clear auth data on unauthorized
                 localStorage.removeItem("token");
                 localStorage.removeItem("userEmail");
                 sessionStorage.removeItem("token");
@@ -79,7 +77,8 @@ function Wishlist({ updateWishlistCount }) {
         } finally {
             setLoading(false);
         }
-    },[]);
+    }, [updateWishlistCount]);  // Add `updateWishlistCount` here
+    
 
     const removeFromWishlist = async (bookId) => {
         const token = verifyAuth();
@@ -195,10 +194,10 @@ function Wishlist({ updateWishlistCount }) {
                     </Typography>
                     <Grid container spacing={3} justifyContent="flex-start">
                         {wishlist.map((book) => (
-                            <Grid item xs={12} sm={6} md={4} lg={2.4} key={book._id}>
+                            <Grid item xs={12} sm={6} md={4} lg={3} key={book._id}>
                                 <Card sx={{
                                     width: 220,
-                                    minHeight: 300,
+                                    minHeight: 250,
                                     display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'center',
@@ -237,8 +236,8 @@ function Wishlist({ updateWishlistCount }) {
                                             size="small"
                                             sx={{
                                                 position: 'absolute',
-                                                bottom: 10,
-                                                right: 15,
+                                                bottom: 5,
+                                                right: 20,
                                                 bgcolor: 'rgba(255, 255, 255, 0.8)',
                                                 '&:hover': {
                                                     bgcolor: 'rgba(255, 255, 255, 0.9)'

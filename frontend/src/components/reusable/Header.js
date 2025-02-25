@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { AppBar, Toolbar, Typography, Button, Box, IconButton, Container } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { AppBar, Toolbar, Typography, Button, Box, IconButton, Container, Popper, Paper, ClickAwayListener, Fade, Grid } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import PersonPinOutlinedIcon from '@mui/icons-material/PersonPinOutlined';
@@ -10,6 +10,8 @@ import MenuItem from '@mui/material/MenuItem';
 import Badge from '@mui/material/Badge';
 import InputBase from '@mui/material/InputBase';
 import { styled } from '@mui/material/styles';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import axios from "axios";
 
 const Search = styled('div')(({ theme }) => ({
     position: 'relative',
@@ -48,9 +50,49 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
     },
 }));
 
+const CategoryMenuItem = styled(MenuItem)(({ theme }) => ({
+    padding: theme.spacing(1, 2),
+    '&:hover': {
+        backgroundColor: '#f5f5f5',
+        color: '#187bcd',
+    },
+}));
+
 const Header = ({ userEmail, updateUserEmail, wishlistCount = 0, cartCount = 0, cartTotal = 0, updateCartCount, updateCartTotal, updateWishlistCount }) => {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
+    const [anchorEl, setAnchorEl] = useState(null);
+    const [categories, setCategories] = useState([]);
+    const [categoryBooks, setCategoryBooks] = useState({});
+    const [activeCategory, setActiveCategory] = useState(null);
+    
+    // Fetch categories on component mount
+    useEffect(() => {
+        fetchCategories();
+    }, []);
+    
+    const fetchCategories = async () => {
+        try {
+            const response = await axios.get("http://localhost:9999/category/");
+            setCategories(response.data);
+        } catch (error) {
+            console.error("Lỗi khi lấy danh mục:", error);
+        }
+    };
+    
+    const fetchBooksByCategory = async (categoryId) => {
+        if (categoryBooks[categoryId]) return; // Already fetched
+        
+        try {
+            const response = await axios.get(`http://localhost:9999/book/category/${categoryId}`);
+            setCategoryBooks(prev => ({
+                ...prev,
+                [categoryId]: response.data
+            }));
+        } catch (error) {
+            console.error(`Lỗi khi lấy sách cho danh mục ${categoryId}:`, error);
+        }
+    };
     
     const formatPrice = (price) => {
         return new Intl.NumberFormat('vi-VN', {
@@ -89,10 +131,29 @@ const Header = ({ userEmail, updateUserEmail, wishlistCount = 0, cartCount = 0, 
     const handleSearch = (event) => {
         setSearchTerm(event.target.value);
     };
+    
+    const handleCategoryClick = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+    
+    const handleClose = () => {
+        setAnchorEl(null);
+        setActiveCategory(null);
+    };
+    
+    const handleCategoryHover = (category) => {
+        setActiveCategory(category);
+        fetchBooksByCategory(category._id);
+    };
+    
+    const handleCategoryClick2 = (categoryId) => {
+        navigate(`/category/${categoryId}`);
+        handleClose();
+    };
 
     const displayWishlistText = wishlistCount === 1 ? "1 Sản phẩm" : `${wishlistCount} Sản phẩm`;
-    // Removed the unused displayCartTotal variable
-
+    const open = Boolean(anchorEl);
+    
     return (
         <Box sx={{ borderBottom: "1px solid rgba(0, 0, 0, 0.1)", mb: 3 }}>
             <AppBar position="static" sx={{ backgroundColor: "#187bcd", boxShadow: "none" }}>
@@ -302,10 +363,157 @@ const Header = ({ userEmail, updateUserEmail, wishlistCount = 0, cartCount = 0, 
             >
                 <Button
                     variant="contained"
-                    sx={{ backgroundColor: "#d32f2f", "&:hover": { backgroundColor: "#d32f2f" } }}
+                    sx={{ 
+                        backgroundColor: "#d32f2f", 
+                        "&:hover": { backgroundColor: "#d32f2f" },
+                        display: "flex",
+                        alignItems: "center"
+                    }}
+                    onClick={handleCategoryClick}
+                    aria-haspopup="true"
+                    endIcon={<KeyboardArrowDownIcon />}
                 >
                     DANH MỤC SẢN PHẨM
                 </Button>
+                
+                {/* Category Dropdown Menu */}
+                <Popper
+                    open={open}
+                    anchorEl={anchorEl}
+                    placement="bottom-start"
+                    transition
+                    style={{ zIndex: 1300 }}
+                >
+                    {({ TransitionProps }) => (
+                        <Fade {...TransitionProps} timeout={350}>
+                            <Paper sx={{ 
+                                width: '800px', 
+                                display: 'flex',
+                                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
+                            }}>
+                                <ClickAwayListener onClickAway={handleClose}>
+                                    <Box sx={{ display: 'flex', width: '100%' }}>
+                                        {/* Left panel - Categories list */}
+                                        <Box sx={{ 
+                                            width: '30%', 
+                                            borderRight: '1px solid #eee',
+                                            maxHeight: '400px',
+                                            overflowY: 'auto'
+                                        }}>
+                                            {categories.map((category) => (
+                                                <CategoryMenuItem 
+                                                    key={category._id}
+                                                    onClick={() => handleCategoryClick2(category._id)}
+                                                    onMouseEnter={() => handleCategoryHover(category)}
+                                                    sx={{
+                                                        backgroundColor: activeCategory && activeCategory._id === category._id ? '#f5f5f5' : 'transparent',
+                                                        color: activeCategory && activeCategory._id === category._id ? '#187bcd' : 'inherit',
+                                                        fontWeight: activeCategory && activeCategory._id === category._id ? 'bold' : 'normal',
+                                                    }}
+                                                >
+                                                    {category.name}
+                                                </CategoryMenuItem>
+                                            ))}
+                                        </Box>
+                                        
+                                        {/* Right panel - Books in category */}
+                                        <Box sx={{ 
+                                            width: '70%', 
+                                            padding: 2,
+                                            maxHeight: '400px',
+                                            overflowY: 'auto'
+                                        }}>
+                                            {activeCategory ? (
+                                                <>
+                                                    <Typography 
+                                                        variant="h6" 
+                                                        sx={{ 
+                                                            mb: 2, 
+                                                            color: '#187bcd', 
+                                                            borderBottom: '1px solid #eee',
+                                                            paddingBottom: 1
+                                                        }}
+                                                    >
+                                                        {activeCategory.name}
+                                                    </Typography>
+                                                    
+                                                    {categoryBooks[activeCategory._id] ? (
+                                                        <Grid container spacing={2}>
+                                                            {categoryBooks[activeCategory._id].slice(0, 6).map((book) => (
+                                                                <Grid item xs={4} key={book._id}>
+                                                                    <Box 
+                                                                        component={Link}
+                                                                        to={`/book/${book._id}`}
+                                                                        sx={{ 
+                                                                            display: 'flex', 
+                                                                            alignItems: 'center',
+                                                                            textDecoration: 'none',
+                                                                            color: 'inherit',
+                                                                            '&:hover': {
+                                                                                color: '#187bcd'
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        <Box 
+                                                                            sx={{ 
+                                                                                width: 50, 
+                                                                                height: 70, 
+                                                                                marginRight: 1,
+                                                                                display: 'flex',
+                                                                                alignItems: 'center',
+                                                                                justifyContent: 'center',
+                                                                                border: '1px solid #eee'
+                                                                            }}
+                                                                        >
+                                                                            <img 
+                                                                                src={book.images && book.images[0]} 
+                                                                                alt={book.title} 
+                                                                                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                                                                            />
+                                                                        </Box>
+                                                                        <Typography 
+                                                                            variant="body2"
+                                                                            sx={{
+                                                                                overflow: 'hidden',
+                                                                                textOverflow: 'ellipsis',
+                                                                                display: '-webkit-box',
+                                                                                WebkitLineClamp: 2,
+                                                                                WebkitBoxOrient: 'vertical',
+                                                                            }}
+                                                                        >
+                                                                            {book.title}
+                                                                        </Typography>
+                                                                    </Box>
+                                                                </Grid>
+                                                            ))}
+                                                        </Grid>
+                                                    ) : (
+                                                        <Typography variant="body2">Đang tải sách...</Typography>
+                                                    )}
+                                                    
+                                                    <Button 
+                                                        component={Link} 
+                                                        to={`/category/${activeCategory._id}`}
+                                                        variant="outlined" 
+                                                        color="primary"
+                                                        size="small"
+                                                        sx={{ mt: 2 }}
+                                                        onClick={handleClose}
+                                                    >
+                                                        Xem tất cả
+                                                    </Button>
+                                                </>
+                                            ) : (
+                                                <Typography variant="body1">Vui lòng chọn danh mục để xem sách</Typography>
+                                            )}
+                                        </Box>
+                                    </Box>
+                                </ClickAwayListener>
+                            </Paper>
+                        </Fade>
+                    )}
+                </Popper>
+                
                 <Box sx={{ display: "flex", gap: 2 }}>
                     <Button color="inherit" sx={{ backgroundColor: "transparent !important", "&:hover": { backgroundColor: "transparent !important", color: "#187bcd" } }}>
                         Sản phẩm đã xem
