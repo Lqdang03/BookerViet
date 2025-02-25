@@ -15,7 +15,6 @@ function App() {
   const [wishlistCount, setWishlistCount] = useState(0);
   const [cartTotal, setCartTotal] = useState(0);
   const [cartCount, setCartCount] = useState(0);
-  const [cartItems, setCartItems] = useState([]);
 
   useEffect(() => {
     const storedEmail = localStorage.getItem("userEmail") || sessionStorage.getItem("userEmail");
@@ -54,13 +53,13 @@ function App() {
         });
 
         if (response.data && response.data.cartItems) {
-            setCartCount(response.data.cartItems.length); // Cập nhật số lượng sách khác nhau
+            setCartCount(response.data.cartItems.length);
             setCartTotal(response.data.cartItems.reduce((sum, item) => sum + item.book.price * item.quantity, 0));
         }
     } catch (error) {
         console.error("Error fetching cart data:", error);
     }
-};
+  };
 
   const updateUserEmail = (email) => {
     setUserEmail(email);
@@ -73,36 +72,26 @@ function App() {
       // If user logs out, reset counts
       setWishlistCount(0);
       setCartTotal(0);
-      setCartItems([]);
+      setCartCount(0);
     }
-  };
-
-  // Create methods to update wishlist and cart counts from child components
-  const updateWishlistCount = (count) => {
-    setWishlistCount(count);
-  };
-  
-  const updateCartData = () => {
-    fetchCartData();
   };
 
   return (
     <BrowserRouter>
       <Header 
-    userEmail={userEmail} 
-    updateUserEmail={updateUserEmail}
-    wishlistCount={wishlistCount}
-    cartCount={cartCount} 
-    cartTotal={cartTotal}
-/>
+        userEmail={userEmail} 
+        updateUserEmail={updateUserEmail}
+        wishlistCount={wishlistCount}
+        cartCount={cartCount} 
+        cartTotal={cartTotal}
+      />
       <Routes>
         <Route path="/account/login" element={<Login onLoginSuccess={updateUserEmail} />} />
         <Route path="/account/register" element={<Resgiter />} />
         <Route path="/account/forgotpassword" element={<ForgotPassword />} />
-        <Route path="/" element={<HomePage updateWishlistCount={setWishlistCount} updateCartData={fetchCartData} />} />
-<Route path="/user/wishlist" element={<Wishlist updateWishlistCount={setWishlistCount} />} />
-<Route path="/cart" element={<Cart updateCartData={fetchCartData} />} />
-
+        <Route path="/" element={<HomePage updateWishlistCount={fetchWishlistCount} updateCartData={fetchCartData} />} />
+        <Route path="/user/wishlist" element={<Wishlist updateWishlistCount={fetchWishlistCount} />} />
+        <Route path="/cart" element={<Cart updateCartData={fetchCartData} />} />
       </Routes>
       <Footer />
     </BrowserRouter>
