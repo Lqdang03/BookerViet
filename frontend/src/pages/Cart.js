@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Container,
   Typography,
@@ -20,95 +20,102 @@ import RemoveIcon from "@mui/icons-material/Remove";
 import DeleteIcon from "@mui/icons-material/Delete";
 import axios from "axios";
 
-function Cart() {
+function Cart({ updateCartData }) {
   const [cartItems, setCartItems] = useState([]);
 
-  // Fetch cart items when the component mounts
-  useEffect(() => {
-    fetchCart();
-  }, []);
+ 
+  
 
-  const fetchCart = async () => {
+  const fetchCart = useCallback(async () => {
     try {
-        const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-        if (!token) {
-            console.error("Không tìm thấy token, vui lòng đăng nhập lại.");
-            return;
-        }
+      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      if (!token) {
+        console.error("Không tìm thấy token, vui lòng đăng nhập lại.");
+        return;
+      }
 
-        const response = await axios.get("http://localhost:9999/cart", {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+      const response = await axios.get("http://localhost:9999/cart", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-        setCartItems(response.data.cartItems);
+      setCartItems(response.data.cartItems);
+      
+      // Update parent component
+      if (updateCartData) {
+        updateCartData();
+      }
     } catch (error) {
-        console.error("Error fetching cart:", error.response?.data || error.message);
+      console.error("Error fetching cart:", error.response?.data || error.message);
     }
-};
+  },[]);
 
+   // Fetch cart items when the component mounts
+   useEffect(() => {
+    fetchCart();
+  }, [fetchCart]); // Thêm fetchCart vào dependencies
 
-const handleIncrease = async (id) => {
+  const handleIncrease = async (id) => {
     const updatedItem = cartItems.find((item) => item.book._id === id);
     if (updatedItem) {
-        try {
-            const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-            if (!token) {
-                console.error("Không tìm thấy token, vui lòng đăng nhập lại.");
-                return;
-            }
-
-            await axios.put("http://localhost:9999/cart/update", 
-                { bookId: id, quantity: updatedItem.quantity + 1 }, 
-                { headers: { Authorization: `Bearer ${token}` } } // ✅ Thêm header
-            );
-            fetchCart();
-        } catch (error) {
-            console.error("Error updating quantity:", error);
-        }
-    }
-};
-
-
-const handleDecrease = async (id) => {
-    const updatedItem = cartItems.find((item) => item.book._id === id);
-    if (updatedItem && updatedItem.quantity > 1) {
-        try {
-            const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-            if (!token) {
-                console.error("Không tìm thấy token, vui lòng đăng nhập lại.");
-                return;
-            }
-
-            await axios.put("http://localhost:9999/cart/update", 
-                { bookId: id, quantity: updatedItem.quantity - 1 }, 
-                { headers: { Authorization: `Bearer ${token}` } } // ✅ Thêm header
-            );
-            fetchCart();
-        } catch (error) {
-            console.error("Error updating quantity:", error);
-        }
-    } else {
-        handleRemove(id);
-    }
-};
-
-
-const handleRemove = async (id) => {
-    try {
+      try {
         const token = localStorage.getItem("token") || sessionStorage.getItem("token");
         if (!token) {
-            console.error("Không tìm thấy token, vui lòng đăng nhập lại.");
-            return;
+          console.error("Không tìm thấy token, vui lòng đăng nhập lại.");
+          return;
         }
 
-        await axios.delete(`http://localhost:9999/cart/remove/${id}`, {
-            headers: { Authorization: `Bearer ${token}` } // ✅ Thêm header
-        });
+        await axios.put("http://localhost:9999/cart/update",
+          { bookId: id, quantity: updatedItem.quantity + 1 },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
         fetchCart();
-    } catch (error) {
-        console.error("Error removing item:", error);
+      } catch (error) {
+        console.error("Error updating quantity:", error);
+      }
     }
-};
+  };
+
+
+  const handleDecrease = async (id) => {
+    const updatedItem = cartItems.find((item) => item.book._id === id);
+    if (updatedItem && updatedItem.quantity > 1) {
+      try {
+        const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+        if (!token) {
+          console.error("Không tìm thấy token, vui lòng đăng nhập lại.");
+          return;
+        }
+
+        await axios.put("http://localhost:9999/cart/update",
+          { bookId: id, quantity: updatedItem.quantity - 1 },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        fetchCart();
+      } catch (error) {
+        console.error("Error updating quantity:", error);
+      }
+    } else {
+      handleRemove(id);
+    }
+  };
+
+
+  const handleRemove = async (id) => {
+    try {
+      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      if (!token) {
+        console.error("Không tìm thấy token, vui lòng đăng nhập lại.");
+        return;
+      }
+
+      await axios.delete(`http://localhost:9999/cart/remove/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchCart();
+    } catch (error) {
+      console.error("Error removing item:", error);
+    }
+  };
 
 
   const totalAmount = cartItems.reduce(
@@ -134,7 +141,7 @@ const handleRemove = async (id) => {
               <TableHead>
                 <TableRow>
                   <TableCell>Thông tin sản phẩm</TableCell>
-                  <TableCell></TableCell>
+
                   <TableCell sx={{ textAlign: "center" }}>Đơn giá</TableCell>
                   <TableCell sx={{ textAlign: "center" }}>Số lượng</TableCell>
                   <TableCell sx={{ textAlign: "center" }}>Thành tiền</TableCell>
@@ -145,12 +152,40 @@ const handleRemove = async (id) => {
                 {cartItems.map((item) => (
                   <TableRow key={item.book._id}>
                     <TableCell>
-                      <img src={item.book.images} alt={item.book.name} width={100} />
+                      <Box sx={{ display: "flex", alignItems: "center" }}>
+                        <Link to={`/book/${item.book._id}`} style={{ textDecoration: "none" }}>
+                          <img
+                            src={item.book.images}
+                            alt={item.book.name}
+                            width={80}
+                            height={100}
+                            style={{ objectFit: "cover", borderRadius: "5px", cursor: "pointer" }}
+                          />
+                        </Link>
+                        <Typography
+                          sx={{
+                            fontWeight: "bold",
+                            fontSize: "1rem",
+                            ml: 5,
+                            "&:hover": { color: "red" },
+                          }}
+                        >
+                          <Link
+                            to={`/book/${item.book._id}`}
+                            style={{ textDecoration: "none", color: "inherit" }}
+                          >
+                            {item.book.title}
+                          </Link>
+                        </Typography>
+                      </Box>
                     </TableCell>
-                    <TableCell>{item.book.title}</TableCell>
-                    <TableCell sx={{ textAlign: "center" }}>
+
+
+
+                    <TableCell sx={{ textAlign: "center", color: "red" }}>
                       {item.book.price.toLocaleString()}₫
                     </TableCell>
+
                     <TableCell sx={{ textAlign: "center" }}>
                       <IconButton onClick={() => handleDecrease(item.book._id)}>
                         <RemoveIcon />
@@ -160,9 +195,11 @@ const handleRemove = async (id) => {
                         <AddIcon />
                       </IconButton>
                     </TableCell>
-                    <TableCell sx={{ textAlign: "center" }}>
+
+                    <TableCell sx={{ textAlign: "center", color: "red" }}>
                       {(item.book.price * item.quantity).toLocaleString()}₫
                     </TableCell>
+
                     <TableCell>
                       <IconButton onClick={() => handleRemove(item.book._id)} color="error">
                         <DeleteIcon />
@@ -171,6 +208,7 @@ const handleRemove = async (id) => {
                   </TableRow>
                 ))}
               </TableBody>
+
             </Table>
           </TableContainer>
           <Box sx={{ mt: 2, textAlign: "right" }}>
