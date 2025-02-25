@@ -23,12 +23,29 @@ const HomePage = ({ updateWishlistCount, updateCartData }) => {
     const [wishlist, setWishlist] = useState([]);
 
     useEffect(() => {
+        // Fetch books
         axios.get("http://localhost:9999/book/")
             .then(response => setBooks(response.data))
             .catch(error => console.error("Lỗi khi lấy danh sách sách:", error));
+
+        // Fetch user's wishlist if user is logged in
+        const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+        if (token) {
+            axios.get("http://localhost:9999/user/wishlist", {
+                headers: { Authorization: `Bearer ${token}` }
+            })
+                .then(response => {
+                    if (response.data && response.data.wishlist) {
+                        // Extract book IDs from the wishlist array
+                        const wishlistIds = response.data.wishlist.map(book => book._id);
+                        setWishlist(wishlistIds);
+                    }
+                })
+                .catch(error => console.error("Lỗi khi lấy danh sách yêu thích:", error));
+        }
     }, []);
 
-    const addToWishlist = async (bookId) => {
+    const toggleWishlist = async (bookId) => {
         const token = localStorage.getItem("token") || sessionStorage.getItem("token");
         if (!token) {
             setNotifications(prev => [...prev, { id: Date.now(), message: "Vui lòng đăng nhập để thêm vào yêu thích", severity: "warning" }]);
@@ -36,13 +53,27 @@ const HomePage = ({ updateWishlistCount, updateCartData }) => {
         }
 
         try {
-            await axios.post(`http://localhost:9999/user/wishlist/${bookId}`, {}, { headers: { Authorization: `Bearer ${token}` } });
+            if (wishlist.includes(bookId)) {
+                // Remove from wishlist
+                await axios.delete(`http://localhost:9999/user/wishlist/${bookId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
 
-            setWishlist(prev => [...prev, bookId]);
-            updateWishlistCount(prev => prev + 1); // Cập nhật số lượng sản phẩm yêu thích
-            setNotifications(prev => [...prev, { id: Date.now(), message: "Đã thêm vào danh sách yêu thích", severity: "success" }]);
+                setWishlist(prev => prev.filter(id => id !== bookId));
+                updateWishlistCount(prev => prev - 1);
+                setNotifications(prev => [...prev, { id: Date.now(), message: "Đã xóa khỏi danh sách yêu thích", severity: "success" }]);
+            } else {
+                // Add to wishlist
+                await axios.post(`http://localhost:9999/user/wishlist/${bookId}`, {}, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                setWishlist(prev => [...prev, bookId]);
+                updateWishlistCount(prev => prev + 1);
+                setNotifications(prev => [...prev, { id: Date.now(), message: "Đã thêm vào danh sách yêu thích", severity: "success" }]);
+            }
         } catch (error) {
-            setNotifications(prev => [...prev, { id: Date.now(), message: "Không thể thêm vào danh sách yêu thích", severity: "error" }]);
+            setNotifications(prev => [...prev, { id: Date.now(), message: "Không thể cập nhật danh sách yêu thích", severity: "error" }]);
         }
     };
 
@@ -62,7 +93,7 @@ const HomePage = ({ updateWishlistCount, updateCartData }) => {
             setNotifications(prev => [...prev, { id: Date.now(), message: "Không thể thêm vào giỏ hàng", severity: "error" }]);
         }
     };
-    
+
     return (
         <Container maxWidth="lg">
             <Box p={3} textAlign="center">
@@ -73,7 +104,7 @@ const HomePage = ({ updateWishlistCount, updateCartData }) => {
                             <Card sx={{ width: 220, minHeight: 350, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', pb: 2 }}>
                                 <Box sx={{ position: 'relative', width: '100%' }}>
                                     <IconButton
-                                        onClick={() => addToWishlist(book._id)}
+                                        onClick={() => toggleWishlist(book._id)}
                                         color={wishlist.includes(book._id) ? "error" : "default"}
                                         size="small"
                                         sx={{
@@ -89,6 +120,7 @@ const HomePage = ({ updateWishlistCount, updateCartData }) => {
                                     >
                                         <FavoriteIcon />
                                     </IconButton>
+                                    {/* Rest of card content remains the same */}
                                     <Link to={`/book/${book._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                                         <Box
                                             sx={{

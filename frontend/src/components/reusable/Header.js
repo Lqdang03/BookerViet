@@ -48,7 +48,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
     },
 }));
 
-const Header = ({ userEmail, updateUserEmail, wishlistCount = 0, cartCount = 0, cartTotal = 0 }) => {
+const Header = ({ userEmail, updateUserEmail, wishlistCount = 0, cartCount = 0, cartTotal = 0, updateCartCount, updateCartTotal, updateWishlistCount }) => {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     
@@ -60,11 +60,29 @@ const Header = ({ userEmail, updateUserEmail, wishlistCount = 0, cartCount = 0, 
     };
 
     const handleLogout = () => {
+        // Clear auth data
         localStorage.removeItem('token');
         localStorage.removeItem('userEmail');
         sessionStorage.removeItem('token');
         sessionStorage.removeItem('userEmail');
+        
+        // Update state
         updateUserEmail(null);
+        
+        // Reset cart and wishlist data
+        if (typeof updateCartCount === 'function') {
+            updateCartCount(0);
+        }
+        
+        if (typeof updateCartTotal === 'function') {
+            updateCartTotal(0);
+        }
+        
+        if (typeof updateWishlistCount === 'function') {
+            updateWishlistCount(0);
+        }
+        
+        // Navigate to login page
         navigate('/account/login');
     };
 
@@ -73,7 +91,7 @@ const Header = ({ userEmail, updateUserEmail, wishlistCount = 0, cartCount = 0, 
     };
 
     const displayWishlistText = wishlistCount === 1 ? "1 Sản phẩm" : `${wishlistCount} Sản phẩm`;
-    const displayCartTotal = cartTotal > 0 ? formatPrice(cartTotal) : "0đ";
+    // Removed the unused displayCartTotal variable
 
     return (
         <Box sx={{ borderBottom: "1px solid rgba(0, 0, 0, 0.1)", mb: 3 }}>
@@ -193,9 +211,9 @@ const Header = ({ userEmail, updateUserEmail, wishlistCount = 0, cartCount = 0, 
                             }}
                         >
                             <IconButton size="large" color="inherit">
-                            <Badge badgeContent={wishlistCount} color="error" showZero>
-    <FavoriteBorderIcon />
-</Badge>
+                                <Badge badgeContent={userEmail ? wishlistCount : 0} color="error" showZero>
+                                    <FavoriteBorderIcon />
+                                </Badge>
                             </IconButton>
                             <Box sx={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
                                 <Typography
@@ -219,7 +237,7 @@ const Header = ({ userEmail, updateUserEmail, wishlistCount = 0, cartCount = 0, 
                                         cursor: "pointer"
                                     }}
                                 >
-                                    {displayWishlistText}
+                                    {userEmail ? displayWishlistText : "0 Sản phẩm"}
                                 </Typography>
                             </Box>
                         </MenuItem>
@@ -238,10 +256,9 @@ const Header = ({ userEmail, updateUserEmail, wishlistCount = 0, cartCount = 0, 
                             }}
                         >
                             <IconButton size="large" color="inherit">
-                            <Badge badgeContent={cartCount} color="error" showZero>
-                    <AddShoppingCartIcon />
-                </Badge>
-
+                                <Badge badgeContent={userEmail ? cartCount : 0} color="error" showZero>
+                                    <AddShoppingCartIcon />
+                                </Badge>
                             </IconButton>
                             <Box sx={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
                                 <Typography
@@ -265,7 +282,7 @@ const Header = ({ userEmail, updateUserEmail, wishlistCount = 0, cartCount = 0, 
                                         cursor: "pointer"
                                     }}
                                 >
-                                    {cartTotal.toLocaleString()}đ
+                                    {userEmail ? formatPrice(cartTotal).replace('₫', 'đ') : "0đ"}
                                 </Typography>
                             </Box>
                         </MenuItem>
