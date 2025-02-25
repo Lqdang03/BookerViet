@@ -7,6 +7,7 @@ const authRoutes = require("./routes/authRoute");
 const userRoutes = require("./routes/userRoute");
 const cartRoutes = require("./routes/cartRoute");
 const bookRoutes = require("./routes/bookRoute");
+const adminRoutes = require("./routes/adminRoute");
 const categoryRoutes = require("./routes/categoryRoute");
 const { checkAuthorize } = require("./middleware/authMiddleware");
 
@@ -18,6 +19,7 @@ app.use(cors());
 app.use(express.json());
 
 // Database connection
+
 mongoose
   .connect(process.env.DB_CONNECTION, { dbName: process.env.DB_NAME })
   .then(() => console.log("Connected to the database"))
@@ -27,6 +29,7 @@ mongoose
 app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use("/cart", cartRoutes);
+app.use("/admin", adminRoutes);
 app.use("/book", bookRoutes);
 app.use("/category", categoryRoutes);
 

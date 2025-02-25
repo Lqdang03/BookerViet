@@ -1,7 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { AppBar, Toolbar, Typography, Button, Box, IconButton, Container } from "@mui/material";
-import { Link } from "react-router-dom";
-
+import { Link, useNavigate } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import PersonPinOutlinedIcon from '@mui/icons-material/PersonPinOutlined';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
@@ -15,7 +14,7 @@ import { styled } from '@mui/material/styles';
 const Search = styled('div')(({ theme }) => ({
     position: 'relative',
     borderRadius: theme.shape.borderRadius,
-    backgroundColor: '#fff', // Đổi màu nền thành trắng
+    backgroundColor: '#fff',
     marginRight: theme.spacing(2),
     marginLeft: 0,
     width: '100%',
@@ -37,7 +36,7 @@ const SearchIconWrapper = styled('div')(({ theme }) => ({
 }));
 
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
-    color: '#000', // Đổi màu chữ thành đen
+    color: '#000',
     '& .MuiInputBase-input': {
         padding: theme.spacing(1, 1, 1, 0),
         paddingLeft: `calc(1em + ${theme.spacing(4)})`,
@@ -49,67 +48,159 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
     },
 }));
 
-const Header = () => {
+const Header = ({ userEmail, updateUserEmail, wishlistCount = 0, cartCount = 0, cartTotal = 0, updateCartCount, updateCartTotal, updateWishlistCount }) => {
+    const navigate = useNavigate();
+    const [searchTerm, setSearchTerm] = useState('');
+    
+    const formatPrice = (price) => {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(price).replace('₫', 'đ');
+    };
+
+    const handleLogout = () => {
+        // Clear auth data
+        localStorage.removeItem('token');
+        localStorage.removeItem('userEmail');
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('userEmail');
+        
+        // Update state
+        updateUserEmail(null);
+        
+        // Reset cart and wishlist data
+        if (typeof updateCartCount === 'function') {
+            updateCartCount(0);
+        }
+        
+        if (typeof updateCartTotal === 'function') {
+            updateCartTotal(0);
+        }
+        
+        if (typeof updateWishlistCount === 'function') {
+            updateWishlistCount(0);
+        }
+        
+        // Navigate to login page
+        navigate('/account/login');
+    };
+
+    const handleSearch = (event) => {
+        setSearchTerm(event.target.value);
+    };
+
+    const displayWishlistText = wishlistCount === 1 ? "1 Sản phẩm" : `${wishlistCount} Sản phẩm`;
+    // Removed the unused displayCartTotal variable
+
     return (
         <Box sx={{ borderBottom: "1px solid rgba(0, 0, 0, 0.1)", mb: 3 }}>
             <AppBar position="static" sx={{ backgroundColor: "#187bcd", boxShadow: "none" }}>
-            <Container maxWidth="lg">
-
+                <Container maxWidth="lg">
                     <Toolbar>
-                    <Typography variant="h6" sx={{ fontWeight: "bold", mr: 2, float: "left" }}>
-    BookerViet
-</Typography>
+                        <Typography 
+                            variant="h6" 
+                            component={Link} 
+                            to="/"
+                            sx={{ 
+                                fontWeight: "bold", 
+                                mr: 2, 
+                                float: "left",
+                                textDecoration: "none",
+                                color: "inherit"
+                            }}
+                        >
+                            BookerViet
+                        </Typography>
 
                         <Search sx={{ flexGrow: 1, maxWidth: "500px" }}>
                             <SearchIconWrapper>
                                 <SearchIcon />
                             </SearchIconWrapper>
-                            <StyledInputBase placeholder="Tìm kiếm sản phẩm..." inputProps={{ "aria-label": "search" }} />
+                            <StyledInputBase 
+                                placeholder="Tìm kiếm sản phẩm..." 
+                                inputProps={{ "aria-label": "search" }}
+                                value={searchTerm}
+                                onChange={handleSearch}
+                            />
                         </Search>
 
-                        <MenuItem sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            backgroundColor: "transparent !important",
-                            "&:hover": { backgroundColor: "transparent !important" }
-                        }}>
+                        {/* User Account Section */}
+                        <MenuItem
+                            sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                backgroundColor: "transparent !important",
+                                "&:hover": { backgroundColor: "transparent !important" }
+                            }}
+                        >
                             <IconButton size="large" color="inherit">
                                 <PersonPinOutlinedIcon />
                             </IconButton>
                             <Box sx={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
-                                <Typography
-                                    variant="body2"
-                                    component={Link}
-                                    to="/account/login"
-                                    sx={{
-                                        textDecoration: "none",
-                                        fontWeight: "bold",
-                                        color: "inherit",
-                                        cursor: "pointer",
-                                        "&:hover": { color: "#ffd700" }
-                                    }}
-                                >
-                                    Đăng nhập
-                                </Typography>
-                                <Typography
-                                    variant="caption"
-                                    component={Link}
-                                    to="/account/register"
-                                    sx={{
-                                        textDecoration: "none",
-                                        color: "inherit",
-                                        cursor: "pointer",
-                                        "&:hover": { color: "#ffd700" }
-                                    }}
-                                >
-                                    Đăng ký
-                                </Typography>
+                                {userEmail ? (
+                                    <>
+                                        <Typography
+                                            variant="body2"
+                                            sx={{
+                                                textDecoration: "none",
+                                                fontWeight: "bold",
+                                                color: "inherit",
+                                            }}
+                                        >
+                                            Xin chào, {userEmail.split('@')[0]}
+                                        </Typography>
+                                        <Typography
+                                            variant="caption"
+                                            onClick={handleLogout}
+                                            sx={{
+                                                textDecoration: "none",
+                                                color: "inherit",
+                                                cursor: "pointer",
+                                                "&:hover": { color: "#ffd700" }
+                                            }}
+                                        >
+                                            Đăng xuất
+                                        </Typography>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Typography
+                                            variant="body2"
+                                            component={Link}
+                                            to="/account/login"
+                                            sx={{
+                                                textDecoration: "none",
+                                                fontWeight: "bold",
+                                                color: "inherit",
+                                                cursor: "pointer",
+                                                "&:hover": { color: "#ffd700" }
+                                            }}
+                                        >
+                                            Đăng nhập
+                                        </Typography>
+                                        <Typography
+                                            variant="caption"
+                                            component={Link}
+                                            to="/account/register"
+                                            sx={{
+                                                textDecoration: "none",
+                                                color: "inherit",
+                                                cursor: "pointer",
+                                                "&:hover": { color: "#ffd700" }
+                                            }}
+                                        >
+                                            Đăng ký
+                                        </Typography>
+                                    </>
+                                )}
                             </Box>
-
-
                         </MenuItem>
 
+                        {/* Wishlist MenuItem */}
                         <MenuItem
+                            component={Link}
+                            to="/user/wishlist"
                             sx={{
                                 display: "flex",
                                 alignItems: "center",
@@ -120,15 +211,13 @@ const Header = () => {
                             }}
                         >
                             <IconButton size="large" color="inherit">
-                                <Badge badgeContent={1} color="error">
+                                <Badge badgeContent={userEmail ? wishlistCount : 0} color="error" showZero>
                                     <FavoriteBorderIcon />
                                 </Badge>
                             </IconButton>
                             <Box sx={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
                                 <Typography
                                     variant="body2"
-                                    component={Link}
-                                    to="/wishlist"
                                     className="cart-text"
                                     sx={{
                                         textDecoration: "none",
@@ -139,11 +228,24 @@ const Header = () => {
                                 >
                                     Yêu thích
                                 </Typography>
-                                <Typography variant="caption" className="cart-text" component={Link} to="/wishlist" sx={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}>1 Sản phẩm</Typography>
+                                <Typography
+                                    variant="caption"
+                                    className="cart-text"
+                                    sx={{
+                                        textDecoration: "none",
+                                        color: "inherit",
+                                        cursor: "pointer"
+                                    }}
+                                >
+                                    {userEmail ? displayWishlistText : "0 Sản phẩm"}
+                                </Typography>
                             </Box>
                         </MenuItem>
 
+                        {/* Cart MenuItem */}
                         <MenuItem
+                            component={Link}
+                            to="/cart"
                             sx={{
                                 display: "flex",
                                 alignItems: "center",
@@ -154,15 +256,13 @@ const Header = () => {
                             }}
                         >
                             <IconButton size="large" color="inherit">
-                                <Badge badgeContent={1} color="error">
+                                <Badge badgeContent={userEmail ? cartCount : 0} color="error" showZero>
                                     <AddShoppingCartIcon />
                                 </Badge>
                             </IconButton>
                             <Box sx={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
                                 <Typography
                                     variant="body2"
-                                    component={Link}
-                                    to="/cart"
                                     className="cart-text"
                                     sx={{
                                         textDecoration: "none",
@@ -173,15 +273,24 @@ const Header = () => {
                                 >
                                     Giỏ hàng
                                 </Typography>
-                                <Typography variant="caption" className="cart-text" component={Link} to="/cart" sx={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}>52.000đ</Typography>
+                                <Typography
+                                    variant="caption"
+                                    className="cart-text"
+                                    sx={{
+                                        textDecoration: "none",
+                                        color: "inherit",
+                                        cursor: "pointer"
+                                    }}
+                                >
+                                    {userEmail ? formatPrice(cartTotal).replace('₫', 'đ') : "0đ"}
+                                </Typography>
                             </Box>
                         </MenuItem>
-
-
-
                     </Toolbar>
                 </Container>
             </AppBar>
+            
+            {/* Bottom navigation */}
             <Container
                 maxWidth="lg"
                 sx={{
@@ -216,7 +325,6 @@ const Header = () => {
                     </Box>
                 </Box>
             </Container>
-
         </Box>
     );
 };
