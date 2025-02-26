@@ -8,6 +8,9 @@ import Cart from "./pages/Cart";
 import HomePage from "./pages/HomePage";
 import Header from "./components/reusable/Header";
 import Footer from "./components/reusable/Footer";
+import AdminLayout from "./components/reusable/AdminLayout";
+import UserManagement from "./pages/User_Managerment/UserManagerment";
+import BookManagement from "./pages/Book_Managerment/BookManagerment";
 
 function App() {
   const [userEmail, setUserEmail] = useState(null);
@@ -31,6 +34,10 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/user/wishlist" element={<Wishlist />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route path="users" element={<UserManagement />} />
+          <Route path="books" element={<BookManagement />} />
+        </Route>
       </Routes>
       <Footer />
     </BrowserRouter>

@@ -6,13 +6,8 @@ const cors = require("cors");
 const authRoutes = require("./routes/authRoute");
 const userRoutes = require("./routes/userRoute");
 const cartRoutes = require("./routes/cartRoute");
-<<<<<<< HEAD
-
 const adminRoutes = require("./routes/adminRoute");
-
-=======
 const bookRoutes = require("./routes/bookRoute");
->>>>>>> e2e632abe06d478cecdf77fea1ebe7cb7a31ac2b
 const { checkAuthorize } = require("./middleware/authMiddleware");
 
 const app = express();
@@ -32,11 +27,8 @@ mongoose
 app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use("/cart", cartRoutes);
-<<<<<<< HEAD
 app.use("/admin", adminRoutes);
-=======
 app.use("/book", bookRoutes);
->>>>>>> e2e632abe06d478cecdf77fea1ebe7cb7a31ac2b
 
 // Test phân quyền
 app.get("/open", (req, res) => {
