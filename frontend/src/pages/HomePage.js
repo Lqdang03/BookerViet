@@ -10,11 +10,11 @@ import {
     IconButton,
     Grid,
     Container,
-    Button
+    // Button
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import FavoriteIcon from "@mui/icons-material/Favorite";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+// import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import axios from "axios";
 
 const HomePage = ({ updateWishlistCount, updateCartData }) => {
@@ -82,22 +82,22 @@ const HomePage = ({ updateWishlistCount, updateCartData }) => {
         }
     };
 
-    const addToCart = async (bookId) => {
-        const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-        if (!token) {
-            setNotifications(prev => [...prev, { id: Date.now(), message: "Vui lòng đăng nhập để thêm vào giỏ hàng", severity: "warning" }]);
-            return;
-        }
+    // const addToCart = async (bookId) => {
+    //     const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+    //     if (!token) {
+    //         setNotifications(prev => [...prev, { id: Date.now(), message: "Vui lòng đăng nhập để thêm vào giỏ hàng", severity: "warning" }]);
+    //         return;
+    //     }
 
-        try {
-            await axios.post("http://localhost:9999/cart/add", { bookId, quantity: 1 }, { headers: { Authorization: `Bearer ${token}` } });
+    //     try {
+    //         await axios.post("http://localhost:9999/cart/add", { bookId, quantity: 1 }, { headers: { Authorization: `Bearer ${token}` } });
 
-            updateCartData(); // Cập nhật lại giỏ hàng
-            setNotifications(prev => [...prev, { id: Date.now(), message: "Đã thêm vào giỏ hàng", severity: "success" }]);
-        } catch (error) {
-            setNotifications(prev => [...prev, { id: Date.now(), message: "Không thể thêm vào giỏ hàng", severity: "error" }]);
-        }
-    };
+    //         updateCartData(); // Cập nhật lại giỏ hàng
+    //         setNotifications(prev => [...prev, { id: Date.now(), message: "Đã thêm vào giỏ hàng", severity: "success" }]);
+    //     } catch (error) {
+    //         setNotifications(prev => [...prev, { id: Date.now(), message: "Không thể thêm vào giỏ hàng", severity: "error" }]);
+    //     }
+    // };
 
     return (
         <Container maxWidth="lg">
@@ -218,7 +218,7 @@ const HomePage = ({ updateWishlistCount, updateCartData }) => {
                                             </Typography>
                                         )}
                                     </Box>
-                                    <Button
+                                    {/* <Button
                                         variant="contained"
                                         color="primary"
                                         size="small"
@@ -227,7 +227,7 @@ const HomePage = ({ updateWishlistCount, updateCartData }) => {
                                         sx={{ mt: 1 }}
                                     >
                                         Thêm vào giỏ hàng
-                                    </Button>
+                                    </Button> */}
                                 </CardContent>
                             </Card>
                         </Grid>
