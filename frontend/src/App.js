@@ -9,6 +9,7 @@ import HomePage from "./pages/HomePage";
 import Header from "./components/reusable/Header";
 import Footer from "./components/reusable/Footer";
 import axios from "axios";
+import BookDetail from "./pages/BookDetail";
 
 function App() {
   const [userEmail, setUserEmail] = useState(null);
@@ -89,6 +90,7 @@ function App() {
         <Route path="/account/login" element={<Login onLoginSuccess={updateUserEmail} />} />
         <Route path="/account/register" element={<Resgiter />} />
         <Route path="/account/forgotpassword" element={<ForgotPassword />} />
+        <Route path="/book/:id" element={<BookDetail updateWishlistCount={fetchWishlistCount} updateCartData={fetchCartData} />} />
         <Route path="/" element={<HomePage updateWishlistCount={fetchWishlistCount} updateCartData={fetchCartData} />} />
         <Route path="/user/wishlist" element={<Wishlist updateWishlistCount={fetchWishlistCount} />} />
         <Route path="/cart" element={<Cart updateCartData={fetchCartData} />} />
