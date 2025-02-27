@@ -3,7 +3,8 @@ import {
   Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, Paper, Button, IconButton, Dialog, DialogActions, DialogContent,
   DialogTitle, TextField, Select, MenuItem, FormControl, InputLabel,
-  TablePagination, Switch, TextareaAutosize
+  TablePagination, Switch, TextareaAutosize,
+  Grid
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
@@ -33,7 +34,14 @@ const BookManagement = () => {
   // Lấy danh sách sách từ API
   const fetchBooks = async () => {
     try {
-      const response = await axios.get("http://localhost:9999/admin/books");
+      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      if (!token) {
+        console.error("Không tìm thấy token, vui lòng đăng nhập lại.");
+        return;
+      }
+      const response = await axios.get("http://localhost:9999/admin/books", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setBooks(response.data);
     } catch (error) {
       console.error("Lỗi khi lấy sách:", error);
@@ -43,7 +51,14 @@ const BookManagement = () => {
   //Lấy danh sách mục lục
   const fetchCategories = async () => {
     try {
-      const response = await axios.get("http://localhost:9999/admin/categories");
+      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      if (!token) {
+        console.error("Không tìm thấy token, vui lòng đăng nhập lại.");
+        return;
+      }
+      const response = await axios.get("http://localhost:9999/admin/categories", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setCategories(response.data);
     } catch (error) {
       console.error("Lỗi lấy danh mục:", error);
@@ -89,10 +104,19 @@ const BookManagement = () => {
   //Thực hiện thêm và sửa sách
   const handleSubmit = async () => {
     try {
+      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      if (!token) {
+        console.error("Không tìm thấy token, vui lòng đăng nhập lại.");
+        return;
+      }
       if (selectedBook) {
-        await axios.put(`http://localhost:9999/admin/books/${selectedBook._id}`, formData);
+        await axios.put(`http://localhost:9999/admin/books/${selectedBook._id}`, formData, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
       } else {
-        await axios.post("http://localhost:9999/admin/books", formData);
+        await axios.post("http://localhost:9999/admin/books", formData, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
       }
       fetchBooks();
       setOpenDialog(false);
@@ -104,7 +128,14 @@ const BookManagement = () => {
   // Xóa sách khỏi danh sách
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:9999/admin/books/${id}`);
+      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      if (!token) {
+        console.error("Không tìm thấy token, vui lòng đăng nhập lại.");
+        return;
+      }
+      await axios.delete(`http://localhost:9999/admin/books/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setBooks(books.filter(book => book._id !== id));
     } catch (error) {
       console.error("Lỗi khi xóa sách:", error);
@@ -127,11 +158,11 @@ const BookManagement = () => {
   };
 
   return (
-    <Box sx={{ padding: 3, marginLeft: "250px" }}>
+    <Box sx={{ padding: 1,width: "100%", maxWidth: "calc(100% - 250px)", margin: "auto" }}>
       <Typography variant="h4" gutterBottom>Quản lý Sách</Typography>
-      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+      <Box style={{ display: "flex", justifyContent: "flex-end" }}>
         <Button variant="contained" color="primary" onClick={() => handleOpenDialog()}>Thêm Sách</Button>
-      </div>
+      </Box>
 
       <TableContainer component={Paper} sx={{ marginTop: 2 }}>
         <Table>
@@ -201,116 +232,46 @@ const BookManagement = () => {
       </Dialog>
 
       {/* Dialog Thêm hoặc sửa */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{selectedBook ? "Chỉnh sửa sách" : "Thêm sách mới"}</DialogTitle>
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <TextField
-            fullWidth
-            label="Tiêu đề"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-          />
-          <TextField
-            fullWidth
-            label="Tác giả"
-            name="author"
-            value={formData.author}
-            onChange={handleChange}
-          />
-          <TextField
-            fullWidth
-            label="Thể loại"
-            name="genre"
-            value={formData.genre}
-            onChange={handleChange}
-          />
-          <TextField
-            fullWidth
-            label="Mô tả"
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            multiline
-            rows={4}
-          />
-          <TextField
-            fullWidth
-            label="Ngôn ngữ"
-            name="language"
-            value={formData.language}
-            onChange={handleChange}
-          />
-          <TextField
-            fullWidth
-            label="Người dịch"
-            name="translator"
-            value={formData.translator}
-            onChange={handleChange}
-          />
-          <TextField
-            fullWidth
-            label="Người xuất bản"
-            name="publisher"
-            value={formData.publisher}
-            onChange={handleChange}
-          />
-          <label>Ngày Xuất Bản</label>
-          <TextField
-            fullWidth
-            name="publishDate"
-            type="date"
-            value={formData.publishDate}
-            onChange={handleChange}
-          />
-          <TextField
-            fullWidth
-            label="Giá"
-            name="price"
-            type="number"
-            value={formData.price}
-            onChange={handleChange}
-          />
-          <TextField
-            fullWidth
-            label="Giá gốc"
-            name="originalPrice"
-            type="number"
-            value={formData.originalPrice}
-            onChange={handleChange}
-          />
-          <TextField
-            fullWidth
-            label="Số lượng"
-            name="stock"
-            type="number"
-            value={formData.stock}
-            onChange={handleChange}
-          />
-          <TextField
-            fullWidth
-            label="URL Ảnh (cách nhau bằng dấu phẩy)"
-            name="images" value={formData.images.join(",")}
-            onChange={handleImageChange}
-            multiline
-            rows={4}
-          />
-          <FormControl fullWidth>
-            <InputLabel>Danh mục</InputLabel>
-            <Select multiple value={formData.categories} onChange={handleCategoryChange}>
-              {categories.map((cat) => (<MenuItem key={cat._id} value={cat._id}>{cat.name}</MenuItem>))}
-            </Select>
-          </FormControl>
-          <Box display="flex" alignItems="center" mt={2}>
-            <Typography>Kích hoạt</Typography>
-            <Switch checked={formData.isActivated} onChange={handleSwitchChange} />
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Hủy</Button>
-          <Button variant="contained" color="primary" onClick={handleSubmit}>Lưu</Button>
-        </DialogActions>
-      </Dialog>
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth>
+  <DialogTitle>{selectedBook ? "Chỉnh sửa sách" : "Thêm sách mới"}</DialogTitle>
+  <DialogContent>
+    <Grid container spacing={3}>
+      <Grid item xs={12} sm={6}>
+        <TextField fullWidth label="Tiêu đề" name="title" value={formData.title} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }}/>
+        <TextField fullWidth label="Tác giả" name="author" value={formData.author} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }}/>
+        <TextField fullWidth label="Thể loại" name="genre" value={formData.genre} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }}/>
+        <TextField fullWidth label="Mô tả" name="description" value={formData.description} onChange={handleChange} multiline rows={4} margin="dense" InputLabelProps={{ shrink: true }}/>
+        <TextField fullWidth label="Ngôn ngữ" name="language" value={formData.language} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }}/>
+        <TextField fullWidth label="Người dịch" name="translator" value={formData.translator} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }}/>
+      </Grid>
+      <Grid item xs={12} sm={6}>
+        <TextField fullWidth label="Người xuất bản" name="publisher" value={formData.publisher} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }}/>
+        <TextField fullWidth label="Ngày Xuất Bản" name="publishDate" type="date" value={formData.publishDate} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }} />
+        <TextField fullWidth label="Giá" name="price" type="number" value={formData.price} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }}/>
+        <TextField fullWidth label="Giá gốc" name="originalPrice" type="number" value={formData.originalPrice} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }}/>
+        <TextField fullWidth label="Số lượng" name="stock" type="number" value={formData.stock} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }}/>
+        <TextField fullWidth label="URL Ảnh (cách nhau bằng dấu phẩy)" name="images" value={formData.images.join(",")} onChange={handleImageChange} multiline rows={3} margin="dense" InputLabelProps={{ shrink: true }}/>
+      </Grid>
+      <Grid item xs={12}> 
+        <FormControl fullWidth margin="dense" variant="outlined">
+          <InputLabel >Danh mục</InputLabel>
+          <Select multiple value={formData.categories} onChange={handleCategoryChange} label="Danh mục">
+            {categories.map((cat) => (<MenuItem key={cat._id} value={cat._id}>{cat.name}</MenuItem>))}
+          </Select>
+        </FormControl>
+        <Box display="flex" alignItems="center"  mt={2}>
+          <Typography>Kích hoạt</Typography>
+          <Switch checked={formData.isActivated} onChange={handleSwitchChange} />
+        </Box>
+      </Grid>
+    </Grid>
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => setOpenDialog(false)}>Hủy</Button>
+    <Button variant="contained" color="primary" onClick={handleSubmit}>Lưu</Button>
+  </DialogActions>
+</Dialog>
+
     </Box>
   );
 };

@@ -16,7 +16,14 @@ const UserManagement = () => {
   // Lấy danh sách user
   const fetchUsers = async () => {
     try {
-      const response = await axios.get("http://localhost:9999/admin/users");
+      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      if (!token) {
+        console.error("Không tìm thấy token, vui lòng đăng nhập lại.");
+        return;
+      }
+      const response = await axios.get("http://localhost:9999/admin/users", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setUsers(response.data);
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -27,7 +34,14 @@ const UserManagement = () => {
   const handleDeleteUser = async (userId) => {
     if (window.confirm("Bạn có chắc muốn xóa người dùng này?")) {
       try {
-        await axios.delete(`http://localhost:9999/admin/users/${userId}`);
+        const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+        if (!token) {
+          console.error("Không tìm thấy token, vui lòng đăng nhập lại.");
+          return;
+        }
+        await axios.delete(`http://localhost:9999/admin/users/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         setUsers(users.filter(user => user._id !== userId));
       } catch (error) {
         console.error("Lỗi khi xóa người dùng:", error);
@@ -38,7 +52,14 @@ const UserManagement = () => {
   // Thay đổi vai trò
   const handleRoleChange = async (userId, newRole) => {
     try {
-      await axios.put(`http://localhost:9999/admin/users/${userId}`, { role: newRole });
+      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+        if (!token) {
+          console.error("Không tìm thấy token, vui lòng đăng nhập lại.");
+          return;
+        }
+      await axios.put(`http://localhost:9999/admin/users/${userId}`, { role: newRole },{
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setUsers(users.map(user => user._id === userId ? { ...user, role: newRole } : user));
     } catch (error) {
       console.error("Lỗi khi cập nhật vai trò:", error);
@@ -46,7 +67,7 @@ const UserManagement = () => {
   };
 
   return (
-    <Box sx={{ padding: 3, marginLeft: "250px" }}>
+    <Box sx={{ padding: 3,width: "100%", maxWidth: "calc(100% - 250px)", margin: "auto" }}>
       <Typography variant="h4" gutterBottom>Quản lý Người Dùng</Typography>
       <TableContainer component={Paper}>
         <Table>
