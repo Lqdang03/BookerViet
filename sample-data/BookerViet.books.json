@@ -17,7 +17,9 @@
   "isNewRelease": false,
   "images": [],
   "categories": [
-    "67b09cea37ee5d7ec44f5f12"
+    {
+      "$oid": "67b09cea37ee5d7ec44f5f12"
+    }
   ]
 },
 {
@@ -39,7 +41,9 @@
   "isNewRelease": false,
   "images": [],
   "categories": [
-    "67b09cea37ee5d7ec44f5f18"
+    {
+      "$oid": "67b09cea37ee5d7ec44f5f18"
+    }
   ]
 },
 {
@@ -61,7 +65,9 @@
   "isNewRelease": false,
   "images": [],
   "categories": [
-    "67b09cea37ee5d7ec44f5f10"
+    {
+      "$oid": "67b09cea37ee5d7ec44f5f10"
+    }
   ]
 },
 {
@@ -83,7 +89,9 @@
   "isNewRelease": false,
   "images": [],
   "categories": [
-    "67b09cea37ee5d7ec44f5f13"
+    {
+      "$oid": "67b09cea37ee5d7ec44f5f13"
+    }
   ]
 },
 {
@@ -105,7 +113,9 @@
   "isNewRelease": false,
   "images": [],
   "categories": [
-    "67b09cea37ee5d7ec44f5f14"
+    {
+      "$oid": "67b09cea37ee5d7ec44f5f14"
+    }
   ]
 },
 {
@@ -127,7 +137,9 @@
   "isNewRelease": true,
   "images": [],
   "categories": [
-    "67b09cea37ee5d7ec44f5f15"
+    {
+      "$oid": "67b09cea37ee5d7ec44f5f15"
+    }
   ]
 },
 {
@@ -149,7 +161,9 @@
   "isNewRelease": false,
   "images": [],
   "categories": [
-    "67b09cea37ee5d7ec44f5f16"
+    {
+      "$oid": "67b09cea37ee5d7ec44f5f16"
+    }
   ]
 },
 {
@@ -171,7 +185,9 @@
   "isNewRelease": false,
   "images": [],
   "categories": [
-    "67b09cea37ee5d7ec44f5f17"
+    {
+      "$oid": "67b09cea37ee5d7ec44f5f17"
+    }
   ]
 },
 {
@@ -193,6 +209,8 @@
   "isNewRelease": false,
   "images": [],
   "categories": [
-    "67b09cea37ee5d7ec44f5f19"
+    {
+      "$oid": "67b09cea37ee5d7ec44f5f19"
+    }
   ]
 }]
