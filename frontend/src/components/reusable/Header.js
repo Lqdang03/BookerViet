@@ -114,15 +114,18 @@ const Header = ({
 
   const fetchBooksByCategory = async (categoryId) => {
     if (categoryBooks[categoryId]) return; // Already fetched
-
+  
     try {
       const response = await axios.get(
         `http://localhost:9999/book/category/${categoryId}`
       );
       if (response.data) {
+        // Filter out books where isActivated is false
+        const activeBooks = response.data.filter(book => book.isActivated !== false);
+        
         setCategoryBooks((prev) => ({
           ...prev,
-          [categoryId]: response.data, // Store all books without limiting
+          [categoryId]: activeBooks, // Store only active books
         }));
       }
     } catch (error) {
