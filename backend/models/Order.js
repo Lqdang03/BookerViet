@@ -15,21 +15,20 @@ const orderSchema = new mongoose.Schema({
             },
             quantity: {
                 type: Number,
-                required: true
-            },
-            price: {
-                type: Number,
-                required: true
+                required: true,
+                min: 1
             }
         }
     ],
     totalDiscount: {
         type: Number,
-        default: 0
+        default: 0,
+        min: 0
     },
     pointUsed: {
         type: Number,
-        default: 0
+        default: 0,
+        min: 0
     },
     paymentMethod: {
         type: String,
@@ -43,9 +42,41 @@ const orderSchema = new mongoose.Schema({
     },
     orderStatus: {
         type: String,
-        enum: ['Processing', 'Shipped', 'Delivered'],
+        enum: ['Processing', 'Shipped', 'Delivered', 'Cancelled'],
         default: 'Processing'
+    },
+    shippingAddress: {
+        name: {
+            type: String,
+            required: true
+        },
+        phoneNumber: {
+            type: String,
+            required: true
+        },
+        address: {
+            type: String,
+            required: true
+        },
+    },
+    trackingNumber: {
+        type: String,
+        default: null
+    },
+    expectedDeliveryDate: {
+        type: Date,
+        default: null
+    },
+    notes: {
+        type: String,
+        default: ''
     }
+
 }, {timestamps: true});
+
+orderSchema.index(
+    { trackingNumber: 1 },
+    { unique: true, partialFilterExpression: { trackingNumber: { $ne: null } } }
+);
 
 module.exports = mongoose.model('Order', orderSchema);
