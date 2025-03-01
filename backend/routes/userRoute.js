@@ -11,4 +11,7 @@ router.post("/wishlist/:bookId", checkAuthorize(["user"]), userController.addBoo
 // Xóa sách trong wishlist
 router.delete("/wishlist/:bookId", checkAuthorize(["user"]), userController.deleteBookFromWishlist);
 
+// Lấy thông tin user
+router.get("/profile", checkAuthorize(["user"]), userController.getMyProfile);
+
 module.exports = router;

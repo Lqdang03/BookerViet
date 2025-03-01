@@ -1,7 +1,6 @@
 // Load environment variables from .env file
 require("dotenv").config();
 const express = require("express");
-const mongoose = require("mongoose");
 const cors = require("cors");
 const authRoutes = require("./routes/authRoute");
 const userRoutes = require("./routes/userRoute");
@@ -21,13 +20,6 @@ const port = process.env.PORT || 9999;
 // Middleware
 app.use(cors());
 app.use(express.json());
-
-// // Database connection
-
-// mongoose
-//   .connect(process.env.DB_CONNECTION, { dbName: process.env.DB_NAME })
-//   .then(() => console.log("Connected to the database"))
-//   .catch((err) => console.error("Could not connect to the database", err));
 
 // Routes
 app.use("/auth", authRoutes);

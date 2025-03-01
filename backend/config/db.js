@@ -5,6 +5,7 @@ const Book = require("../models/Book");
 const Cart = require("../models/Cart");
 const Order = require("../models/Order");
 const Review = require("../models/Review");
+const Complaint = require("../models/Complaint");
 const DB = {};
 DB.user = User;
 DB.category = Category;
@@ -12,6 +13,7 @@ DB.book = Book;
 DB.cart = Cart;
 DB.order = Order;
 DB.review = Review;
+DB.complaint = Complaint;
 
 DB.connectDB = async () => {
   try {
