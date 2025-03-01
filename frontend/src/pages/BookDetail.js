@@ -68,6 +68,11 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
 
   // In the handleAddToCart function:
   const handleAddToCart = async () => {
+    // Don't allow adding to cart if stock is 0
+    if (book.stock === 0) {
+      return;
+    }
+
     const token =
       localStorage.getItem("token") || sessionStorage.getItem("token");
     if (!token) {
@@ -234,6 +239,9 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
     );
   }
 
+  // Check if stock is 0
+  const isOutOfStock = book.stock === 0;
+
   return (
     <Container maxWidth="lg">
       {/* Book Details Section */}
@@ -283,7 +291,6 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
                   -{Math.round((1 - book.price / book.originalPrice) * 100)}%
                 </Box>
               )}
-              {/* Add favorite icon with absolute positioning */}
               <IconButton
                 onClick={toggleWishlist}
                 color={inWishlist ? "error" : "default"}
@@ -321,6 +328,7 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
                     height: "auto",
                     maxHeight: 500,
                     p: 2,
+                    filter: isOutOfStock ? "grayscale(50%)" : "none",
                   }}
                 />
               </Box>
@@ -405,6 +413,19 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
             )}
           </Box>
 
+          {/* Stock status */}
+          <Box sx={{ mb: 2 }}>
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                color: isOutOfStock ? "error.main" : "success.main",
+                fontWeight: "medium" 
+              }}
+            >
+              {isOutOfStock ? "Hết hàng" : "Còn hàng"}
+            </Typography>
+          </Box>
+
           {/* Quantity and Add to Cart */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
             <Box
@@ -412,12 +433,14 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
                 display: "flex",
                 border: "1px solid #e0e0e0",
                 borderRadius: 1,
+                opacity: isOutOfStock ? 0.6 : 1,
               }}
             >
               <Button
                 variant="text"
                 onClick={() => handleQuantityChange(-1)}
                 sx={{ minWidth: 40 }}
+                disabled={isOutOfStock}
               >
                 -
               </Button>
@@ -435,6 +458,7 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
                 variant="text"
                 onClick={() => handleQuantityChange(1)}
                 sx={{ minWidth: 40 }}
+                disabled={isOutOfStock}
               >
                 +
               </Button>
@@ -442,12 +466,17 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
 
             <Button
               variant="contained"
-              color="primary"
+              color={isOutOfStock ? "secondary" : "primary"}
               startIcon={<ShoppingCartIcon />}
               onClick={handleAddToCart}
-              sx={{ py: 1, px: 3 }}
+              disabled={isOutOfStock}
+              sx={{ 
+                py: 1, 
+                px: 3,
+                opacity: isOutOfStock ? 0.8 : 1,
+              }}
             >
-              Thêm vào giỏ hàng
+              {isOutOfStock ? "Hết hàng" : "Thêm vào giỏ hàng"}
             </Button>
 
             {/* Remove the favorite icon from here as we moved it to the image section */}
@@ -533,15 +562,6 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
                       Trọng lượng
                     </TableCell>
                     <TableCell>{book.weight || "180g"}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell
-                      component="th"
-                      sx={{ width: "30%", bgcolor: "#f5f5f5" }}
-                    >
-                      Mã sản phẩm
-                    </TableCell>
-                    <TableCell>{book.sku || "8935250715775"}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>

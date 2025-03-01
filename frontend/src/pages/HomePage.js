@@ -108,7 +108,7 @@ const HomePage = ({ updateWishlistCount, updateCartData }) => {
                         <Grid item xs={12} sm={6} md={4} lg={3} key={book._id}>
                             <Card sx={{ width: 220, minHeight: 250, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', pb: 2 }}>
                                 <Box sx={{ position: 'relative', width: '100%' }}>
-                                {book.originalPrice > book.price && (
+                                    {book.originalPrice > book.price && (
                                         <Box
                                             sx={{
                                                 position: 'absolute',
@@ -129,6 +129,24 @@ const HomePage = ({ updateWishlistCount, updateCartData }) => {
                                             }}
                                         >
                                             -{Math.round((1 - book.price / book.originalPrice) * 100)}%
+                                        </Box>
+                                    )}
+                                    {book.stock === 0 && (
+                                        <Box
+                                            sx={{
+                                                position: 'absolute',
+                                                top: 0,
+                                                left: 0,
+                                                bgcolor: 'rgba(0, 0, 0, 0.7)',
+                                                color: 'white',
+                                                padding: '4px 8px',
+                                                fontSize: '12px',
+                                                fontWeight: 'bold',
+                                                zIndex: 2,
+                                                borderRadius: '0 0 4px 0'
+                                            }}
+                                        >
+                                            Hết hàng
                                         </Box>
                                     )}
                                     <IconButton
