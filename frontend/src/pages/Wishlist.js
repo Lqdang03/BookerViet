@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { 
-    Typography, 
-    Box, 
-    Snackbar, 
-    Alert, 
-    Card, 
-    CardMedia, 
-    CardContent, 
-    IconButton, 
-    Grid, 
-    Container 
+import {
+    Typography,
+    Box,
+    Snackbar,
+    Alert,
+    Card,
+    CardMedia,
+    CardContent,
+    IconButton,
+    Grid,
+    Container
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import FavoriteIcon from "@mui/icons-material/Favorite";
@@ -44,15 +44,15 @@ function Wishlist({ updateWishlistCount }) {
         if (!token) {
             return;
         }
-    
+
         try {
             const response = await axios.get("http://localhost:9999/user/wishlist", {
-                headers: { 
+                headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
-            
+
             if (response.data && response.data.wishlist) {
                 setWishlist(response.data.wishlist);
                 if (updateWishlistCount) {
@@ -73,7 +73,7 @@ function Wishlist({ updateWishlistCount }) {
             setError("Không thể tải danh sách yêu thích. Vui lòng thử lại sau.");
         }
     }, [updateWishlistCount]);
-    
+
 
     const removeFromWishlist = async (bookId) => {
         const token = verifyAuth();
@@ -89,15 +89,15 @@ function Wishlist({ updateWishlistCount }) {
                     'Content-Type': 'application/json'
                 }
             });
-            
+
             const updatedWishlist = wishlist.filter(book => book._id !== bookId);
             setWishlist(updatedWishlist);
-            
+
             // Update count in parent component
             if (updateWishlistCount) {
                 updateWishlistCount(updatedWishlist.length);
             }
-            
+
             setNotifications(prev => [...prev, {
                 id: Date.now(),
                 message: 'Đã xóa sách khỏi danh sách yêu thích',
@@ -124,7 +124,7 @@ function Wishlist({ updateWishlistCount }) {
     useEffect(() => {
         fetchWishlist();
     }, [fetchWishlist]);
-      
+
 
     const WishlistContent = () => {
         if (!isAuthenticated) {
@@ -216,6 +216,24 @@ function Wishlist({ updateWishlistCount }) {
                                                 -{Math.round((1 - book.price / book.originalPrice) * 100)}%
                                             </Box>
                                         )}
+                                        {book.stock === 0 && (
+                                            <Box
+                                                sx={{
+                                                    position: 'absolute',
+                                                    top: 0,
+                                                    left: 0,
+                                                    bgcolor: 'rgba(0, 0, 0, 0.7)',
+                                                    color: 'white',
+                                                    padding: '4px 8px',
+                                                    fontSize: '12px',
+                                                    fontWeight: 'bold',
+                                                    zIndex: 2,
+                                                    borderRadius: '0 0 4px 0'
+                                                }}
+                                            >
+                                                Hết hàng
+                                            </Box>
+                                        )}
 
                                         <IconButton
                                             onClick={() => removeFromWishlist(book._id)}
@@ -254,7 +272,7 @@ function Wishlist({ updateWishlistCount }) {
                                             >
                                                 <CardMedia
                                                     component="img"
-                                                    image={book?.images[0]} 
+                                                    image={book?.images[0]}
                                                     alt={book.title}
                                                     sx={{
                                                         width: '100%',
@@ -355,13 +373,13 @@ function Wishlist({ updateWishlistCount }) {
                     open
                     autoHideDuration={2000}
                     anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                    onClose={() => setNotifications(prev => 
+                    onClose={() => setNotifications(prev =>
                         prev.filter(n => n.id !== notification.id)
                     )}
                 >
-                    <Alert 
-                        severity={notification.severity || 'info'} 
-                        onClose={() => setNotifications(prev => 
+                    <Alert
+                        severity={notification.severity || 'info'}
+                        onClose={() => setNotifications(prev =>
                             prev.filter(n => n.id !== notification.id)
                         )}
                     >
