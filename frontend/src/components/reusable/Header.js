@@ -355,7 +355,7 @@ const Header = ({
                           </UserMenuItem>
                           <UserMenuItem 
                             component={Link} 
-                            to="/user/account"
+                            to="/user/profile"
                           >
                             Tài khoản của tôi
                           </UserMenuItem>
