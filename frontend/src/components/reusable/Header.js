@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   AppBar,
   Toolbar,
@@ -11,6 +11,7 @@ import {
   Paper,
   Fade,
   Grid,
+  MenuItem,
 } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
@@ -18,7 +19,6 @@ import PersonPinOutlinedIcon from "@mui/icons-material/PersonPinOutlined";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import PhoneIcon from "@mui/icons-material/Phone";
-import MenuItem from "@mui/material/MenuItem";
 import Badge from "@mui/material/Badge";
 import InputBase from "@mui/material/InputBase";
 import { styled } from "@mui/material/styles";
@@ -70,6 +70,32 @@ const CategoryMenuItem = styled(MenuItem)(({ theme }) => ({
   },
 }));
 
+// Updated style for user menu items
+const UserMenuItem = styled(MenuItem)(({ theme }) => ({
+  padding: theme.spacing(0.75, 1.5), // Smaller padding
+  fontSize: '0.875rem', // Smaller font size
+  "&:hover": {
+    backgroundColor: "#f5f5f5",
+    color: "#187bcd",
+  },
+  // Add bottom border to each item
+  borderBottom: '1px solid #f0f0f0',
+  // Remove border from last item
+  '&:last-child': {
+    borderBottom: 'none',
+  }
+}));
+
+// Custom styled Popper for user menu with tighter fit
+const UserMenuPopper = styled(Popper)(({ theme }) => ({
+  zIndex: 1300,
+  "& .MuiPaper-root": {
+    minWidth: '150px', // Reduced width to fit content
+    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.1)",
+    padding: 0, // Remove padding
+  }
+}));
+
 const Header = ({
   userEmail,
   updateUserEmail,
@@ -83,10 +109,14 @@ const Header = ({
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [anchorEl, setAnchorEl] = useState(null);
+  const [userMenuAnchorEl, setUserMenuAnchorEl] = useState(null);
   const [categories, setCategories] = useState([]);
   const [categoryBooks, setCategoryBooks] = useState({});
   const [activeCategory, setActiveCategory] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Add a ref for the user menu section
+  const userMenuRef = useRef(null);
 
   // Fetch categories on component mount
   useEffect(() => {
@@ -114,15 +144,18 @@ const Header = ({
 
   const fetchBooksByCategory = async (categoryId) => {
     if (categoryBooks[categoryId]) return; // Already fetched
-
+  
     try {
       const response = await axios.get(
         `http://localhost:9999/book/category/${categoryId}`
       );
       if (response.data) {
+        // Filter out books where isActivated is false
+        const activeBooks = response.data.filter(book => book.isActivated !== false);
+        
         setCategoryBooks((prev) => ({
           ...prev,
-          [categoryId]: response.data, // Store all books without limiting
+          [categoryId]: activeBooks, // Store only active books
         }));
       }
     } catch (error) {
@@ -167,6 +200,9 @@ const Header = ({
       updateWishlistCount(0);
     }
 
+    // Close user menu
+    setUserMenuAnchorEl(null);
+
     // Navigate to login page
     navigate("/account/login");
   };
@@ -189,6 +225,15 @@ const Header = ({
     setAnchorEl(null);
   };
 
+  // User menu hover handlers
+  const handleUserMenuMouseEnter = (event) => {
+    setUserMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleUserMenuMouseLeave = () => {
+    setUserMenuAnchorEl(null);
+  };
+
   const handleCategoryHover = (category) => {
     setActiveCategory(category);
     fetchBooksByCategory(category._id);
@@ -202,6 +247,7 @@ const Header = ({
   const displayWishlistText =
     wishlistCount === 1 ? "1 Sản phẩm" : `${wishlistCount} Sản phẩm`;
   const open = Boolean(anchorEl);
+  const userMenuOpen = Boolean(userMenuAnchorEl);
 
   return (
     <Box sx={{ borderBottom: "1px solid rgba(0, 0, 0, 0.1)", mb: 3 }}>
@@ -239,78 +285,135 @@ const Header = ({
             </Search>
 
             {/* User Account Section */}
-            <MenuItem
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                backgroundColor: "transparent !important",
-                "&:hover": { backgroundColor: "transparent !important" },
-              }}
-            >
-              <IconButton size="large" color="inherit">
-                <PersonPinOutlinedIcon />
-              </IconButton>
-              <Box
-                sx={{ display: "flex", flexDirection: "column", lineHeight: 1 }}
+            {userEmail ? (
+              // Logged-in users: Show dropdown menu that activates on hover
+              <Box 
+                ref={userMenuRef}
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center',
+                  position: 'relative',
+                  mr: 2
+                }}
+                onMouseEnter={handleUserMenuMouseEnter}
+                onMouseLeave={handleUserMenuMouseLeave}
               >
-                {userEmail ? (
-                  <>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    "&:hover": { "& .user-text": { color: "#ffd700" } },
+                  }}
+                >
+                  <IconButton size="large" color="inherit">
+                    <PersonPinOutlinedIcon />
+                  </IconButton>
+                  <Box sx={{ display: "flex", flexDirection: "column", lineHeight: 1 }}>
                     <Typography
                       variant="body2"
+                      className="user-text"
                       sx={{
-                        textDecoration: "none",
                         fontWeight: "bold",
                         color: "inherit",
                       }}
                     >
-                      Xin chào, {userEmail.split("@")[0]}
+                      Xin chào!
                     </Typography>
                     <Typography
                       variant="caption"
-                      onClick={handleLogout}
+                      className="user-text"
                       sx={{
-                        textDecoration: "none",
+                        display: "flex",
+                        alignItems: "center",
                         color: "inherit",
-                        cursor: "pointer",
-                        "&:hover": { color: "#ffd700" },
                       }}
                     >
-                      Đăng xuất
+                      {userEmail.split("@")[0]}
+                      <KeyboardArrowDownIcon fontSize="small" sx={{ fontSize: '0.8rem' }} />
                     </Typography>
-                  </>
-                ) : (
-                  <>
-                    <Typography
-                      variant="body2"
-                      component={Link}
-                      to="/account/login"
-                      sx={{
-                        textDecoration: "none",
-                        fontWeight: "bold",
-                        color: "inherit",
-                        cursor: "pointer",
-                        "&:hover": { color: "#ffd700" },
-                      }}
-                    >
-                      Đăng nhập
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      component={Link}
-                      to="/account/register"
-                      sx={{
-                        textDecoration: "none",
-                        color: "inherit",
-                        cursor: "pointer",
-                        "&:hover": { color: "#ffd700" },
-                      }}
-                    >
-                      Đăng ký
-                    </Typography>
-                  </>
-                )}
+                  </Box>
+                </Box>
+                
+                {/* User Dropdown Menu - Updated for tighter fit and underlines */}
+                <UserMenuPopper
+                  open={userMenuOpen}
+                  anchorEl={userMenuAnchorEl}
+                  placement="bottom-start"
+                  transition
+                >
+                  {({ TransitionProps }) => (
+                    <Fade {...TransitionProps} timeout={250}>
+                      <Paper sx={{ mt: 1 }}>
+                      <Box component="ul" sx={{ padding: 0, margin: 0, listStyle: 'none' }}>
+
+                          <UserMenuItem 
+                            component={Link} 
+                            to="/user/orders"
+                          >
+                            Đơn hàng của tôi
+                          </UserMenuItem>
+                          <UserMenuItem 
+                            component={Link} 
+                            to="/user/account"
+                          >
+                            Tài khoản của tôi
+                          </UserMenuItem>
+                          <UserMenuItem onClick={handleLogout}>
+                            Thoát tài khoản
+                          </UserMenuItem>
+                        </Box>
+                      </Paper>
+                    </Fade>
+                  )}
+                </UserMenuPopper>
               </Box>
-            </MenuItem>
+            ) : (
+              // Non-logged-in users: Keep original layout
+              <MenuItem
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  backgroundColor: "transparent !important",
+                  "&:hover": { backgroundColor: "transparent !important" },
+                }}
+              >
+                <IconButton size="large" color="inherit">
+                  <PersonPinOutlinedIcon />
+                </IconButton>
+                <Box
+                  sx={{ display: "flex", flexDirection: "column", lineHeight: 1 }}
+                >
+                  <Typography
+                    variant="body2"
+                    component={Link}
+                    to="/account/login"
+                    sx={{
+                      textDecoration: "none",
+                      fontWeight: "bold",
+                      color: "inherit",
+                      cursor: "pointer",
+                      "&:hover": { color: "#ffd700" },
+                    }}
+                  >
+                    Đăng nhập
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    component={Link}
+                    to="/account/register"
+                    sx={{
+                      textDecoration: "none",
+                      color: "inherit",
+                      cursor: "pointer",
+                      "&:hover": { color: "#ffd700" },
+                    }}
+                  >
+                    Đăng ký
+                  </Typography>
+                </Box>
+              </MenuItem>
+            )}
 
             {/* Wishlist MenuItem */}
             <MenuItem
@@ -427,7 +530,7 @@ const Header = ({
           paddingTop: 2,
         }}
       >
-        {/* Modified to use onMouseEnter instead of onClick */}
+        {/* Category dropdown */}
         <Box
           sx={{
             position: "relative",
@@ -455,7 +558,7 @@ const Header = ({
             DANH MỤC SẢN PHẨM
           </Button>
 
-          {/* Category Dropdown Menu */}
+          {/* Category Dropdown Menu - this section remains the same */}
           <Popper
             open={open}
             anchorEl={anchorEl}
