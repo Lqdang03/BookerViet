@@ -73,6 +73,19 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
       return;
     }
 
+    // Check if quantity exceeds available stock
+    if (quantity > book.stock) {
+      setNotifications((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          message: `Không đủ sách trong kho. Chỉ còn ${book.stock} cuốn.`,
+          severity: "error",
+        },
+      ]);
+      return;
+    }
+
     const token =
       localStorage.getItem("token") || sessionStorage.getItem("token");
     if (!token) {
@@ -198,7 +211,22 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
   };
 
   const handleQuantityChange = (change) => {
-    setQuantity((prev) => Math.max(1, prev + change));
+    const newQuantity = Math.max(1, quantity + change);
+    
+    // Validate against stock limit
+    if (book && book.stock > 0 && newQuantity > book.stock) {
+      setNotifications((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          message: `Số lượng không thể vượt quá ${book.stock} cuốn.`,
+          severity: "warning",
+        },
+      ]);
+      return;
+    }
+    
+    setQuantity(newQuantity);
   };
 
   const handleTabChange = (event, newValue) => {
@@ -413,8 +441,8 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
             )}
           </Box>
 
-          {/* Stock status */}
-          <Box sx={{ mb: 2 }}>
+          {/* Stock status with stock quantity */}
+          <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
             <Typography 
               variant="body1" 
               sx={{ 
@@ -424,6 +452,11 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
             >
               {isOutOfStock ? "Hết hàng" : "Còn hàng"}
             </Typography>
+            {!isOutOfStock && (
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                ({book.stock} cuốn)
+              </Typography>
+            )}
           </Box>
 
           {/* Quantity and Add to Cart */}

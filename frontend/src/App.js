@@ -10,6 +10,7 @@ import Header from "./components/reusable/Header";
 import Footer from "./components/reusable/Footer";
 import axios from "axios";
 import BookDetail from "./pages/BookDetail";
+import AccountDetail from "./pages/AccountDetail";
 
 function App() {
   const [userEmail, setUserEmail] = useState(null);
@@ -94,6 +95,7 @@ function App() {
         <Route path="/" element={<HomePage updateWishlistCount={fetchWishlistCount} updateCartData={fetchCartData} />} />
         <Route path="/user/wishlist" element={<Wishlist updateWishlistCount={fetchWishlistCount} />} />
         <Route path="/cart" element={<Cart updateCartData={fetchCartData} />} />
+        <Route path="/user/profile" element={<AccountDetail/>} />
       </Routes>
       <Footer />
     </BrowserRouter>
