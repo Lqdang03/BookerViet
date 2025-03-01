@@ -171,17 +171,13 @@ const AccountDetail = () => {
               <AccountNavItem button component={Link} to="/user/profile" className="active">
                 <ListItemText primary="Thông tin tài khoản" />
               </AccountNavItem>
-              
-              <AccountNavItem button component={Link} to="/account/orders">
-                <ListItemText primary="Đơn hàng của tôi" />
-              </AccountNavItem>
-              
+
               <AccountNavItem button component={Link} to="/account/change-password">
                 <ListItemText primary="Đổi mật khẩu" />
               </AccountNavItem>
               
-              <AccountNavItem button component={Link} to="/account/addresses">
-                <ListItemText primary={`Sổ địa chỉ (${user?.addresses?.length || 0})`} />
+              <AccountNavItem button component={Link} to="/account/orders">
+                <ListItemText primary="Đơn hàng của tôi" />
               </AccountNavItem>
             </List>
           </Paper>
@@ -210,11 +206,6 @@ const AccountDetail = () => {
               <InfoRow>
                 <InfoLabel variant="body1">Số điện thoại:</InfoLabel>
                 <Typography variant="body1">{user?.phone || 'Chưa cập nhật'}</Typography>
-              </InfoRow>
-              
-              <InfoRow>
-                <InfoLabel variant="body1">Địa chỉ:</InfoLabel>
-                <Typography variant="body1">{user?.address || 'Chưa cập nhật'}</Typography>
               </InfoRow>
             </Box>
           </Paper>
