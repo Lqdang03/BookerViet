@@ -14,4 +14,7 @@ router.delete("/wishlist/:bookId", checkAuthorize(["user"]), userController.dele
 // Lấy thông tin user
 router.get("/profile", checkAuthorize(["user"]), userController.getMyProfile);
 
+// Đổi mật khẩu
+router.put("/change-password", checkAuthorize(["user"]), userController.changePassword);
+
 module.exports = router;
