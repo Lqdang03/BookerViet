@@ -19,6 +19,7 @@ import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import DeleteIcon from "@mui/icons-material/Delete";
 import axios from "axios";
+import CartBreadCrumb from "../components/Breadcrumbs/CartBreadCrumb";
 
 function Cart({ updateCartData }) {
   const [cartItems, setCartItems] = useState([]);
@@ -124,7 +125,11 @@ function Cart({ updateCartData }) {
   );
 
   return (
-    <Container sx={{ mt: 4, mb: 4 }}>
+    <>
+
+<CartBreadCrumb/>
+    <Container sx={{ mt: 1, mb: 4 }}>
+      
       <Typography variant="h5" gutterBottom>
         Giỏ hàng của bạn
       </Typography>
@@ -227,6 +232,8 @@ function Cart({ updateCartData }) {
         </>
       )}
     </Container>
+    </>
+    
   );
 }
 

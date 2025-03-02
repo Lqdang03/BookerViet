@@ -15,6 +15,7 @@ import {
   Alert
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import AccountBreadCrumb from '../components/Breadcrumbs/AccountBreadCrumb';
 
 // Styled components
 const AccountNavItem = styled(ListItem)(({ theme }) => ({
@@ -153,7 +154,9 @@ const AccountDetail = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 6 }}>
+    <>
+    <AccountBreadCrumb/>
+    <Container maxWidth="lg" sx={{ mt: 2, mb: 6 }}>
       <Grid container spacing={4}>
         {/* Sidebar */}
         <Grid item xs={12} md={4} lg={3}>
@@ -212,6 +215,7 @@ const AccountDetail = () => {
         </Grid>
       </Grid>
     </Container>
+    </>
   );
 };
 

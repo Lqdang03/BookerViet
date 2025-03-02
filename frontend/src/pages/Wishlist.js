@@ -15,6 +15,7 @@ import { Link } from "react-router-dom";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import WishlistBreadCrumb from "../components/Breadcrumbs/WishlistBreadCrumb";
 
 function Wishlist({ updateWishlistCount }) {
     const navigate = useNavigate();
@@ -155,7 +156,6 @@ function Wishlist({ updateWishlistCount }) {
                 </Box>
             );
         }
-
         if (wishlist.length === 0) {
             return (
                 <Box display="flex" flexDirection="column" alignItems="center" py={3} mb={42}>
@@ -366,6 +366,7 @@ function Wishlist({ updateWishlistCount }) {
 
     return (
         <div>
+            <WishlistBreadCrumb/>
             <WishlistContent />
             {notifications.map((notification) => (
                 <Snackbar

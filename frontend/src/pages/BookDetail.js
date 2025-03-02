@@ -22,6 +22,7 @@ import { Link, useParams } from "react-router-dom";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import axios from "axios";
+import BookDetailBreadCrumb from "../components/Breadcrumbs/BookDetailBreadCrumb";
 
 const BookDetail = ({ updateWishlistCount, updateCartData }) => {
   const { id } = useParams();
@@ -271,7 +272,9 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
   const isOutOfStock = book.stock === 0;
 
   return (
-    <Container maxWidth="lg">
+    <>
+    <BookDetailBreadCrumb/>
+    <Container maxWidth="lg" sx={{mt:2}}>
       {/* Book Details Section */}
       <Grid container spacing={4}>
         {/* Left Side - Book Image */}
@@ -704,6 +707,8 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
         </Snackbar>
       ))}
     </Container>
+    </>
+    
   );
 };
 
