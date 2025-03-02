@@ -1,26 +1,25 @@
-import React, { useState, useEffect } from "react";
-import { 
-    Typography, 
-    Box, 
-    Snackbar, 
-    Alert, 
-    Card, 
-    CardMedia, 
-    CardContent, 
-    IconButton, 
-    Grid, 
-    Container 
+import React, { useState, useEffect, useCallback } from "react";
+import {
+    Typography,
+    Box,
+    Snackbar,
+    Alert,
+    Card,
+    CardMedia,
+    CardContent,
+    IconButton,
+    Grid,
+    Container
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-function Wishlist() {
+function Wishlist({ updateWishlistCount }) {
     const navigate = useNavigate();
     const [wishlist, setWishlist] = useState([]);
     const [notifications, setNotifications] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -40,31 +39,31 @@ function Wishlist() {
         return token;
     };
 
-    const fetchWishlist = async () => {
+    const fetchWishlist = useCallback(async () => {
         const token = verifyAuth();
         if (!token) {
-            setLoading(false);
             return;
         }
 
         try {
-            setLoading(true);
             const response = await axios.get("http://localhost:9999/user/wishlist", {
-                headers: { 
+                headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
-            
+
             if (response.data && response.data.wishlist) {
                 setWishlist(response.data.wishlist);
+                if (updateWishlistCount) {
+                    updateWishlistCount(response.data.wishlist.length);
+                }
                 setError(null);
             }
         } catch (err) {
             console.error('Wishlist fetch error:', err);
             if (err.response?.status === 401) {
                 setIsAuthenticated(false);
-                // Clear auth data on unauthorized
                 localStorage.removeItem("token");
                 localStorage.removeItem("userEmail");
                 sessionStorage.removeItem("token");
@@ -72,10 +71,9 @@ function Wishlist() {
                 return;
             }
             setError("Không thể tải danh sách yêu thích. Vui lòng thử lại sau.");
-        } finally {
-            setLoading(false);
         }
-    };
+    }, [updateWishlistCount]);
+
 
     const removeFromWishlist = async (bookId) => {
         const token = verifyAuth();
@@ -91,8 +89,15 @@ function Wishlist() {
                     'Content-Type': 'application/json'
                 }
             });
-            
-            setWishlist(prev => prev.filter(book => book._id !== bookId));
+
+            const updatedWishlist = wishlist.filter(book => book._id !== bookId);
+            setWishlist(updatedWishlist);
+
+            // Update count in parent component
+            if (updateWishlistCount) {
+                updateWishlistCount(updatedWishlist.length);
+            }
+
             setNotifications(prev => [...prev, {
                 id: Date.now(),
                 message: 'Đã xóa sách khỏi danh sách yêu thích',
@@ -118,7 +123,8 @@ function Wishlist() {
 
     useEffect(() => {
         fetchWishlist();
-    }, [navigate]);
+    }, [fetchWishlist]);
+
 
     const WishlistContent = () => {
         if (!isAuthenticated) {
@@ -138,14 +144,6 @@ function Wishlist() {
                         </Link>
                         {" "}để có thể thêm thật nhiều sản phẩm vào yêu thích.
                     </Typography>
-                </Box>
-            );
-        }
-
-        if (loading) {
-            return (
-                <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-                    <Typography>Loading...</Typography>
                 </Box>
             );
         }
@@ -183,10 +181,10 @@ function Wishlist() {
                     </Typography>
                     <Grid container spacing={3} justifyContent="flex-start">
                         {wishlist.map((book) => (
-                            <Grid item xs={12} sm={6} md={4} lg={2.4} key={book._id}>
+                            <Grid item xs={12} sm={6} md={4} lg={3} key={book._id}>
                                 <Card sx={{
                                     width: 220,
-                                    minHeight: 300,
+                                    minHeight: 250,
                                     display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'center',
@@ -218,6 +216,24 @@ function Wishlist() {
                                                 -{Math.round((1 - book.price / book.originalPrice) * 100)}%
                                             </Box>
                                         )}
+                                        {book.stock === 0 && (
+                                            <Box
+                                                sx={{
+                                                    position: 'absolute',
+                                                    top: 0,
+                                                    left: 0,
+                                                    bgcolor: 'rgba(0, 0, 0, 0.7)',
+                                                    color: 'white',
+                                                    padding: '4px 8px',
+                                                    fontSize: '12px',
+                                                    fontWeight: 'bold',
+                                                    zIndex: 2,
+                                                    borderRadius: '0 0 4px 0'
+                                                }}
+                                            >
+                                                Hết hàng
+                                            </Box>
+                                        )}
 
                                         <IconButton
                                             onClick={() => removeFromWishlist(book._id)}
@@ -225,8 +241,8 @@ function Wishlist() {
                                             size="small"
                                             sx={{
                                                 position: 'absolute',
-                                                bottom: 10,
-                                                right: 15,
+                                                bottom: 5,
+                                                right: 20,
                                                 bgcolor: 'rgba(255, 255, 255, 0.8)',
                                                 '&:hover': {
                                                     bgcolor: 'rgba(255, 255, 255, 0.9)'
@@ -256,7 +272,7 @@ function Wishlist() {
                                             >
                                                 <CardMedia
                                                     component="img"
-                                                    image={book?.images[0]} 
+                                                    image={book?.images[0]}
                                                     alt={book.title}
                                                     sx={{
                                                         width: '100%',
@@ -301,9 +317,7 @@ function Wishlist() {
                                                     cursor: 'pointer',
                                                     marginBottom: '5px',
                                                     paddingBottom: "5px",
-                                                    '&:hover': {
-                                                        color: "red"
-                                                    }
+                                                    '&:hover': { color: '#187bcd' }
                                                 }}
                                             >
                                                 {book.title}
@@ -359,13 +373,13 @@ function Wishlist() {
                     open
                     autoHideDuration={2000}
                     anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                    onClose={() => setNotifications(prev => 
+                    onClose={() => setNotifications(prev =>
                         prev.filter(n => n.id !== notification.id)
                     )}
                 >
-                    <Alert 
-                        severity={notification.severity || 'info'} 
-                        onClose={() => setNotifications(prev => 
+                    <Alert
+                        severity={notification.severity || 'info'}
+                        onClose={() => setNotifications(prev =>
                             prev.filter(n => n.id !== notification.id)
                         )}
                     >

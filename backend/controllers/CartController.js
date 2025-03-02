@@ -42,8 +42,14 @@ const addBookToCart = async (req, res) => {
     );
 
     if (existingItem) {
+      if(existingItem.quantity + quantity > book.stock){
+        return res.status(400).json({ message: "Sách không đủ hàng!" });
+      }
       existingItem.quantity += quantity;
     } else {
+      if(quantity > book.stock){
+        return res.status(400).json({ message: "Sách không đủ hàng!" });
+      }
       cart.cartItems.push({ book: bookId, quantity });
     }
 
@@ -66,13 +72,20 @@ const updateCart = async (req, res) => {
       return res.status(404).json({ message: "Giỏ hàng trống!" });
     }
 
+    const book = await Book.findById(bookId);
+    if (!book) {
+      return res.status(404).json({ message: "Sách không tồn tại!" });
+    }
+    
     const itemIndex = cart.cartItems.findIndex(
       (item) => item.book.toString() === bookId
     );
     if (itemIndex === -1) {
       return res.status(404).json({ message: "Sách không có trong giỏ hàng!" });
     }
-
+    if(quantity > book.stock){
+      return res.status(400).json({ message: "Sách không đủ hàng!" });
+    }
     cart.cartItems[itemIndex].quantity = quantity;
     await cart.save();
     res.status(200).json({ message: "Đã cập nhật số lượng!", cart });

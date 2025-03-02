@@ -1,0 +1,312 @@
+[{
+  "_id": {
+    "$oid": "67b09f7137ee5d7ec44f5f1d"
+  },
+  "title": "The Time Machine",
+  "author": "H.G. Wells",
+  "genre": "Science Fiction",
+  "description": "A classic sci-fi novel about time travel.",
+  "language": "English",
+  "translator": null,
+  "publisher": "Penguin Books",
+  "publishDate": "1895-05-07",
+  "price": 129000,
+  "originalPrice": 159000,
+  "stock": 50,
+  "isActivated": true,
+  "isNewRelease": false,
+  "images": [
+    "https://m.media-amazon.com/images/I/41PZibNNKKL._SY445_SX342_.jpg"
+  ],
+  "categories": [
+    {
+      "$oid": "67b09cea37ee5d7ec44f5f12"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "67b09f7137ee5d7ec44f5f1e"
+  },
+  "title": "Pride and Prejudice",
+  "author": "Jane Austen",
+  "genre": "Romance",
+  "description": "A novel of manners that explores love and social standing.",
+  "language": "English",
+  "translator": null,
+  "publisher": "Oxford University Press",
+  "publishDate": "1813-01-28",
+  "price": 109000,
+  "originalPrice": 109000,
+  "stock": 40,
+  "isActivated": true,
+  "isNewRelease": false,
+  "images": [
+    "https://m.media-amazon.com/images/I/51zkOaWMu7S._AC_UY218_.jpg"
+  ],
+  "categories": [
+    {
+      "$oid": "67b09cea37ee5d7ec44f5f18"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "67b09f7137ee5d7ec44f5f1f"
+  },
+  "title": "1984",
+  "author": "George Orwell",
+  "genre": "Fiction",
+  "description": "A dystopian novel about totalitarian government surveillance.",
+  "language": "English",
+  "translator": null,
+  "publisher": "Secker & Warburg",
+  "publishDate": "1949-06-08",
+  "price": 139000,
+  "originalPrice": 139000,
+  "stock": 60,
+  "isActivated": true,
+  "isNewRelease": false,
+  "images": [
+    "https://m.media-amazon.com/images/I/91VsLImyJgL._AC_UY218_.jpg"
+  ],
+  "categories": [
+    {
+      "$oid": "67b09cea37ee5d7ec44f5f10"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "67b09f7137ee5d7ec44f5f20"
+  },
+  "title": "The Hobbit",
+  "author": "J.R.R. Tolkien",
+  "genre": "Fantasy",
+  "description": "An adventure story set in Middle-earth.",
+  "language": "English",
+  "translator": null,
+  "publisher": "HarperCollins",
+  "publishDate": "1937-09-21",
+  "price": 149000,
+  "originalPrice": 149000,
+  "stock": 70,
+  "isActivated": true,
+  "isNewRelease": false,
+  "images": [
+    "https://m.media-amazon.com/images/I/71TP68oXLpL._AC_UY218_.jpg"
+  ],
+  "categories": [
+    {
+      "$oid": "67b09cea37ee5d7ec44f5f13"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "67b09f7137ee5d7ec44f5f21"
+  },
+  "title": "Sherlock Holmes: The Complete Collection",
+  "author": "Arthur Conan Doyle",
+  "genre": "Mystery",
+  "description": "A collection of detective stories featuring Sherlock Holmes.",
+  "language": "English",
+  "translator": null,
+  "publisher": "Wordsworth Editions",
+  "publishDate": "1892-10-14",
+  "price": 209000,
+  "originalPrice": 209000,
+  "stock": 30,
+  "isActivated": true,
+  "isNewRelease": false,
+  "images": [
+    "https://m.media-amazon.com/images/I/81hxnlciZHL._AC_UY218_.jpg"
+  ],
+  "categories": [
+    {
+      "$oid": "67b09cea37ee5d7ec44f5f14"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "67b09f7137ee5d7ec44f5f22"
+  },
+  "title": "Becoming",
+  "author": "Michelle Obama",
+  "genre": "Biography",
+  "description": "A memoir by the former First Lady of the United States.",
+  "language": "English",
+  "translator": null,
+  "publisher": "Crown Publishing",
+  "publishDate": "2018-11-13",
+  "price": 22.99,
+  "originalPrice": 26.99,
+  "stock": 20,
+  "isActivated": true,
+  "isNewRelease": true,
+  "images": [
+    "https://m.media-amazon.com/images/I/81jfDTSLQ9L._AC_UY218_.jpg"
+  ],
+  "categories": [
+    {
+      "$oid": "67b09cea37ee5d7ec44f5f15"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "67b09f7137ee5d7ec44f5f23"
+  },
+  "title": "The Power of Habit",
+  "author": "Charles Duhigg",
+  "genre": "Self-Help",
+  "description": "An exploration of the science behind habit formation.",
+  "language": "English",
+  "translator": null,
+  "publisher": "Random House",
+  "publishDate": "2012-02-28",
+  "price": 189000,
+  "originalPrice": 219000,
+  "stock": 25,
+  "isActivated": true,
+  "isNewRelease": false,
+  "images": [
+    "https://m.media-amazon.com/images/I/71wm29Etl4L._AC_UY218_.jpg"
+  ],
+  "categories": [
+    {
+      "$oid": "67b09cea37ee5d7ec44f5f16"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "67b09f7137ee5d7ec44f5f24"
+  },
+  "title": "Sapiens: A Brief History of Humankind",
+  "author": "Yuval Noah Harari",
+  "genre": "History",
+  "description": "A deep dive into the history and evolution of humankind.",
+  "language": "English",
+  "translator": null,
+  "publisher": "Harper",
+  "publishDate": "2011-01-01",
+  "price": 199000,
+  "originalPrice": 239000,
+  "stock": 35,
+  "isActivated": true,
+  "isNewRelease": false,
+  "images": [
+    "https://m.media-amazon.com/images/I/812lwsVN5kL._AC_UY218_.jpg"
+  ],
+  "categories": [
+    {
+      "$oid": "67b09cea37ee5d7ec44f5f17"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "67b09f7137ee5d7ec44f5f25"
+  },
+  "title": "Dracula",
+  "author": "Bram Stoker",
+  "genre": "Horror",
+  "description": "A gothic horror novel featuring Count Dracula.",
+  "language": "English",
+  "translator": null,
+  "publisher": "Archibald Constable and Company",
+  "publishDate": "1897-05-26",
+  "price": 119000,
+  "originalPrice": 149000,
+  "stock": 45,
+  "isActivated": true,
+  "isNewRelease": false,
+  "images": [
+    "https://m.media-amazon.com/images/I/61TqVMQ6jKL._AC_UY218_.jpg"
+  ],
+  "categories": [
+    {
+      "$oid": "67b09cea37ee5d7ec44f5f19"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "67c1c40fa66930346fb45950"
+  },
+  "title": "The Warp Clock: A Time Travel Adventure",
+  "author": " Nathan Van Coops",
+  "genre": "Science Fiction",
+  "description": "Ben Travers is facing an impossible choice. When a girl arrives from his future claiming to be family, she brings nothing but bad news. Ben has two possible fates, and no matter which he chooses, he has to die. In a desperate bid to alter his future, Ben will confront a rogue faction of temporal fugitives—his only ally a girl he never knew existed. Adventure. Family. Time Travel.",
+  "language": "English",
+  "translator": null,
+  "publisher": "Archibald Constable and Company",
+  "publishDate": "1897-05-26",
+  "price": 129000,
+  "originalPrice": 129000,
+  "stock": 45,
+  "isActivated": true,
+  "isNewRelease": false,
+  "images": [
+    "https://m.media-amazon.com/images/I/9193e+kBV9L._SY522_.jpg"
+  ],
+  "categories": [
+    {
+      "$oid": "67b09cea37ee5d7ec44f5f12"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "67c1c565a66930346fb45951"
+  },
+  "title": "Time of Death: A Time Travel Detective Mystery",
+  "author": "Kindle Edition",
+  "genre": "Science Fiction",
+  "description": "Private detective Greyson Travers has a secret, but he isn’t the only one.",
+  "language": "English",
+  "translator": null,
+  "publisher": "Archibald Constable and Company",
+  "publishDate": "1897-05-26",
+  "price": 149000,
+  "originalPrice": 149000,
+  "stock": 45,
+  "isActivated": true,
+  "isNewRelease": false,
+  "images": [
+    "https://m.media-amazon.com/images/I/91BgjHpTL-L._SY522_.jpg"
+  ],
+  "categories": [
+    {
+      "$oid": "67b09cea37ee5d7ec44f5f12"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "67c1ca78a66930346fb45952"
+  },
+  "title": "Horror Movie: A Novel",
+  "author": "Paul Tremblay",
+  "genre": "Horror",
+  "description": "A chilling twist on the “cursed film” genre from the bestselling author of The Pallbearers Club and The Cabin at the End of the World.",
+  "language": "English",
+  "translator": null,
+  "publisher": "Archibald Constable and Company",
+  "publishDate": "1897-05-26",
+  "price": 129000,
+  "originalPrice": 129000,
+  "stock": 45,
+  "isActivated": false,
+  "isNewRelease": false,
+  "images": [
+    "https://m.media-amazon.com/images/I/71AQWx7iduL._SY466_.jpg"
+  ],
+  "categories": [
+    {
+      "$oid": "67b09cea37ee5d7ec44f5f19"
+    }
+  ]
+}]
