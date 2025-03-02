@@ -75,20 +75,22 @@ function ForgotPassword() {
         newPassword
       });
       handleAlert(response.data.message, "success");
-      navigate("/account/login", {
-        state: {
-          credentials: { email, password: newPassword }
-        }
-      });
+  
+      // Chờ 3 giây trước khi chuyển hướng
+      setTimeout(() => {
+        navigate("/account/login", {
+          state: {
+            credentials: { email, password: newPassword }
+          }
+        });
+      }, 1000);
     } catch (error) {
       handleAlert(error.response?.data?.message || "Lỗi đặt lại mật khẩu!", "error");
     } finally {
       setLoading(false);
     }
   };
-
   
-
   const renderStep = () => {
     switch (step) {
       case 1:
