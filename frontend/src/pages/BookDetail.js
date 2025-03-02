@@ -22,6 +22,7 @@ import { Link, useParams } from "react-router-dom";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import axios from "axios";
+import BookDetailBreadCrumb from "../components/Breadcrumbs/BookDetailBreadCrumb";
 
 const BookDetail = ({ updateWishlistCount, updateCartData }) => {
   const { id } = useParams();
@@ -68,6 +69,24 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
 
   // In the handleAddToCart function:
   const handleAddToCart = async () => {
+    // Don't allow adding to cart if stock is 0
+    if (book.stock === 0) {
+      return;
+    }
+
+    // Check if quantity exceeds available stock
+    if (quantity > book.stock) {
+      setNotifications((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          message: `Không đủ sách trong kho. Chỉ còn ${book.stock} cuốn.`,
+          severity: "error",
+        },
+      ]);
+      return;
+    }
+
     const token =
       localStorage.getItem("token") || sessionStorage.getItem("token");
     if (!token) {
@@ -193,7 +212,22 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
   };
 
   const handleQuantityChange = (change) => {
-    setQuantity((prev) => Math.max(1, prev + change));
+    const newQuantity = Math.max(1, quantity + change);
+    
+    // Validate against stock limit
+    if (book && book.stock > 0 && newQuantity > book.stock) {
+      setNotifications((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          message: `Số lượng không thể vượt quá ${book.stock} cuốn.`,
+          severity: "warning",
+        },
+      ]);
+      return;
+    }
+    
+    setQuantity(newQuantity);
   };
 
   const handleTabChange = (event, newValue) => {
@@ -234,8 +268,13 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
     );
   }
 
+  // Check if stock is 0
+  const isOutOfStock = book.stock === 0;
+
   return (
-    <Container maxWidth="lg">
+    <>
+    <BookDetailBreadCrumb/>
+    <Container maxWidth="lg" sx={{mt:2}}>
       {/* Book Details Section */}
       <Grid container spacing={4}>
         {/* Left Side - Book Image */}
@@ -283,7 +322,6 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
                   -{Math.round((1 - book.price / book.originalPrice) * 100)}%
                 </Box>
               )}
-              {/* Add favorite icon with absolute positioning */}
               <IconButton
                 onClick={toggleWishlist}
                 color={inWishlist ? "error" : "default"}
@@ -321,6 +359,7 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
                     height: "auto",
                     maxHeight: 500,
                     p: 2,
+                    filter: isOutOfStock ? "grayscale(50%)" : "none",
                   }}
                 />
               </Box>
@@ -405,6 +444,24 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
             )}
           </Box>
 
+          {/* Stock status with stock quantity */}
+          <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                color: isOutOfStock ? "error.main" : "success.main",
+                fontWeight: "medium" 
+              }}
+            >
+              {isOutOfStock ? "Hết hàng" : "Còn hàng"}
+            </Typography>
+            {!isOutOfStock && (
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                ({book.stock} cuốn)
+              </Typography>
+            )}
+          </Box>
+
           {/* Quantity and Add to Cart */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
             <Box
@@ -412,12 +469,14 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
                 display: "flex",
                 border: "1px solid #e0e0e0",
                 borderRadius: 1,
+                opacity: isOutOfStock ? 0.6 : 1,
               }}
             >
               <Button
                 variant="text"
                 onClick={() => handleQuantityChange(-1)}
                 sx={{ minWidth: 40 }}
+                disabled={isOutOfStock}
               >
                 -
               </Button>
@@ -435,6 +494,7 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
                 variant="text"
                 onClick={() => handleQuantityChange(1)}
                 sx={{ minWidth: 40 }}
+                disabled={isOutOfStock}
               >
                 +
               </Button>
@@ -442,12 +502,17 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
 
             <Button
               variant="contained"
-              color="primary"
+              color={isOutOfStock ? "secondary" : "primary"}
               startIcon={<ShoppingCartIcon />}
               onClick={handleAddToCart}
-              sx={{ py: 1, px: 3 }}
+              disabled={isOutOfStock}
+              sx={{ 
+                py: 1, 
+                px: 3,
+                opacity: isOutOfStock ? 0.8 : 1,
+              }}
             >
-              Thêm vào giỏ hàng
+              {isOutOfStock ? "Hết hàng" : "Thêm vào giỏ hàng"}
             </Button>
 
             {/* Remove the favorite icon from here as we moved it to the image section */}
@@ -534,15 +599,6 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
                     </TableCell>
                     <TableCell>{book.weight || "180g"}</TableCell>
                   </TableRow>
-                  <TableRow>
-                    <TableCell
-                      component="th"
-                      sx={{ width: "30%", bgcolor: "#f5f5f5" }}
-                    >
-                      Mã sản phẩm
-                    </TableCell>
-                    <TableCell>{book.sku || "8935250715775"}</TableCell>
-                  </TableRow>
                 </TableBody>
               </Table>
             </Card>
@@ -573,31 +629,13 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
               {book.description || (
                 <>
                   <Typography paragraph>
-                    Nam sinh cấp ba Mido Kenshiro có niềm đam mê mãnh liệt với
-                    mĩ phẩm và nghệ thuật trang điểm, song đấy cũng là bí mật mà
-                    cậu không đám chia sẻ với bất cứ ai, trừ người bạn thân nhỏ
-                    Hiura Mihate. Một ngày nọ sau khi đọc hết sức nói ra, Mido
-                    đã thuyết phục thành công Hiura trở thành người mẫu cho mình
-                    luyện tay nghề. Kết quả là Hiura có một mặt "biến hình"
-                    ngoạn mục đến nỗi ngay cả người trong cuộc cũng lầm lẫn và
-                    cũng sửng sốt.
+                    Nam sinh cấp ba Mido Kenshiro 
                   </Typography>
                   <Typography paragraph>
-                    Nhờ tài trang điểm của Mido, ngoại hình của Hiura thay đổi
-                    từ một cậu con trai lầm lì, ủ ám thành một cô gái xinh đẹp,
-                    ngọt ngào, rạng rỡ và kể từ đó, Hiura bắt đầu lưng chừng thủ
-                    vai mĩ phẩm và trang phục nữ tính, cậu quyết định ăn mặc như
-                    con gái và như Mido trong điểm mới ngày trước khi đến
-                    trường.
+                    Nhờ tài trang điểm của Mido
                   </Typography>
                   <Typography paragraph>
-                    Trước những chuyện biến đó, Mido từ hối phải chống cầu đã
-                    dành thức điều gì đó trong tâm hồn Hiura, hay chỉ đơn giản
-                    là phát hiện một khía cạnh mới ở người bạn thân thử dụ mà
-                    trước đây cậu chưa từng hay biết. Giữa hai người không ngừng
-                    nảy sinh những cảm xúc kì lạ, cùng lúc cùng phức tạp. Liệu
-                    mối quan hệ giữa Mido và Hiura sẽ đi đến đâu? Những rung
-                    động hết sức mới mẻ và không ngừng sức sôi đó có thể là gì?
+                    1
                   </Typography>
                 </>
               )}
@@ -651,6 +689,8 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
         </Snackbar>
       ))}
     </Container>
+    </>
+    
   );
 };
 

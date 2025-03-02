@@ -93,15 +93,22 @@ const handleVerifyOTP = async () => {
     await axios.post('http://localhost:9999/auth/register', formData);
 
     setOtpDialogOpen(false);
-    navigate('/account/login', {
-      state: {
-        message: 'Đăng ký thành công! Vui lòng đăng nhập.',
-        credentials: {
-          email: formData.email,
-          password: formData.password
+    
+    // Show success message in Snackbar
+    handleAlert('Đăng ký thành công! Hệ thống sẽ tự chuyển bạn sang trang Login.', 'success');
+    
+    // Redirect after showing the message (with a slight delay)
+    setTimeout(() => {
+      navigate('/account/login', {
+        state: {
+          message: 'Đăng ký thành công! Hệ thống sẽ tự chuyển bạn sang trang Login.',
+          credentials: {
+            email: formData.email,
+            password: formData.password
+          }
         }
-      }
-    });
+      });
+    }, 2000); 
   } catch (error) {
     handleAlert(error.response?.data?.message || 'Có lỗi xảy ra khi xác thực OTP. Vui lòng thử lại.', 'error');
   } finally {

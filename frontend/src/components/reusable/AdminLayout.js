@@ -9,9 +9,11 @@ const AdminLayout = ({ userEmail, updateUserEmail }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const navigate = useNavigate();
 
+
     const toggleSidebar = () => {
         setIsSidebarOpen((prev) => !prev);
     };
+
 
     const handleLogout = () => {
         localStorage.removeItem("token");
@@ -26,6 +28,7 @@ const AdminLayout = ({ userEmail, updateUserEmail }) => {
         <Box sx={{ display: "flex" }}>
             {/* Sidebar */}
             <Box sx={{ width: isSidebarOpen ? "250px" : "60px", transition: "width 0.3s" }}>
+
                 <Sidebar isSidebarOpen={isSidebarOpen} />
             </Box>
 
@@ -48,6 +51,7 @@ const AdminLayout = ({ userEmail, updateUserEmail }) => {
                             </Button>
                         )}
                     </Box>
+
                 </Box>
                 <Outlet />
             </Box>
@@ -56,3 +60,4 @@ const AdminLayout = ({ userEmail, updateUserEmail }) => {
 };
 
 export default AdminLayout;
+

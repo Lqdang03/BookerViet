@@ -14,7 +14,8 @@ import BookManagement from "./pages/AdminSite/BookManagerment";
 import AdminDashboard from "./pages/AdminSite/AdminDashboard.js";
 import axios from "axios";
 import BookDetail from "./pages/BookDetail";
-import DiscountManagement from "./pages/AdminSite/DiscountManagerment.js";
+import AccountDetail from "./pages/AccountDetail";
+import ChangePassword from "./pages/ChangePassword.js";
 
 function App() {
   const [userEmail, setUserEmail] = useState(null);
@@ -109,6 +110,7 @@ function App() {
           <Route path="users" element={<UserManagement />} />
           <Route path="books" element={<BookManagement />} />
           <Route path="discounts" element={<DiscountManagement />} />
+
         </Route>
         <Route path="/account/login" element={<Login onLoginSuccess={updateUserEmail} />} />
         <Route path="/account/register" element={<Resgiter />} />
@@ -117,6 +119,8 @@ function App() {
         <Route path="/" element={<HomePage updateWishlistCount={fetchWishlistCount} updateCartData={fetchCartData} />} />
         <Route path="/user/wishlist" element={<Wishlist updateWishlistCount={fetchWishlistCount} />} />
         <Route path="/cart" element={<Cart updateCartData={fetchCartData} />} />
+        <Route path="/user/profile" element={<AccountDetail/>} />
+        <Route path="/user/change-password" element={<ChangePassword/>} />
       </Routes>
       {!isAdminRoute && <Footer />}
     </>
