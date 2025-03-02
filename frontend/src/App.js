@@ -17,6 +17,7 @@ import AdminDashboard from "./pages/AdminSite/AdminDashboard.js";
 import axios from "axios";
 import BookDetail from "./pages/BookDetail";
 import AccountDetail from "./pages/AccountDetail";
+import ChangePassword from "./pages/ChangePassword.js";
 
 
 function App() {
@@ -114,6 +115,7 @@ function App() {
         <Route path="/user/wishlist" element={<Wishlist updateWishlistCount={fetchWishlistCount} />} />
         <Route path="/cart" element={<Cart updateCartData={fetchCartData} />} />
         <Route path="/user/profile" element={<AccountDetail/>} />
+        <Route path="/user/change-password" element={<ChangePassword/>} />
       </Routes>
       {!isAdminRoute && <Footer />}
     </>
