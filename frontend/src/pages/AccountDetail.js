@@ -142,7 +142,7 @@ const AccountDetail = () => {
           <Typography variant="body2" gutterBottom>
             Bạn sẽ được chuyển đến trang đăng nhập sau vài giây.
           </Typography>
-          <Link to="/login" style={{ textDecoration: 'none' }}>
+          <Link to="/account/login" style={{ textDecoration: 'none' }}>
             <Typography variant="body2" color="primary">
               Nhấn vào đây nếu không được chuyển hướng tự động
             </Typography>
@@ -175,7 +175,7 @@ const AccountDetail = () => {
                 <ListItemText primary="Thông tin tài khoản" />
               </AccountNavItem>
 
-              <AccountNavItem button component={Link} to="/account/change-password">
+              <AccountNavItem button component={Link} to="/user/change-password">
                 <ListItemText primary="Đổi mật khẩu" />
               </AccountNavItem>
               

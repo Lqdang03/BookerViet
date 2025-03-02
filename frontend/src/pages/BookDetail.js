@@ -629,31 +629,13 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
               {book.description || (
                 <>
                   <Typography paragraph>
-                    Nam sinh cấp ba Mido Kenshiro có niềm đam mê mãnh liệt với
-                    mĩ phẩm và nghệ thuật trang điểm, song đấy cũng là bí mật mà
-                    cậu không đám chia sẻ với bất cứ ai, trừ người bạn thân nhỏ
-                    Hiura Mihate. Một ngày nọ sau khi đọc hết sức nói ra, Mido
-                    đã thuyết phục thành công Hiura trở thành người mẫu cho mình
-                    luyện tay nghề. Kết quả là Hiura có một mặt "biến hình"
-                    ngoạn mục đến nỗi ngay cả người trong cuộc cũng lầm lẫn và
-                    cũng sửng sốt.
+                    Nam sinh cấp ba Mido Kenshiro 
                   </Typography>
                   <Typography paragraph>
-                    Nhờ tài trang điểm của Mido, ngoại hình của Hiura thay đổi
-                    từ một cậu con trai lầm lì, ủ ám thành một cô gái xinh đẹp,
-                    ngọt ngào, rạng rỡ và kể từ đó, Hiura bắt đầu lưng chừng thủ
-                    vai mĩ phẩm và trang phục nữ tính, cậu quyết định ăn mặc như
-                    con gái và như Mido trong điểm mới ngày trước khi đến
-                    trường.
+                    Nhờ tài trang điểm của Mido
                   </Typography>
                   <Typography paragraph>
-                    Trước những chuyện biến đó, Mido từ hối phải chống cầu đã
-                    dành thức điều gì đó trong tâm hồn Hiura, hay chỉ đơn giản
-                    là phát hiện một khía cạnh mới ở người bạn thân thử dụ mà
-                    trước đây cậu chưa từng hay biết. Giữa hai người không ngừng
-                    nảy sinh những cảm xúc kì lạ, cùng lúc cùng phức tạp. Liệu
-                    mối quan hệ giữa Mido và Hiura sẽ đi đến đâu? Những rung
-                    động hết sức mới mẻ và không ngừng sức sôi đó có thể là gì?
+                    1
                   </Typography>
                 </>
               )}

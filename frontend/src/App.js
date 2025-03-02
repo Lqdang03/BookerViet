@@ -8,16 +8,14 @@ import Cart from "./pages/Cart";
 import HomePage from "./pages/HomePage";
 import Header from "./components/reusable/Header";
 import Footer from "./components/reusable/Footer";
-
 import AdminLayout from "./components/reusable/AdminLayout";
 import UserManagement from "./pages/AdminSite/UserManagerment";
 import BookManagement from "./pages/AdminSite/BookManagerment";
 import AdminDashboard from "./pages/AdminSite/AdminDashboard.js";
-
 import axios from "axios";
 import BookDetail from "./pages/BookDetail";
 import AccountDetail from "./pages/AccountDetail";
-
+import ChangePassword from "./pages/ChangePassword.js";
 
 function App() {
   const [userEmail, setUserEmail] = useState(null);
@@ -28,7 +26,7 @@ function App() {
   useEffect(() => {
     const storedEmail = localStorage.getItem("userEmail") || sessionStorage.getItem("userEmail");
     setUserEmail(storedEmail);
-    
+
     if (storedEmail) {
       fetchWishlistCount();
       fetchCartData();
@@ -43,7 +41,7 @@ function App() {
       const response = await axios.get("http://localhost:9999/user/wishlist", {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       if (response.data && response.data.wishlist) {
         setWishlistCount(response.data.wishlist.length);
       }
@@ -54,25 +52,25 @@ function App() {
 
   const fetchCartData = async () => {
     try {
-        const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-        if (!token) return;
+      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      if (!token) return;
 
-        const response = await axios.get("http://localhost:9999/cart", {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+      const response = await axios.get("http://localhost:9999/cart", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-        if (response.data && response.data.cartItems) {
-            setCartCount(response.data.cartItems.length);
-            setCartTotal(response.data.cartItems.reduce((sum, item) => sum + item.book.price * item.quantity, 0));
-        }
+      if (response.data && response.data.cartItems) {
+        setCartCount(response.data.cartItems.length);
+        setCartTotal(response.data.cartItems.reduce((sum, item) => sum + item.book.price * item.quantity, 0));
+      }
     } catch (error) {
-        console.error("Error fetching cart data:", error);
+      console.error("Error fetching cart data:", error);
     }
   };
 
   const updateUserEmail = (email) => {
     setUserEmail(email);
-    
+
     // If user logs in, fetch their data
     if (email) {
       fetchWishlistCount();
@@ -89,22 +87,30 @@ function App() {
   const isAdminRoute = location.pathname.startsWith("/admin");
   return (
     <>
-      {!isAdminRoute && 
-      <Header 
-        userEmail={userEmail} 
-        updateUserEmail={updateUserEmail}
-        wishlistCount={wishlistCount}
-        cartCount={cartCount} 
-        cartTotal={cartTotal}
-      />
+      {!isAdminRoute &&
+        <Header
+          userEmail={userEmail}
+          updateUserEmail={updateUserEmail}
+          wishlistCount={wishlistCount}
+          cartCount={cartCount}
+          cartTotal={cartTotal}
+        />
       }
-      
+
       <Routes>
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route path="dashboard" element={< AdminDashboard/>} />
-          
+        <Route
+          path="/admin"
+          element={
+            <AdminLayout
+              userEmail={userEmail}
+              updateUserEmail={updateUserEmail}
+            />
+          }>
+          <Route path="dashboard" element={< AdminDashboard />} />
           <Route path="users" element={<UserManagement />} />
           <Route path="books" element={<BookManagement />} />
+          <Route path="discounts" element={<DiscountManagement />} />
+
         </Route>
         <Route path="/account/login" element={<Login onLoginSuccess={updateUserEmail} />} />
         <Route path="/account/register" element={<Resgiter />} />
@@ -114,6 +120,7 @@ function App() {
         <Route path="/user/wishlist" element={<Wishlist updateWishlistCount={fetchWishlistCount} />} />
         <Route path="/cart" element={<Cart updateCartData={fetchCartData} />} />
         <Route path="/user/profile" element={<AccountDetail/>} />
+        <Route path="/user/change-password" element={<ChangePassword/>} />
       </Routes>
       {!isAdminRoute && <Footer />}
     </>
