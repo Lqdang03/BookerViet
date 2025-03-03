@@ -17,4 +17,13 @@ router.get("/profile", checkAuthorize(["user"]), userController.getMyProfile);
 // Đổi mật khẩu
 router.put("/change-password", checkAuthorize(["user"]), userController.changePassword);
 
+// Lấy danh sách phản ánh
+router.get("/complaint", checkAuthorize(["user"]), userController.getMyComplaints);
+
+// Tạo phản ánh
+router.post("/complaint", checkAuthorize(["user"]), userController.addComplaint);
+
+// Hủy phản ánh
+router.delete("/complaint/:complaintId", checkAuthorize(["user"]), userController.cancelComplaint);
+
 module.exports = router;
