@@ -2,9 +2,14 @@ const mongoose = require("mongoose");
 
 const ComplaintSchema = new mongoose.Schema(
   {
-    userId: {
+    user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      required: true,
+    },
+    type: {
+      type: String,
+      enum: ["Web", "Đơn hàng", "Khác"],
       required: true,
     },
     description: {
@@ -13,7 +18,7 @@ const ComplaintSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Đang chờ xử lý", "Đã tiếp nhận", "Đã giải quyết", "Đã từ chối"],
+      enum: ["Đang chờ xử lý", "Đã tiếp nhận", "Đã giải quyết", "Đã hủy"],
       default: "Đang chờ xử lý",
     }
   },
