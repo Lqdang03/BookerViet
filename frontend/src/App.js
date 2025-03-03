@@ -11,6 +11,7 @@ import Footer from "./components/reusable/Footer";
 import AdminLayout from "./components/reusable/AdminLayout";
 import UserManagement from "./pages/AdminSite/UserManagerment";
 import BookManagement from "./pages/AdminSite/BookManagerment";
+import DiscountManagement from "./pages/AdminSite/DiscountManagerment";
 import AdminDashboard from "./pages/AdminSite/AdminDashboard.js";
 import axios from "axios";
 import BookDetail from "./pages/BookDetail";
