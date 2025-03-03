@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const Book = require("../models/Book");
+const Complaint = require("../models/Complaint");
 const User = require("../models/User");
 
 // wishlist
@@ -102,11 +103,64 @@ const changePassword = async (req, res) => {
   }
 };
 
+const getMyComplaints = async (req, res) => {
+  try {
+    const user = req.user;
+    const complaints = await Complaint.find({ user: user._id }).select("-user -__v");
+    res.status(200).json({ data: complaints });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server!", error: error.message });
+  }
+};
+
+const addComplaint = async (req, res) => {
+  try {
+    const { type, description } = req.body;
+    const userId = req.user._id;
+
+    const newComplaint = new Complaint({ user: userId, type, description });
+    await newComplaint.save();
+
+    res.status(200).json({ message: "Phản ánh đã tạo thành công!", data: newComplaint });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server!", error: error.message });
+  }
+};
+
+const cancelComplaint = async (req, res) => {
+  try {
+    const { complaintId } = req.params;
+    const user = req.user;
+
+    const complaint = await Complaint.findById(complaintId);
+    if (!complaint) {
+      return res.status(404).json({ message: "Phản ánh không tồn tại!" });
+    }
+
+    console.log(complaint.user);
+    console.log(user._id);
+
+    if (!complaint.user.equals(user._id)) {
+      return res.status(403).json({ message: "Bạn không có quyền hủy phản ánh!" });
+    }
+
+    complaint.status = "Đã hủy";
+    await complaint.save();
+
+    res.status(200).json({ message: "Hủy phản ánh thành công!" });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server!", error: error.message });
+  }
+};
+
 const userController = {
   addBookToWishlist,
   deleteBookFromWishlist,
   getMyWishlist,
   getMyProfile,
   changePassword,
+  getMyComplaints,
+  addComplaint,
+  cancelComplaint,
 };
 module.exports = userController;
