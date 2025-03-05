@@ -17,6 +17,7 @@ import axios from "axios";
 import BookDetail from "./pages/BookDetail";
 import AccountDetail from "./pages/AccountDetail";
 import ChangePassword from "./pages/ChangePassword.js";
+import ViewBookByCategory from "./pages/ViewBookbyCategory.js";
 
 function App() {
   const [userEmail, setUserEmail] = useState(null);
@@ -122,6 +123,7 @@ function App() {
         <Route path="/cart" element={<Cart updateCartData={fetchCartData} />} />
         <Route path="/user/profile" element={<AccountDetail/>} />
         <Route path="/user/change-password" element={<ChangePassword/>} />
+        <Route path="/category/:id" element={<ViewBookByCategory/>}/>
       </Routes>
       {!isAdminRoute && <Footer />}
     </>
