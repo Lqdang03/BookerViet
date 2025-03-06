@@ -18,6 +18,8 @@ import BookDetail from "./pages/BookDetail";
 import AccountDetail from "./pages/AccountDetail";
 import ChangePassword from "./pages/ChangePassword.js";
 import BookResult from "./pages/BookResult.js";
+import ViewBookByCategory from "./pages/ViewBookbyCategory.js";
+import ComplaintPage from "./pages/ComplaintPage.js";
 
 function App() {
   const [userEmail, setUserEmail] = useState(null);
@@ -124,6 +126,8 @@ function App() {
         <Route path="/cart" element={<Cart updateCartData={fetchCartData} />} />
         <Route path="/user/profile" element={<AccountDetail/>} />
         <Route path="/user/change-password" element={<ChangePassword/>} />
+        <Route path="/category/:id" element={<ViewBookByCategory/>}/>
+        <Route path="/complaint" element={<ComplaintPage/>}/>
       </Routes>
       {!isAdminRoute && <Footer />}
     </>

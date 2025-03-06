@@ -108,7 +108,7 @@ const login = async (req, res) => {
         expiresIn: process.env.JWT_EXPIRES_IN,
       }
     );
-    res.status(200).json({ token });
+    res.status(200).json({ token, role: user.role });
   } catch (error) {
     res.status(500).json({ message: "Lỗi hệ thống!" });
   }

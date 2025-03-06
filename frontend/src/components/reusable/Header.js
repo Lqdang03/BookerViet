@@ -846,7 +846,7 @@ const Header = ({
             </Button>
             <Button
               component={Link}
-              to="/stores"
+              to="/complaint"
               color="inherit"
               sx={{
                 backgroundColor: "transparent !important",
@@ -856,7 +856,7 @@ const Header = ({
                 },
               }}
             >
-              Hệ thống BookerViet
+              Phản Ánh Khiếu Nại
             </Button>
             <Button
               component={Link}
