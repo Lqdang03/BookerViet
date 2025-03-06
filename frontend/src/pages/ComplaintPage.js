@@ -52,8 +52,13 @@ const ComplaintPage = () => {
       const response = await axios.get('http://localhost:9999/user/complaint', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
-      setComplaints(response.data.data);
+  
+      // Sắp xếp complaint theo thời gian mới nhất
+      const sortedComplaints = response.data.data.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+  
+      setComplaints(sortedComplaints);
     } catch (err) {
       setError('Không thể tải phản ánh. Vui lòng thử lại sau.');
       console.error('Error fetching complaints:', err);
@@ -61,7 +66,7 @@ const ComplaintPage = () => {
       setLoading(false);
     }
   };
-
+  
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({
