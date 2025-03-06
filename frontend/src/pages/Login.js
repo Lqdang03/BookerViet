@@ -55,22 +55,32 @@ function Login({ onLoginSuccess }) {
       });
   
       const token = response.data.token;
+      const userRole = response.data.role; // Assuming the API returns user role
   
-      if (formData.rememberMe) {
-        localStorage.setItem("token", token);
-        localStorage.setItem("userEmail", formData.email);
-      } else {
-        sessionStorage.setItem("token", token);
-        sessionStorage.setItem("userEmail", formData.email);
-      }
-
+      // Handle storage based on remember me setting
+      const storageMethod = formData.rememberMe ? localStorage : sessionStorage;
+      
+      storageMethod.setItem("token", token);
+      storageMethod.setItem("userEmail", formData.email);
+      storageMethod.setItem("userRole", userRole);
+      
       // Call the onLoginSuccess prop with the email
-      onLoginSuccess(formData.email);
+      if (onLoginSuccess) {
+        onLoginSuccess(formData.email);
+      }
       
       handleAlert("Đăng nhập thành công!", "success");
       
+      // Clear form data
       setFormData({ email: "", password: "", rememberMe: false });
-      navigate("/", { replace: true });
+      
+      // Direct navigation based on role - this is key!
+      console.log("User role:", userRole);
+      if (userRole === "admin") {
+        window.location.href = "/admin/dashboard";
+      } else {
+        window.location.href = "/";
+      }
     } catch (error) {
       console.error("Login error:", error);
       handleAlert("Đăng nhập thất bại. Vui lòng kiểm tra lại email và mật khẩu.", "error");
