@@ -17,6 +17,7 @@ import axios from "axios";
 import BookDetail from "./pages/BookDetail";
 import AccountDetail from "./pages/AccountDetail";
 import ChangePassword from "./pages/ChangePassword.js";
+import BookResult from "./pages/BookResult.js";
 
 function App() {
   const [userEmail, setUserEmail] = useState(null);
@@ -117,6 +118,7 @@ function App() {
         <Route path="/account/register" element={<Resgiter />} />
         <Route path="/account/forgotpassword" element={<ForgotPassword />} />
         <Route path="/book/:id" element={<BookDetail updateWishlistCount={fetchWishlistCount} updateCartData={fetchCartData} />} />
+        <Route path="/book-result" element={<BookResult updateWishlistCount={fetchWishlistCount} updateCartData={fetchCartData}/>} />
         <Route path="/" element={<HomePage updateWishlistCount={fetchWishlistCount} updateCartData={fetchCartData} />} />
         <Route path="/user/wishlist" element={<Wishlist updateWishlistCount={fetchWishlistCount} />} />
         <Route path="/cart" element={<Cart updateCartData={fetchCartData} />} />

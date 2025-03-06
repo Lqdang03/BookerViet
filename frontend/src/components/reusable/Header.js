@@ -12,6 +12,9 @@ import {
   Fade,
   Grid,
   MenuItem,
+  ListItem,
+  List,
+  ListItemText,
 } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
@@ -21,6 +24,7 @@ import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import PhoneIcon from "@mui/icons-material/Phone";
 import Badge from "@mui/material/Badge";
 import InputBase from "@mui/material/InputBase";
+import ImageIcon from "@mui/icons-material/Image";
 import { styled } from "@mui/material/styles";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import axios from "axios";
@@ -48,6 +52,16 @@ const SearchIconWrapper = styled("div")(({ theme }) => ({
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
+}));
+
+const SearchResults = styled(Paper)(({ theme }) => ({
+  position: "absolute",
+  top: "100%",
+  left: 0,
+  right: 0,
+  zIndex: 10,
+  maxHeight: "300px",
+  overflowY: "auto",
 }));
 
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
@@ -105,6 +119,8 @@ const Header = ({
 }) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [showResults, setShowResults] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [userMenuAnchorEl, setUserMenuAnchorEl] = useState(null);
   const [categories, setCategories] = useState([]);
@@ -113,7 +129,7 @@ const Header = ({
   const [isLoading, setIsLoading] = useState(true);
 
   const userMenuRef = useRef(null);
-
+  const searchRef = useRef(null);
   // Functions remain the same...
   useEffect(() => {
     fetchCategories();
@@ -161,6 +177,45 @@ const Header = ({
     }
   };
 
+  useEffect(() => {
+    if (searchTerm.trim() === "") {
+      setSearchResults([]);
+      return;
+    }
+
+    const fetchBooks = async () => {
+      try {
+        const response = await axios.get("http://localhost:9999/book/");
+        const filteredBooks = response.data.filter(book =>
+          book.title.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        setSearchResults(filteredBooks);
+      } catch (error) {
+        console.error("Lỗi khi lấy danh sách sách:", error);
+      }
+    };
+
+    fetchBooks();
+  }, [searchTerm]);
+
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+    setShowResults(true);
+  };
+
+  const handleClickOutside = (event) => {
+    if (searchRef.current && !searchRef.current.contains(event.target)) {
+      setShowResults(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const formatPrice = (price) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -187,10 +242,6 @@ const Header = ({
     }
     setUserMenuAnchorEl(null);
     navigate("/account/login");
-  };
-
-  const handleSearch = (event) => {
-    setSearchTerm(event.target.value);
   };
 
   const handleCategoryMouseEnter = (event) => {
@@ -222,6 +273,9 @@ const Header = ({
     navigate(`/category/${categoryId}`);
     handleClose();
   };
+  const handleSearchSubmit = () => {
+    navigate(`/book-result?query=${encodeURIComponent(searchTerm)}`);
+  };
 
   const displayWishlistText =
     wishlistCount === 1 ? "1 Sản phẩm" : `${wishlistCount} Sản phẩm`;
@@ -252,16 +306,47 @@ const Header = ({
               BookerViet
             </Typography>
 
-            <Search sx={{ flexGrow: 1, maxWidth: "500px" }}>
+            <Search ref={searchRef} sx={{ flexGrow: 1, maxWidth: "500px" }}>
               <SearchIconWrapper>
                 <SearchIcon />
               </SearchIconWrapper>
               <StyledInputBase
                 placeholder="Tìm kiếm sản phẩm..."
-                inputProps={{ "aria-label": "search" }}
                 value={searchTerm}
-                onChange={handleSearch}
+                onChange={handleSearchChange}
+                onKeyPress={(event) => {
+                  if (event.key === "Enter") {
+                    handleSearchSubmit();
+                  }
+                }}
+                onClick={handleSearchSubmit} 
               />
+             
+              {showResults && searchResults.length > 0 && (
+                <SearchResults>
+                  <List>
+                    {searchResults.map((book) => (
+                      <ListItem
+                        button
+                        key={book._id}
+                        onClick={() => navigate(`/book/${book._id}`)}
+                      >
+                        {book.images.length > 0 ? (
+                          <img
+                            src={book.images[0]}
+                            alt={book.title}
+                            width="30"
+                            height="40"
+                            style={{ cursor: "pointer" }}
+                          />
+                        ) : (<ImageIcon />)}
+                        <ListItemText style={{ marginLeft: 15 }} primary={book.title} />
+                        {formatPrice(book.price)}
+                      </ListItem>
+                    ))}
+                  </List>
+                </SearchResults>
+              )}
             </Search>
 
             {userEmail ? (
