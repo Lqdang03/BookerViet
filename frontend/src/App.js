@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import {Routes, Route, useLocation } from "react-router-dom";
 import Login from "./pages/Login";
 import Resgiter from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -20,6 +20,7 @@ import ChangePassword from "./pages/ChangePassword.js";
 import BookResult from "./pages/BookResult.js";
 import ViewBookByCategory from "./pages/ViewBookbyCategory.js";
 import ComplaintPage from "./pages/ComplaintPage.js";
+import OrderPage from "./pages/OrderPage.js";
 
 function App() {
   const [userEmail, setUserEmail] = useState(null);
@@ -128,6 +129,7 @@ function App() {
         <Route path="/user/change-password" element={<ChangePassword/>} />
         <Route path="/category/:id" element={<ViewBookByCategory/>}/>
         <Route path="/complaint" element={<ComplaintPage/>}/>
+        <Route path="/checkout" element={<OrderPage/>}/>
       </Routes>
       {!isAdminRoute && <Footer />}
     </>

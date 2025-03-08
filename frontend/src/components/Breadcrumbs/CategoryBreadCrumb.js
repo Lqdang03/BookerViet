@@ -6,7 +6,7 @@ function CategoryBreadCrumb({ categoryName }) {
     return (
         <Container maxWidth="lg" sx={{ ms: 0 }}>
             <Breadcrumbs separator="›" aria-label="breadcrumb" sx={{ mb: 2 }}>
-                <Link to="/" style={{ textDecoration: 'none', color: '#187bcd' }}>
+                <Link to="/" color="text.primary" style={{ textDecoration: 'none'}}>
                     Trang chủ
                 </Link>
                 <Typography sx={{ color: '#187bcd' }}>
