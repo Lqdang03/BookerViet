@@ -62,7 +62,8 @@ function BookDetailBreadCrumb() {
                     <Link 
                         key={category._id} 
                         to={`/category/${category._id}`}
-                        style={{ textDecoration: 'none', color: '#187bcd'}}
+                        color="text.primary"
+                        style={{ textDecoration: 'none'}}
                         
                     >
                         {category.name}
