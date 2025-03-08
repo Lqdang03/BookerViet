@@ -187,7 +187,7 @@ function Cart({ updateCartData }) {
 
 
 
-                      <TableCell sx={{ textAlign: "center", color: "red" }}>
+                      <TableCell sx={{ textAlign: "center" }}>
                         {item.book.price.toLocaleString()}₫
                       </TableCell>
 
@@ -201,7 +201,7 @@ function Cart({ updateCartData }) {
                         </IconButton>
                       </TableCell>
 
-                      <TableCell sx={{ textAlign: "center", color: "red" }}>
+                      <TableCell sx={{ textAlign: "center", color: "#187bcd" }}>
                         {(item.book.price * item.quantity).toLocaleString()}₫
                       </TableCell>
 
@@ -218,15 +218,22 @@ function Cart({ updateCartData }) {
             </TableContainer>
             <Box sx={{ mt: 2, textAlign: "right" }}>
               <Typography variant="h6" sx={{ mb: 2 }}>
-                Tổng tiền: {totalAmount.toLocaleString()}₫
+                Tổng tiền: <span style={{ color: "#187bcd" }}> {totalAmount.toLocaleString()}₫</span>
               </Typography>
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <Button component={Link} to="/" variant="contained" sx={{ backgroundColor: "#6c757d" }}>
                   Tiếp tục mua hàng
                 </Button>
-                <Button component={Link} to="/checkout" variant="contained" color="primary">
+                <Button
+                  component={Link}
+                  to="/checkout"
+                  variant="contained"
+                  color="primary"
+                  sx={{ padding: "8px 24px", minWidth: "180px" }} 
+                >
                   Thanh toán
                 </Button>
+
               </Box>
             </Box>
           </>
