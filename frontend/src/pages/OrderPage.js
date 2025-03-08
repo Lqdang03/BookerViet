@@ -23,6 +23,7 @@ import { Link, useNavigate } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import axios from "axios";
 import CheckoutBreadCrumb from "../components/Breadcrumbs/CheckoutBreadCrumb";
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 
 function OrderPage() {
   const navigate = useNavigate();
@@ -52,7 +53,7 @@ function OrderPage() {
   // Fetch cart items
   // In the fetchCart function, modify the setShippingAddress part:
 
-const fetchCart = useCallback(async () => {
+  const fetchCart = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token") || sessionStorage.getItem("token");
@@ -65,23 +66,23 @@ const fetchCart = useCallback(async () => {
         navigate("/login");
         return;
       }
-  
+
       const response = await axios.get("http://localhost:9999/cart", {
         headers: { Authorization: `Bearer ${token}` }
       });
-  
+
       setCartItems(response.data.cartItems);
-      
+
       // Get user info for shipping details
       const userResponse = await axios.get("http://localhost:9999/user/profile", {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       // Extract the user data - check if it's in user property or directly in the response
       const userData = userResponse.data.user || userResponse.data;
-      
+
       console.log("User data received:", userData);
-      
+
       // Update shipping address with user profile data
       // Use the correct field names 
       setShippingAddress(prev => ({
@@ -93,10 +94,10 @@ const fetchCart = useCallback(async () => {
         district: userData.district || "",
         ward: userData.ward || ""
       }));
-      
+
       // Set available points if your system has reward points
       setAvailablePoints(userData.points || 0);
-      
+
       setLoading(false);
     } catch (error) {
       console.error("Error fetching data:", error.response?.data || error.message);
@@ -151,7 +152,7 @@ const fetchCart = useCallback(async () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setShippingAddress(prev => ({ ...prev, [name]: value }));
-    
+
     // Fetch dependent data when province/district changes
     if (name === "province") {
       fetchDistricts(value);
@@ -184,17 +185,17 @@ const fetchCart = useCallback(async () => {
     try {
       setApplyingDiscount(true);
       const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-      
+
       // Calculate the subtotal for validation
       const subtotal = cartItems.reduce(
         (acc, item) => acc + item.book.price * item.quantity,
         0
       );
-      
+
       // Call API to validate and get discount amount
       const response = await axios.post(
         "http://localhost:9999/discounts/apply",
-        { 
+        {
           code: discountCode,
           subtotal: subtotal
         },
@@ -202,7 +203,7 @@ const fetchCart = useCallback(async () => {
           headers: { Authorization: `Bearer ${token}` }
         }
       );
-      
+
       // If successful, update the discount amount
       if (response.data.valid) {
         setDiscountAmount(response.data.discountAmount);
@@ -283,7 +284,7 @@ const fetchCart = useCallback(async () => {
       // Validate required fields
       const requiredFields = ["name", "phoneNumber", "address"];
       const missingFields = requiredFields.filter(field => !shippingAddress[field]);
-      
+
       if (missingFields.length > 0) {
         setAlert({
           open: true,
@@ -375,9 +376,9 @@ const fetchCart = useCallback(async () => {
   return (
     <>
       <CheckoutBreadCrumb />
-      <Snackbar 
-        open={alert.open} 
-        autoHideDuration={6000} 
+      <Snackbar
+        open={alert.open}
+        autoHideDuration={6000}
         onClose={handleCloseAlert}
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
@@ -385,12 +386,12 @@ const fetchCart = useCallback(async () => {
           {alert.message}
         </Alert>
       </Snackbar>
-      
+
       <Container sx={{ mt: 1, mb: 4 }}>
-        <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
+        <Typography variant="h5" gutterBottom sx={{ mb: 1 }}>
           Thanh toán
         </Typography>
-        
+
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
             <CircularProgress />
@@ -418,7 +419,7 @@ const fetchCart = useCallback(async () => {
                 <Typography variant="h6" gutterBottom>
                   Thông tin giao hàng
                 </Typography>
-                
+
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <TextField
@@ -528,25 +529,26 @@ const fetchCart = useCallback(async () => {
                     value={paymentMethod}
                     onChange={handlePaymentMethodChange}
                   >
-                    <FormControlLabel 
-                      value="COD" 
-                      control={<Radio />} 
+                    <FormControlLabel
+                      value="COD"
+                      control={<Radio />}
                       label={
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                           <Typography>Thanh toán khi giao hàng (COD)</Typography>
                         </Box>
-                      } 
+                      }
                     />
-                    <FormControlLabel 
-                      value="Online" 
-                      control={<Radio />} 
+                    <FormControlLabel
+                      value="Online"
+                      control={<Radio />}
                       label={
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Typography>Thanh toán trực tuyến</Typography>
-                          <Box component="img" src="/images/payment-methods.png" alt="Payment Methods" sx={{ height: 30, ml: 2 }} />
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <Typography>Thanh toán trực tuyến </Typography>
+                          <AccountBalanceIcon />
                         </Box>
-                      } 
+                      }
                     />
+
                   </RadioGroup>
                 </FormControl>
               </Paper>
@@ -583,7 +585,7 @@ const fetchCart = useCallback(async () => {
                 <Typography variant="h6" gutterBottom>
                   Đơn hàng ({cartItems.length} sản phẩm)
                 </Typography>
-                
+
                 <Box sx={{ maxHeight: 300, overflow: 'auto', mb: 0 }}>
                   {cartItems.map(item => (
                     <Box key={item.book._id} sx={{ display: 'flex', mb: 2, pb: 2, borderBottom: '1px solid #eee' }}>
@@ -608,7 +610,7 @@ const fetchCart = useCallback(async () => {
                     </Box>
                   ))}
                 </Box>
-                
+
                 {/* Discount Code Input */}
                 <Box sx={{ mb: 2 }}>
                   {!appliedDiscount ? (
@@ -632,9 +634,9 @@ const fetchCart = useCallback(async () => {
                       </Button>
                     </Box>
                   ) : (
-                    <Box sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
+                    <Box sx={{
+                      display: 'flex',
+                      alignItems: 'center',
                       justifyContent: 'space-between',
                       border: '1px dashed #4caf50',
                       borderRadius: '4px',
@@ -649,9 +651,9 @@ const fetchCart = useCallback(async () => {
                           {appliedDiscount.description || `Giảm ${appliedDiscount.amount.toLocaleString()}₫`}
                         </Typography>
                       </Box>
-                      <Button 
-                        color="error" 
-                        size="small" 
+                      <Button
+                        color="error"
+                        size="small"
                         onClick={handleRemoveDiscount}
                       >
                         Xóa
@@ -659,9 +661,9 @@ const fetchCart = useCallback(async () => {
                     </Box>
                   )}
                 </Box>
-                
+
                 <Divider sx={{ my: 2 }} />
-                
+
                 <Box sx={{ mb: 2 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                     <Typography variant="body1">Tạm tính</Typography>
@@ -684,19 +686,20 @@ const fetchCart = useCallback(async () => {
                     </Box>
                   )}
                 </Box>
-                
+
                 <Divider sx={{ my: 2 }} />
-                
+
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
                   <Typography variant="h6">Tổng cộng</Typography>
                   <Typography variant="h6" color="error">{totalAmount.toLocaleString()}₫</Typography>
                 </Box>
-                
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+
+                <Box sx={{ display: 'flex', justifyContent: 'space-between'}}>
                   <Button
                     component={Link}
                     to="/cart"
-                    variant="outlined"
+                    variant="text"
+                    sx={{fontSize: 10}}
                     startIcon={<ArrowBackIcon />}
                   >
                     Quay về giỏ hàng
@@ -704,6 +707,7 @@ const fetchCart = useCallback(async () => {
                   <Button
                     variant="contained"
                     color="primary"
+                    sx={{fontSize: 15}}
                     onClick={handlePlaceOrder}
                     disabled={loading}
                   >
