@@ -12,6 +12,8 @@ import {
   Paper,
   IconButton,
   Box,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
@@ -23,9 +25,8 @@ import CartBreadCrumb from "../components/Breadcrumbs/CartBreadCrumb";
 
 function Cart({ updateCartData }) {
   const [cartItems, setCartItems] = useState([]);
-
-
-
+  const [message, setMessage] = useState("");
+  const [openSnackbar, setOpenSnackbar] = useState(false);
 
   const fetchCart = useCallback(async () => {
     try {
@@ -76,7 +77,6 @@ function Cart({ updateCartData }) {
     }
   };
 
-
   const handleDecrease = async (id) => {
     const updatedItem = cartItems.find((item) => item.book._id === id);
     if (updatedItem && updatedItem.quantity > 1) {
@@ -100,7 +100,6 @@ function Cart({ updateCartData }) {
     }
   };
 
-
   const handleRemove = async (id) => {
     try {
       const token = localStorage.getItem("token") || sessionStorage.getItem("token");
@@ -109,15 +108,30 @@ function Cart({ updateCartData }) {
         return;
       }
 
-      await axios.delete(`http://localhost:9999/cart/remove/${id}`, {
+      const response = await axios.delete(`http://localhost:9999/cart/remove/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
+      // Display the success message from the server
+      if (response.data && response.data.message) {
+        setMessage(response.data.message);
+        setOpenSnackbar(true);
+      }
+      
       fetchCart();
     } catch (error) {
       console.error("Error removing item:", error);
+      // Display error message if available
+      if (error.response && error.response.data && error.response.data.message) {
+        setMessage(error.response.data.message);
+        setOpenSnackbar(true);
+      }
     }
   };
 
+  const handleCloseSnackbar = () => {
+    setOpenSnackbar(false);
+  };
 
   const totalAmount = cartItems.reduce(
     (acc, item) => acc + item.book.price * item.quantity,
@@ -126,9 +140,18 @@ function Cart({ updateCartData }) {
 
   return (
     <>
-
       <CartBreadCrumb />
       <Container sx={{ mt: 1, mb: 4 }}>
+        <Snackbar
+          open={openSnackbar}
+          autoHideDuration={3000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
+          <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+            {message}
+          </Alert>
+        </Snackbar>
 
         <Typography variant="h5" gutterBottom>
           Giỏ hàng của bạn
@@ -146,7 +169,6 @@ function Cart({ updateCartData }) {
                 <TableHead>
                   <TableRow>
                     <TableCell>Thông tin sản phẩm</TableCell>
-
                     <TableCell sx={{ textAlign: "center" }}>Đơn giá</TableCell>
                     <TableCell sx={{ textAlign: "center" }}>Số lượng</TableCell>
                     <TableCell sx={{ textAlign: "center" }}>Thành tiền</TableCell>
@@ -157,7 +179,7 @@ function Cart({ updateCartData }) {
                   {cartItems.map((item) => (
                     <TableRow key={item.book._id}>
                       <TableCell>
-                        <Box sx={{ display: "flex", alignItems: "center" }}>
+                        <Box sx={{ display: "flex", alignItems: "right" }}>
                           <Link to={`/book/${item.book._id}`} style={{ textDecoration: "none" }}>
                             <img
                               src={item.book.images}
@@ -185,8 +207,6 @@ function Cart({ updateCartData }) {
                         </Box>
                       </TableCell>
 
-
-
                       <TableCell sx={{ textAlign: "center" }}>
                         {item.book.price.toLocaleString()}₫
                       </TableCell>
@@ -213,7 +233,6 @@ function Cart({ updateCartData }) {
                     </TableRow>
                   ))}
                 </TableBody>
-
               </Table>
             </TableContainer>
             <Box sx={{ mt: 2, textAlign: "right" }}>
@@ -233,14 +252,12 @@ function Cart({ updateCartData }) {
                 >
                   Thanh toán
                 </Button>
-
               </Box>
             </Box>
           </>
         )}
       </Container>
     </>
-
   );
 }
 
