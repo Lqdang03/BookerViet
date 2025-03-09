@@ -127,7 +127,7 @@ function App() {
         <Route path="/cart" element={<Cart updateCartData={fetchCartData} />} />
         <Route path="/user/profile" element={<AccountDetail/>} />
         <Route path="/user/change-password" element={<ChangePassword/>} />
-        <Route path="/category/:id" element={<ViewBookByCategory/>}/>
+        <Route path="/category/:id" element={<ViewBookByCategory updateWishlistCount={fetchWishlistCount}/>}/>
         <Route path="/complaint" element={<ComplaintPage/>}/>
         <Route path="/checkout" element={<OrderPage/>}/>
       </Routes>

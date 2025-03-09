@@ -7,6 +7,8 @@ import {
   Card,
   CardMedia,
   CardContent,
+  Snackbar,
+  Alert,
   Box,
   CircularProgress,
   Container,
@@ -15,12 +17,13 @@ import {
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import CategoryBreadCrumb from '../components/Breadcrumbs/CategoryBreadCrumb';
 
-const ViewBookByCategory = () => {
+const ViewBookByCategory = ({ updateWishlistCount }) => {
   const [books, setBooks] = useState([]);
   const [categoryName, setCategoryName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [wishlist, setWishlist] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const { id: categoryId } = useParams();
 
   useEffect(() => {
@@ -77,26 +80,32 @@ const ViewBookByCategory = () => {
   const toggleWishlist = async (bookId) => {
     const token = localStorage.getItem("token") || sessionStorage.getItem("token");
     if (!token) {
-      // You might want to add a notification system here similar to HomePage
+      setNotifications(prev => [...prev, { id: Date.now(), message: "Vui lòng đăng nhập để thêm vào yêu thích", severity: "warning" }]);
       return;
     }
-
+  
     try {
       if (wishlist.includes(bookId)) {
         // Remove from wishlist
         await axios.delete(`http://localhost:9999/user/wishlist/${bookId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
+  
         setWishlist(prev => prev.filter(id => id !== bookId));
+        updateWishlistCount(prev => prev - 1);
+        setNotifications(prev => [...prev, { id: Date.now(), message: "Đã xóa khỏi danh sách yêu thích", severity: "success" }]);
       } else {
         // Add to wishlist
         await axios.post(`http://localhost:9999/user/wishlist/${bookId}`, {}, {
           headers: { Authorization: `Bearer ${token}` }
         });
+  
         setWishlist(prev => [...prev, bookId]);
+        updateWishlistCount(prev => prev + 1);
+        setNotifications(prev => [...prev, { id: Date.now(), message: "Đã thêm vào danh sách yêu thích", severity: "success" }]);
       }
     } catch (error) {
-      console.error("Wishlist error", error);
+      setNotifications(prev => [...prev, { id: Date.now(), message: "Không thể cập nhật danh sách yêu thích", severity: "error" }]);
     }
   };
 
@@ -279,6 +288,19 @@ const ViewBookByCategory = () => {
             ))}
           </Grid>
         </Box>
+        {notifications.map((notification) => (
+  <Snackbar
+    key={notification.id}
+    open
+    autoHideDuration={2000}
+    anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+    onClose={() => setNotifications(prev => prev.filter(n => n.id !== notification.id))}
+  >
+    <Alert severity={notification.severity || 'info'}>
+      {notification.message}
+    </Alert>
+  </Snackbar>
+))}
       </Container>
 
     </>
