@@ -87,6 +87,7 @@ const BookManagement = () => {
     setOpenDialog(true);
   };
 
+  // Hiển thị dialog thêm thể loại
   const handleOpenCategoryDialog = (book = null) => {
     setSelectedBook(book);
     setFormData(
