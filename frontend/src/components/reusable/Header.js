@@ -297,7 +297,7 @@ const Header = ({
               sx={{
                 fontWeight: "bold",
                 mr: 2,
-                ml: -2,
+               
                 float: "left",
                 textDecoration: "none",
                 color: "inherit"
@@ -485,6 +485,7 @@ const Header = ({
                 "&:hover": { backgroundColor: "transparent !important" },
                 gap: 0.2,
                 "&:hover .cart-text": { color: "#ffd700" },
+                ml: 1
               }}
             >
               <IconButton size="large" color="inherit">
@@ -535,6 +536,7 @@ const Header = ({
                 "&:hover": { backgroundColor: "transparent !important" },
                 gap: 0.2,
                 "&:hover .cart-text": { color: "#ffd700" },
+                ml:1
               }}
             >
               <IconButton size="large" color="inherit">
