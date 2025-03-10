@@ -29,7 +29,7 @@ const getDistrict = async (req, res) => {
                 Token: GHN_TOKEN,
             },
             params: {
-                province_id: req.body?.provinceID,
+                province_id: req.query?.provinceID,
             },
         });
         const dataResponse = response.data;
@@ -53,7 +53,7 @@ const getWard = async (req, res) => {
                 Token: GHN_TOKEN            
             },
             params: {
-                district_id: req.body?.districtID,
+                district_id: req.query?.districtID,
             },
         });
         const dataResponse = response.data;
@@ -70,8 +70,13 @@ const getWard = async (req, res) => {
 };
 
 const calculateFee = async (req, res) => {
+    console.log("Received request to calculate fee with params:", req.query);
 
-    const {to_ward_code, to_district_id, insurance_value, weight} = req.body;
+    const { to_ward_code, to_district_id, insurance_value, weight } = req.query; // Dùng req.query vì GET
+    if (!to_ward_code || !to_district_id || !insurance_value || !weight) {
+        return res.status(400).json({ message: "Thiếu thông tin cần thiết để tính phí" });
+    }
+
     try {
         const response = await axios.get(`${GHN_API_URL}/v2/shipping-order/fee`, {
             headers: {
@@ -79,19 +84,23 @@ const calculateFee = async (req, res) => {
                 ShopId: GHN_SHOP_ID,            
             },
             params: {
-                to_ward_code,
+                from_district_id: GHN_SHOP_DISTRICT, // Cần xác nhận giá trị này
+                service_type_id: GHN_SERVICE_TYPE_NHE, // Xác nhận mã dịch vụ
                 to_district_id,
+                to_ward_code,
                 weight,
-                insurance_value,
-                service_type_id: GHN_SERVICE_TYPE_NHE,
-            },
+                insurance_value
+            }
         });
-        const dataResponse = response.data;
-        res.json(dataResponse);
+
+        console.log("GHN response:", response.data);
+        res.json(response.data);
     } catch (error) {
-        res.status(500).json(error?.response?.data);
+        console.error("Error from GHN API:", error.response?.data || error.message);
+        res.status(500).json({ message: "Không thể lấy phí vận chuyển từ GHN", error: error.response?.data });
     }
 };
+
 
 const createOrderOCD = async (req, res) => {
     
