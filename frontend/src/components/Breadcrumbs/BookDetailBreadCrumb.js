@@ -7,7 +7,6 @@ function BookDetailBreadCrumb() {
     const { id } = useParams();
     const [book, setBook] = useState(null);
     const [bookCategories, setBookCategories] = useState([]);
-    const [loading, setLoading] = useState(true);
 
     // Custom style to remove underlines from links
     const linkStyle = {
@@ -20,9 +19,6 @@ function BookDetailBreadCrumb() {
     };
 
     useEffect(() => {
-        // Set loading state
-        setLoading(true);
-        
         // Fetch book details
         axios.get(`http://localhost:9999/book/${id}`)
             .then(async (bookResponse) => {
@@ -44,22 +40,11 @@ function BookDetailBreadCrumb() {
                         console.error("Lỗi khi lấy danh mục:", error);
                     }
                 }
-                
-                setLoading(false);
             })
             .catch(error => {
                 console.error("Lỗi khi lấy dữ liệu sách:", error);
-                setLoading(false);
             });
     }, [id]);
-
-    if (loading) {
-        return (
-            <Container maxWidth="lg">
-                <Typography>Đang tải...</Typography>
-            </Container>
-        );
-    }
 
     return (
         <Container maxWidth="lg">
@@ -77,7 +62,8 @@ function BookDetailBreadCrumb() {
                     <Link 
                         key={category._id} 
                         to={`/category/${category._id}`}
-                        style={{ textDecoration: 'none', color: '#187bcd'}}
+                        color="text.primary"
+                        style={{ textDecoration: 'none'}}
                         
                     >
                         {category.name}
