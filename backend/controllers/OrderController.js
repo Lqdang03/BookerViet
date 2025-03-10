@@ -1,8 +1,13 @@
 const Order = require('../models/Order');
 const Book = require('../models/Book');
+const Cart = require('../models/Cart');
 const createOrder = async (req, res) => {
     try {
-        const { items, shippingAddress, paymentMethod, totalDiscount, pointUsed } = req.body;
+
+        const cart = await Cart.findOne({ user: req.user.id });
+        const items = cart.cartItems;
+
+        const { shippingInfo, paymentMethod, totalDiscount, pointUsed } = req.body;
         const userId = req.user.id; // Lấy user từ token
 
         if (!items || items.length === 0) {
@@ -28,17 +33,17 @@ const createOrder = async (req, res) => {
         const newOrder = new Order({
             user: userId,
             items,
-            shippingAddress,
+            shippingInfo,
             paymentMethod,
             totalDiscount,
             pointUsed,
             paymentStatus: 'Pending',
-            orderStatus: 'Processing'
+            orderStatus: 'Pending',
         });
 
         const savedOrder = await newOrder.save();
         res.status(201).json({
-            savedOrder,
+            data: savedOrder,
             totalAmount});
     } catch (error) {
         res.status(500).json({ message: error.message });

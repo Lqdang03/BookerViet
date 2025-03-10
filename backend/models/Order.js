@@ -42,10 +42,10 @@ const orderSchema = new mongoose.Schema({
     },
     orderStatus: {
         type: String,
-        enum: ['Processing', 'Shipped', 'Delivered', 'Cancelled'],
-        default: 'Processing'
+        enum: ['Pending','Processing', 'Shipped', 'Delivered', 'Cancelled'],
+        default: 'Pending'
     },
-    shippingAddress: {
+    shippingInfo: {
         name: {
             type: String,
             required: true
@@ -58,18 +58,31 @@ const orderSchema = new mongoose.Schema({
             type: String,
             required: true
         },
+        provineName: {
+            type: String,
+            required: true
+        },
+        districtName: {
+            type: String,
+            required: true
+        },
+        wardName: {
+            type: String,
+            required: true
+        },
+        note: {
+            type: String,
+            default: ''
+        },
+        fee: {
+            type: Number,
+            required: true,
+            default: 0
+        }
     },
     trackingNumber: {
         type: String,
         default: null
-    },
-    expectedDeliveryDate: {
-        type: Date,
-        default: null
-    },
-    notes: {
-        type: String,
-        default: ''
     }
 
 }, {timestamps: true});
