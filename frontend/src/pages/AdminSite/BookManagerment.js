@@ -20,16 +20,14 @@ const BookManagement = () => {
   const [selectedImages, setSelectedImages] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchCategory, setSearchCategory] = useState("");
   const [formData, setFormData] = useState({
     title: "", author: "", genre: "", description: "", language: "", translator: "",
     publisher: "", publishDate: "", price: "", originalPrice: "", stock: "", isActivated: true,
     images: [], categories: []
   });
 
-  useEffect(() => {
-    fetchBooks();
-    fetchCategories();
-  }, []);
 
   // Lấy danh sách sách từ API
   const fetchBooks = async () => {
@@ -42,7 +40,17 @@ const BookManagement = () => {
       const response = await axios.get("http://localhost:9999/admin/books", {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setBooks(response.data);
+      //lọc sách theo tên và category
+      if (searchTerm || searchCategory) {
+        const filteredBook = response.data.filter(book => {
+          const matchTitle = book.title.toLowerCase().includes(searchTerm.toLowerCase());
+          const matchCategory = (!searchCategory || searchCategory == book.categories);
+          return matchTitle && matchCategory;
+        });
+        setBooks(filteredBook);
+      } else {
+        setBooks(response.data);
+      }
     } catch (error) {
       console.error("Lỗi khi lấy sách:", error);
     }
@@ -65,8 +73,21 @@ const BookManagement = () => {
     }
   };
 
+  useEffect(() => {
+    fetchBooks();
+    fetchCategories();
+  }, [searchTerm, searchCategory]);
+
   // Hiển thị dialog thêm/sửa sách
-  const handleOpenDialog = (book = null) => {
+  const handleOpenBookDialog = (book = null) => {
+    setSelectedBook(book);
+    setFormData(
+      book || { title: "", author: "", genre: "", description: "", language: "", translator: "", publisher: "", publishDate: "", price: "", originalPrice: "", stock: "", isActivated: true, images: [], categories: [] }
+    );
+    setOpenDialog(true);
+  };
+
+  const handleOpenCategoryDialog = (book = null) => {
     setSelectedBook(book);
     setFormData(
       book || { title: "", author: "", genre: "", description: "", language: "", translator: "", publisher: "", publishDate: "", price: "", originalPrice: "", stock: "", isActivated: true, images: [], categories: [] }
@@ -158,12 +179,29 @@ const BookManagement = () => {
   };
 
   return (
-    <Box sx={{ padding: 1,width: "100%", maxWidth: "calc(100% - 250px)", margin: "auto" }}>
+    <Box sx={{ padding: 1, width: "100%", maxWidth: "calc(100% - 250px)", margin: "auto" }}>
       <Typography variant="h4" gutterBottom>Quản lý Sách</Typography>
-      <Box style={{ display: "flex", justifyContent: "flex-end" }}>
-        <Button variant="contained" color="primary" onClick={() => handleOpenDialog()}>Thêm Sách</Button>
-      </Box>
+      <Box sx={{ display: "flex", gap: 3, marginBottom: 2 }}>
+        <TextField
+          label="Tìm kiếm theo tên sách"
+          variant="outlined"
+          fullWidth
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
 
+        <FormControl fullWidth variant="outlined">
+          <InputLabel >Danh mục</InputLabel>
+          <Select multiple value={searchCategory || []} onChange={(e) => setSearchCategory(e.target.value)} label="Danh mục">
+            {categories.map((cat) => (<MenuItem key={cat._id} value={cat._id}>{cat.name}</MenuItem>))}
+          </Select>
+        </FormControl>
+
+        <Button style={{ padding: 0 }} variant="contained" color="warning" onClick={() => handleOpenCategoryDialog()}>Thêm thể loại</Button>
+
+        <Button style={{ padding: 0 }} variant="contained" color="primary" onClick={() => handleOpenBookDialog()}>Thêm Sách</Button>
+
+      </Box>
       <TableContainer component={Paper} sx={{ marginTop: 2 }}>
         <Table>
           <TableHead>
@@ -200,7 +238,7 @@ const BookManagement = () => {
                 <TableCell>{formatPrice(book.price)}</TableCell>
                 <TableCell>{book.stock}</TableCell>
                 <TableCell>
-                  <IconButton onClick={() => handleOpenDialog(book)} color="primary"><EditIcon /></IconButton>
+                  <IconButton onClick={() => handleOpenBookDialog(book)} color="primary"><EditIcon /></IconButton>
                   <IconButton color="error" onClick={() => handleDelete(book._id)}><DeleteIcon /></IconButton>
                 </TableCell>
               </TableRow>
@@ -233,44 +271,44 @@ const BookManagement = () => {
 
       {/* Dialog Thêm hoặc sửa */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="md" fullWidth>
-  <DialogTitle>{selectedBook ? "Chỉnh sửa sách" : "Thêm sách mới"}</DialogTitle>
-  <DialogContent>
-    <Grid container spacing={3}>
-      <Grid item xs={12} sm={6}>
-        <TextField fullWidth label="Tiêu đề" name="title" value={formData.title} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }}/>
-        <TextField fullWidth label="Tác giả" name="author" value={formData.author} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }}/>
-        <TextField fullWidth label="Thể loại" name="genre" value={formData.genre} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }}/>
-        <TextField fullWidth label="Mô tả" name="description" value={formData.description} onChange={handleChange} multiline rows={4} margin="dense" InputLabelProps={{ shrink: true }}/>
-        <TextField fullWidth label="Ngôn ngữ" name="language" value={formData.language} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }}/>
-        <TextField fullWidth label="Người dịch" name="translator" value={formData.translator} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }}/>
-      </Grid>
-      <Grid item xs={12} sm={6}>
-        <TextField fullWidth label="Người xuất bản" name="publisher" value={formData.publisher} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }}/>
-        <TextField fullWidth label="Ngày Xuất Bản" name="publishDate" type="date" value={formData.publishDate} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }} />
-        <TextField fullWidth label="Giá" name="price" type="number" value={formData.price} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }}/>
-        <TextField fullWidth label="Giá gốc" name="originalPrice" type="number" value={formData.originalPrice} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }}/>
-        <TextField fullWidth label="Số lượng" name="stock" type="number" value={formData.stock} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }}/>
-        <TextField fullWidth label="URL Ảnh (cách nhau bằng dấu phẩy)" name="images" value={formData.images.join(",")} onChange={handleImageChange} multiline rows={3} margin="dense" InputLabelProps={{ shrink: true }}/>
-      </Grid>
-      <Grid item xs={12}> 
-        <FormControl fullWidth margin="dense" variant="outlined">
-          <InputLabel >Danh mục</InputLabel>
-          <Select multiple value={formData.categories} onChange={handleCategoryChange} label="Danh mục">
-            {categories.map((cat) => (<MenuItem key={cat._id} value={cat._id}>{cat.name}</MenuItem>))}
-          </Select>
-        </FormControl>
-        <Box display="flex" alignItems="center"  mt={2}>
-          <Typography>Kích hoạt</Typography>
-          <Switch checked={formData.isActivated} onChange={handleSwitchChange} />
-        </Box>
-      </Grid>
-    </Grid>
-  </DialogContent>
-  <DialogActions>
-    <Button onClick={() => setOpenDialog(false)}>Hủy</Button>
-    <Button variant="contained" color="primary" onClick={handleSubmit}>Lưu</Button>
-  </DialogActions>
-</Dialog>
+        <DialogTitle>{selectedBook ? "Chỉnh sửa sách" : "Thêm sách mới"}</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={6}>
+              <TextField fullWidth label="Tiêu đề" name="title" value={formData.title} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }} />
+              <TextField fullWidth label="Tác giả" name="author" value={formData.author} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }} />
+              <TextField fullWidth label="Thể loại" name="genre" value={formData.genre} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }} />
+              <TextField fullWidth label="Mô tả" name="description" value={formData.description} onChange={handleChange} multiline rows={4} margin="dense" InputLabelProps={{ shrink: true }} />
+              <TextField fullWidth label="Ngôn ngữ" name="language" value={formData.language} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }} />
+              <TextField fullWidth label="Người dịch" name="translator" value={formData.translator} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField fullWidth label="Người xuất bản" name="publisher" value={formData.publisher} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }} />
+              <TextField fullWidth label="Ngày Xuất Bản" name="publishDate" type="date" value={formData.publishDate} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }} />
+              <TextField fullWidth label="Giá" name="price" type="number" value={formData.price} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }} />
+              <TextField fullWidth label="Giá gốc" name="originalPrice" type="number" value={formData.originalPrice} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }} />
+              <TextField fullWidth label="Số lượng" name="stock" type="number" value={formData.stock} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }} />
+              <TextField fullWidth label="URL Ảnh (cách nhau bằng dấu phẩy)" name="images" value={formData.images.join(",")} onChange={handleImageChange} multiline rows={3} margin="dense" InputLabelProps={{ shrink: true }} />
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth margin="dense" variant="outlined">
+                <InputLabel >Danh mục</InputLabel>
+                <Select multiple value={formData.categories} onChange={handleCategoryChange} label="Danh mục">
+                  {categories.map((cat) => (<MenuItem key={cat._id} value={cat._id}>{cat.name}</MenuItem>))}
+                </Select>
+              </FormControl>
+              <Box display="flex" alignItems="center" mt={2}>
+                <Typography>Kích hoạt</Typography>
+                <Switch checked={formData.isActivated} onChange={handleSwitchChange} />
+              </Box>
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDialog(false)}>Hủy</Button>
+          <Button variant="contained" color="primary" onClick={handleSubmit}>Lưu</Button>
+        </DialogActions>
+      </Dialog>
 
     </Box>
   );

@@ -7,6 +7,8 @@ import MenuBookIcon from "@mui/icons-material/MenuBook";
 import PeopleIcon from "@mui/icons-material/People";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import FeedbackIcon from "@mui/icons-material/Feedback";
+import RateReview  from "@mui/icons-material/RateReview";
 
 const Sidebar = ({ isSidebarOpen }) => {
   return (
@@ -35,6 +37,8 @@ const Sidebar = ({ isSidebarOpen }) => {
           { text: "Book Management", icon: <MenuBookIcon />, link: "/admin/books" },
           { text: "Order Management", icon: <ReceiptLongIcon />, link: "/admin/orders" },
           { text: "Discount Management", icon: <LocalOfferIcon />, link: "/admin/discounts" },
+          { text: "Report Management", icon: <FeedbackIcon />, link: "/admin/reports" },
+          { text: "Feedback Management", icon: <RateReview />, link: "/admin/feedbacks" },
           { text: "Analysis", icon: <BarChartIcon />, link: "/admin/analysis" }
         ].map((item) => (
           <Tooltip title={!isSidebarOpen ? item.text : ""} placement="right" key={item.text}>
