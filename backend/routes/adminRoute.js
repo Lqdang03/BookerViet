@@ -3,6 +3,8 @@ const { checkAuthorize } = require("../middleware/authMiddleware");
 const adminController = require("../controllers/AdminController");
 const adminBookController = require("../controllers/AdminBookController");
 const adminDiscountController = require("../controllers/AdminDiscountController");
+const {updateBoxInfo} = require("../controllers/OrderController");
+const {confirmOrder} = require("../controllers/GhnController");
 
 const router = express.Router();
 
@@ -16,6 +18,9 @@ router.get("/users/:id/orders", checkAuthorize(["admin"]), adminController.getUs
 // ✅ Quản lý đơn hàng
 router.get("/orders", checkAuthorize(["admin"]), adminController.getAllOrders);
 router.put("/orders/:id", checkAuthorize(["admin"]), adminController.updateOrderStatus);
+router.post("orders/update-box-info/:id", checkAuthorize(["admin"]), updateBoxInfo);
+router.post("orders/confirm/:id", checkAuthorize(["admin"]), confirmOrder);
+
 
 // ✅ Quản lý sách
 router.get("/books", checkAuthorize(["admin"]), adminBookController.getAllBooks);
