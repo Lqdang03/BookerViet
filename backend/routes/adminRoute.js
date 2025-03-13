@@ -18,8 +18,8 @@ router.get("/users/:id/orders", checkAuthorize(["admin"]), adminController.getUs
 // ✅ Quản lý đơn hàng
 router.get("/orders", checkAuthorize(["admin"]), adminController.getAllOrders);
 router.put("/orders/:id", checkAuthorize(["admin"]), adminController.updateOrderStatus);
-router.post("orders/update-box-info/:id", checkAuthorize(["admin"]), updateBoxInfo);
-router.post("orders/confirm/:id", checkAuthorize(["admin"]), confirmOrder);
+router.post("/orders/update-box-info/:id", checkAuthorize(["admin"]), updateBoxInfo);
+router.post("/orders/confirm/:id", checkAuthorize(["admin"]), confirmOrder);
 
 
 // ✅ Quản lý sách
