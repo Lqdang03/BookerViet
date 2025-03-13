@@ -83,9 +83,27 @@ const orderSchema = new mongoose.Schema({
     trackingNumber: {
         type: String,
         default: null
+    },
+    boxInfo: {
+        type: {
+            weight: { type: Number, required: true, min: 0 },
+            length: { type: Number, required: true, min: 0 },
+            height: { type: Number, required: true, min: 0 },
+            width: { type: Number, required: true, min: 0 }
+        },
+        default: null
     }
 
 }, {timestamps: true});
+
+orderSchema.pre('save', function(next) {
+    if (this.boxInfo !== null) {
+        if (!this.boxInfo.length || !this.boxInfo.weight || !this.boxInfo.height || !this.boxInfo.width) {
+            return next(new Error('All boxInfo fields (weight, length, width, height) must be provided'));
+        }
+    }
+    next();
+});
 
 orderSchema.index(
     { trackingNumber: 1 },

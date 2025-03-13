@@ -41,7 +41,13 @@ const createOrder = async (req, res) => {
             orderStatus: 'Pending',
         });
 
+        
         const savedOrder = await newOrder.save();
+        await Cart.findOneAndUpdate(
+            { user: userId },
+            { $set: { cartItems: [] } }, // Xóa toàn bộ cartItems nhưng giữ cart
+            { new: true }
+        );
         res.status(201).json({
             data: savedOrder,
             totalAmount});
@@ -50,5 +56,21 @@ const createOrder = async (req, res) => {
     }
 };
 
-const orderController = {createOrder};
+
+const updateBoxInfo = async (req, res) => {
+    try {
+        const { boxInfo } = req.body;
+        const order = await Order.findById(req.params.id);
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+        order.boxInfo = boxInfo;
+        const updatedOrder = await order.save();
+        res.status(200).json(updatedOrder);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: error.message });
+    }
+}
+const orderController = {createOrder, updateBoxInfo};
 module.exports = orderController;
