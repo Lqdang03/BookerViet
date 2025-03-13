@@ -21,6 +21,8 @@ import BookResult from "./pages/BookResult.js";
 import ViewBookByCategory from "./pages/ViewBookbyCategory.js";
 import ComplaintPage from "./pages/ComplaintPage.js";
 import OrderPage from "./pages/OrderPage.js";
+import OrderSuccessPage from "./pages/OrderSuccessPage.js";
+import TrackOrder from "./pages/TrackOrder.js";
 
 function App() {
   const [userEmail, setUserEmail] = useState(null);
@@ -130,6 +132,8 @@ function App() {
         <Route path="/category/:id" element={<ViewBookByCategory updateWishlistCount={fetchWishlistCount}/>}/>
         <Route path="/complaint" element={<ComplaintPage/>}/>
         <Route path="/checkout" element={<OrderPage/>}/>
+        <Route path="/order-success" element={<OrderSuccessPage />} />
+        <Route path="/track-order" element={<TrackOrder/>} />
       </Routes>
       {!isAdminRoute && <Footer />}
     </>

@@ -35,7 +35,7 @@ const getDistrict = async (req, res) => {
         Token: GHN_TOKEN,
       },
       params: {
-        province_id: req.body?.provinceID,
+        province_id: req.query.provinceID,
       },
     });
     const dataResponse = response.data;
@@ -59,7 +59,7 @@ const getWard = async (req, res) => {
         Token: GHN_TOKEN,
       },
       params: {
-        district_id: req.body?.districtID,
+        district_id: req.query.districtID,
       },
     });
     const dataResponse = response.data;
@@ -76,27 +76,38 @@ const getWard = async (req, res) => {
 };
 
 const calculateFee = async (req, res) => {
-  const { to_ward_code, to_district_id, insurance_value, weight } = req.body;
   try {
+    const { to_ward_code, to_district_id, insurance_value, weight } = req.query; // Dùng query thay vì body
+
+    if (!to_ward_code || !to_district_id || !insurance_value || !weight) {
+      return res.status(400).json({ message: "Thiếu thông tin tính phí vận chuyển" });
+    }
+
     const response = await axios.get(`${GHN_API_URL}/v2/shipping-order/fee`, {
       headers: {
         Token: GHN_TOKEN,
         ShopId: GHN_SHOP_ID,
       },
       params: {
+        service_type_id: GHN_SERVICE_TYPE_NHE,
         to_ward_code,
         to_district_id,
         weight,
         insurance_value,
-        service_type_id: GHN_SERVICE_TYPE_NHE,
       },
     });
-    const dataResponse = response.data;
-    res.json(dataResponse);
+
+    if (!response.data || !response.data.data) {
+      return res.status(400).json({ message: "Không nhận được dữ liệu phí vận chuyển" });
+    }
+
+    res.json(response.data);
   } catch (error) {
-    res.status(500).json(error?.response?.data);
+    console.error("GHN Fee Calculation Error:", error.response?.data || error.message);
+    res.status(500).json({ message: "Lỗi khi tính phí vận chuyển" });
   }
 };
+
 
 const confirmOrder = async (req, res) => {
   try {
