@@ -8,7 +8,8 @@ const cartRoutes = require("./routes/cartRoute");
 const bookRoutes = require("./routes/bookRoute");
 const adminRoutes = require("./routes/adminRoute");
 const categoryRoutes = require("./routes/categoryRoute");
-const orderRoutes = require("./routes/orderRoute");           
+const orderRoutes = require("./routes/orderRoute");
+const ghnRoutes = require("./routes/ghnRoute");           
 const { checkAuthorize } = require("./middleware/authMiddleware");
 
 const DB = require("./config/db");
@@ -29,6 +30,7 @@ app.use("/admin", adminRoutes);
 app.use("/book", bookRoutes);
 app.use("/category", categoryRoutes);
 app.use("/order", orderRoutes);
+app.use("/ghn", ghnRoutes);
 
 // Test phân quyền
 app.get("/open", (req, res) => {

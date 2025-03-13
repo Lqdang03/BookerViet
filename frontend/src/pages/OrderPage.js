@@ -49,10 +49,10 @@ function OrderPage() {
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [wards, setWards] = useState([]);
+  const [shippingFee, setShippingFee] = useState(0);
+  const [calculatingFee, setCalculatingFee] = useState(false);
 
   // Fetch cart items
-  // In the fetchCart function, modify the setShippingAddress part:
-
   const fetchCart = useCallback(async () => {
     try {
       setLoading(true);
@@ -84,7 +84,6 @@ function OrderPage() {
       console.log("User data received:", userData);
 
       // Update shipping address with user profile data
-      // Use the correct field names 
       setShippingAddress(prev => ({
         ...prev,
         name: userData.name || "",
@@ -110,43 +109,138 @@ function OrderPage() {
     }
   }, [navigate]);
 
-  // Fetch address data
-  const fetchAddressData = useCallback(async () => {
+  // Fetch provinces from GHN API
+  const fetchProvinces = useCallback(async () => {
     try {
-      // This would typically be an API call to get provinces/cities
-      // For example purposes we're using a placeholder
-      const provincesResponse = await axios.get("http://localhost:9999/address/provinces");
-      setProvinces(provincesResponse.data);
+      const response = await axios.get("http://localhost:9999/ghn/province");
+      setProvinces(response.data.map(province => ({
+        id: province.ProvinceID,
+        name: province.ProvinceName
+      })));
     } catch (error) {
-      console.error("Error fetching address data:", error);
+      console.error("Error fetching provinces:", error);
+      setAlert({
+        open: true,
+        message: "Không thể tải danh sách tỉnh/thành phố",
+        severity: "error"
+      });
     }
   }, []);
 
-  // Fetch districts based on selected province
+  // Fetch districts based on selected province from GHN API
   const fetchDistricts = useCallback(async (provinceId) => {
     try {
-      const districtsResponse = await axios.get(`http://localhost:9999/address/districts/${provinceId}`);
-      setDistricts(districtsResponse.data);
-      setWards([]);
+      const response = await axios.get(`http://localhost:9999/ghn/district?provinceID=${provinceId}`);
+      
+      setDistricts(response.data.map(district => ({
+        id: district.DistrictID,
+        name: district.DistrictName,
+        provinceId: district.ProvinceID
+      })));
+    
+    setWards([]);
+    // Reset district and ward in shipping address
+    setShippingAddress(prev => ({
+      ...prev,
+      district: "",
+      ward: ""
+    }));
+  } catch (error) {
+    console.error("Error fetching districts:", error);
+    setAlert({
+      open: true,
+      message: "Không thể tải danh sách quận/huyện",
+      severity: "error"
+    });
+  }
+}, []);
+
+  // Fetch wards based on selected district from GHN API
+  const fetchWards = useCallback(async (districtId) => {
+    try {
+      const response = await axios.get(`http://localhost:9999/ghn/ward?districtID=${districtId}`);
+      
+      setWards(response.data.map(ward => ({
+        id: ward.WardCode,
+        name: ward.WardName,
+        districtId: ward.DistrictID
+      })));
+      
+      // Reset ward in shipping address
+      setShippingAddress(prev => ({
+        ...prev,
+        ward: ""
+      }));
     } catch (error) {
-      console.error("Error fetching districts:", error);
+      console.error("Error fetching wards:", error);
+      setAlert({
+        open: true,
+        message: "Không thể tải danh sách phường/xã",
+        severity: "error"
+      });
     }
   }, []);
 
-  // Fetch wards based on selected district
-  const fetchWards = useCallback(async (districtId) => {
-    try {
-      const wardsResponse = await axios.get(`http://localhost:9999/address/wards/${districtId}`);
-      setWards(wardsResponse.data);
-    } catch (error) {
-      console.error("Error fetching wards:", error);
+  // Calculate shipping fee using GHN API
+  const calculateShippingFee = useCallback(async () => {
+    if (!shippingAddress.ward || !shippingAddress.district) {
+      return;
     }
-  }, []);
+
+    try {
+      setCalculatingFee(true);
+      
+      // Calculate total weight of books (assuming average book weight of 500g)
+      const totalWeight = cartItems.reduce(
+        (total, item) => total + (item.quantity * 500), 
+        0
+      );
+      
+      // Calculate total value of order for insurance
+      const totalValue = cartItems.reduce(
+        (total, item) => total + (item.book.price * item.quantity), 
+        0
+      );
+
+      const response = await axios.get("http://localhost:9999/ghn/calculate-fee", {
+        params: {
+          to_ward_code: shippingAddress.ward,
+          to_district_id: parseInt(shippingAddress.district),
+          weight: totalWeight,
+          insurance_value: totalValue
+        }
+      });
+      
+      const calculatedFee = response.data.data.total;
+      
+      // Apply free shipping for orders over 300,000đ
+      setShippingFee(totalValue > 300000 ? 0 : calculatedFee);
+      
+      setCalculatingFee(false);
+    } catch (error) {
+      console.error("Error calculating shipping fee:", error);
+      // Fallback to default shipping fee
+      setShippingFee(35000);
+      setCalculatingFee(false);
+      setAlert({
+        open: true,
+        message: "Không thể tính phí vận chuyển, đã áp dụng phí mặc định",
+        severity: "warning"
+      });
+    }
+  }, [cartItems, shippingAddress.district, shippingAddress.ward]);
 
   useEffect(() => {
     fetchCart();
-    fetchAddressData();
-  }, [fetchCart, fetchAddressData]);
+    fetchProvinces();
+  }, [fetchCart, fetchProvinces]);
+
+  // Recalculate shipping fee when address changes
+  useEffect(() => {
+    if (shippingAddress.ward && shippingAddress.district) {
+      calculateShippingFee();
+    }
+  }, [shippingAddress.ward, shippingAddress.district, calculateShippingFee]);
 
   // Handle form input changes
   const handleInputChange = (e) => {
@@ -154,9 +248,9 @@ function OrderPage() {
     setShippingAddress(prev => ({ ...prev, [name]: value }));
 
     // Fetch dependent data when province/district changes
-    if (name === "province") {
+    if (name === "province" && value) {
       fetchDistricts(value);
-    } else if (name === "district") {
+    } else if (name === "district" && value) {
       fetchWards(value);
     }
   };
@@ -258,12 +352,13 @@ function OrderPage() {
     }
   };
 
-  // Calculate totals
+  // Calculate subtotal
   const subtotal = cartItems.reduce(
     (acc, item) => acc + item.book.price * item.quantity,
     0
   );
-  const shippingFee = subtotal > 300000 ? 0 : 30000;
+  
+  // Calculate total amount
   const totalAmount = subtotal + shippingFee - discountAmount - pointsToUse;
 
   // Submit order
@@ -282,7 +377,7 @@ function OrderPage() {
       }
 
       // Validate required fields
-      const requiredFields = ["name", "phoneNumber", "address"];
+      const requiredFields = ["name", "phoneNumber", "address", "province", "district", "ward"];
       const missingFields = requiredFields.filter(field => !shippingAddress[field]);
 
       if (missingFields.length > 0) {
@@ -297,14 +392,17 @@ function OrderPage() {
 
       // Format address with province/district/ward if they exist
       let fullAddress = shippingAddress.address;
+      
       if (shippingAddress.ward && wards.length > 0) {
         const selectedWard = wards.find(w => w.id === shippingAddress.ward);
         if (selectedWard) fullAddress += `, ${selectedWard.name}`;
       }
+      
       if (shippingAddress.district && districts.length > 0) {
         const selectedDistrict = districts.find(d => d.id === shippingAddress.district);
         if (selectedDistrict) fullAddress += `, ${selectedDistrict.name}`;
       }
+      
       if (shippingAddress.province && provinces.length > 0) {
         const selectedProvince = provinces.find(p => p.id === shippingAddress.province);
         if (selectedProvince) fullAddress += `, ${selectedProvince.name}`;
@@ -319,9 +417,13 @@ function OrderPage() {
         shippingAddress: {
           name: shippingAddress.name,
           phoneNumber: shippingAddress.phoneNumber,
-          address: fullAddress
+          address: fullAddress,
+          provinceId: shippingAddress.province,
+          districtId: shippingAddress.district,
+          wardCode: shippingAddress.ward
         },
         paymentMethod: paymentMethod,
+        shippingFee: shippingFee,
         totalDiscount: discountAmount,
         pointUsed: pointsToUse,
         notes: shippingAddress.notes || "",
@@ -452,13 +554,13 @@ function OrderPage() {
                     />
                   </Grid>
                   <Grid item xs={12} sm={4}>
-                    <FormControl fullWidth>
+                    <FormControl fullWidth required>
                       <InputLabel>Tỉnh/Thành phố</InputLabel>
                       <Select
                         name="province"
                         value={shippingAddress.province}
                         onChange={handleInputChange}
-                        label="Tỉnh/Thành phố"
+                        label="Tỉnh/Thành phố *"
                       >
                         {provinces.map(province => (
                           <MenuItem key={province.id} value={province.id}>
@@ -469,13 +571,13 @@ function OrderPage() {
                     </FormControl>
                   </Grid>
                   <Grid item xs={12} sm={4}>
-                    <FormControl fullWidth>
+                    <FormControl fullWidth required>
                       <InputLabel>Quận/Huyện</InputLabel>
                       <Select
                         name="district"
                         value={shippingAddress.district}
                         onChange={handleInputChange}
-                        label="Quận/Huyện"
+                        label="Quận/Huyện *"
                         disabled={!shippingAddress.province}
                       >
                         {districts.map(district => (
@@ -487,13 +589,13 @@ function OrderPage() {
                     </FormControl>
                   </Grid>
                   <Grid item xs={12} sm={4}>
-                    <FormControl fullWidth>
+                    <FormControl fullWidth required>
                       <InputLabel>Phường/Xã</InputLabel>
                       <Select
                         name="ward"
                         value={shippingAddress.ward}
                         onChange={handleInputChange}
-                        label="Phường/Xã"
+                        label="Phường/Xã *"
                         disabled={!shippingAddress.district}
                       >
                         {wards.map(ward => (
@@ -548,7 +650,6 @@ function OrderPage() {
                         </Box>
                       }
                     />
-
                   </RadioGroup>
                 </FormControl>
               </Paper>
@@ -670,8 +771,13 @@ function OrderPage() {
                     <Typography variant="body1">{subtotal.toLocaleString()}₫</Typography>
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body1">Phí vận chuyển</Typography>
-                    <Typography variant="body1">{shippingFee > 0 ? `${shippingFee.toLocaleString()}₫` : 'Miễn phí'}</Typography>
+                    <Typography variant="body1">
+                      Phí vận chuyển
+                      {calculatingFee && <CircularProgress size={12} sx={{ ml: 1 }} />}
+                    </Typography>
+                    <Typography variant="body1">
+                      {shippingFee > 0 ? `${shippingFee.toLocaleString()}₫` : 'Miễn phí'}
+                    </Typography>
                   </Box>
                   {discountAmount > 0 && (
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
@@ -709,7 +815,7 @@ function OrderPage() {
                     color="primary"
                     sx={{fontSize: 15}}
                     onClick={handlePlaceOrder}
-                    disabled={loading}
+                    disabled={loading || calculatingFee}
                   >
                     {loading ? <CircularProgress size={24} /> : 'Đặt hàng'}
                   </Button>
