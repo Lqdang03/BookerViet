@@ -215,7 +215,8 @@ function OrderPage() {
 
       if (response.data && response.data.data) {
         const calculatedFee = response.data.data.total;
-        setShippingFee(totalValue > 300000 ? 0 : calculatedFee);
+        // Updated: Always charge shipping fee regardless of order total
+        setShippingFee(calculatedFee);
       } else {
         setShippingFee(35000);
         console.warn("Unexpected response format from API", response.data);
@@ -447,8 +448,8 @@ function OrderPage() {
           fee: shippingFee
         },
         paymentMethod,
-        totalDiscount: discountAmount, // Đổi `totalDiscount` thành `discountAmount`
-        pointUsed: pointsToUse, // Đổi `pointUsed` thành `pointsToUse`
+        totalDiscount: discountAmount,
+        pointUsed: pointsToUse,
         totalAmount,
         items: cartItems
       }));
@@ -801,7 +802,7 @@ function OrderPage() {
                       {calculatingFee && <CircularProgress size={12} sx={{ ml: 1 }} />}
                     </Typography>
                     <Typography variant="body1">
-                      {shippingFee > 0 ? `${shippingFee.toLocaleString()}₫` : 'Miễn phí'}
+                      {shippingFee.toLocaleString()}₫
                     </Typography>
                   </Box>
                   {discountAmount > 0 && (

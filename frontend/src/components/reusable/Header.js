@@ -21,6 +21,9 @@ import SearchIcon from "@mui/icons-material/Search";
 import PersonPinOutlinedIcon from "@mui/icons-material/PersonPinOutlined";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import NoBackpackIcon from '@mui/icons-material/NoBackpack';
+import FlagIcon from '@mui/icons-material/Flag';
+import RoomIcon from '@mui/icons-material/Room';
 import PhoneIcon from "@mui/icons-material/Phone";
 import Badge from "@mui/material/Badge";
 import InputBase from "@mui/material/InputBase";
@@ -818,7 +821,7 @@ const Header = ({
           </Box>
 
           <Box sx={{ display: "flex", gap: 2 }}>
-            <Button
+            {/* <Button
               component={Link}
               to="/viewed-products"
               color="inherit"
@@ -831,10 +834,10 @@ const Header = ({
               }}
             >
               Sản phẩm đã xem
-            </Button>
+            </Button> */}
             <Button
               component={Link}
-              to="/flashsale"
+              to="/refund"
               color="inherit"
               sx={{
                 backgroundColor: "transparent !important",
@@ -844,7 +847,8 @@ const Header = ({
                 },
               }}
             >
-              Flashsale
+              <NoBackpackIcon/>
+              Hoàn trả sách
             </Button>
             <Button
               component={Link}
@@ -858,24 +862,26 @@ const Header = ({
                 },
               }}
             >
+              <FlagIcon/>
               Phản Ánh Khiếu Nại
             </Button>
-            <Button
-              component={Link}
-              to="/track-order"
-              color="inherit"
-              sx={{
-                backgroundColor: "transparent !important",
-                "&:hover": {
+              <Button
+                component={Link}
+                to="/track-order"
+                color="inherit"
+                sx={{
                   backgroundColor: "transparent !important",
-                  color: "#187bcd",
-                },
-              }}
-            >
-              Theo dõi đơn hàng
-            </Button>
+                  "&:hover": {
+                    backgroundColor: "transparent !important",
+                    color: "#187bcd",
+                  },
+                }}
+              >
+                <RoomIcon/>
+                Theo dõi đơn hàng
+              </Button>
             <Box sx={{ display: "flex", alignItems: "center" }}>
-              <PhoneIcon sx={{ mr: 1 }} />
+              <PhoneIcon />
               <Typography>0123123123</Typography>
             </Box>
           </Box>
