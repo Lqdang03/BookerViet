@@ -59,6 +59,7 @@ const TrackOrder = () => {
       const mockOrders = [
         {
           id: "ORD-123456",
+          orderNumber: "BV25030801",
           date: "2025-03-08T10:30:00",
           status: "Đã xác nhận",
           totalAmount: 550000,
@@ -91,6 +92,7 @@ const TrackOrder = () => {
         },
         {
           id: "ORD-123457",
+          orderNumber: "BV25030502",
           date: "2025-03-05T14:45:00",
           status: "Đã xác nhận",
           totalAmount: 430000,
@@ -122,6 +124,7 @@ const TrackOrder = () => {
         },
         {
           id: "ORD-123458",
+          orderNumber: "BV25030103",
           date: "2025-03-01T09:15:00",
           status: "Chờ xác nhận",
           totalAmount: 380000,
@@ -150,6 +153,7 @@ const TrackOrder = () => {
         },
         {
           id: "ORD-123459",
+          orderNumber: "BV25022504",
           date: "2025-02-25T11:20:00",
           status: "Đã hủy",
           totalAmount: 270000,
@@ -310,21 +314,23 @@ const TrackOrder = () => {
               <Table sx={{ minWidth: 650 }}>
                 <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
                   <TableRow>
+                    <TableCell sx={{ fontWeight: "bold" }}>STT</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Mã đơn hàng</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Ngày đặt</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Trạng thái</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Tổng tiền</TableCell>
                     <TableCell sx={{ fontWeight: "bold" }}>Mã vận đơn</TableCell>
-                    <TableCell align="center" sx={{ fontWeight: "bold" }}>Thao tác</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: "bold" }}>Xem chi tiết</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredOrders.map((order) => (
+                  {filteredOrders.map((order, index) => (
                     <TableRow 
                       key={order.id}
                       sx={{ '&:hover': { backgroundColor: '#f9f9f9' } }}
                     >
-                      <TableCell>{order.id}</TableCell>
+                      <TableCell>{index + 1}</TableCell>
+                      <TableCell>{order.orderNumber}</TableCell>
                       <TableCell>{formatDate(order.date)}</TableCell>
                       <TableCell>
                         <Chip
