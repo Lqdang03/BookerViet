@@ -140,7 +140,7 @@ const ChangePassword = () => {
                                     <ListItemText primary="Đổi mật khẩu" />
                                 </AccountNavItem>
 
-                                <AccountNavItem button component={Link} to="/account/orders">
+                                <AccountNavItem button component={Link} to="/track-order">
                                     <ListItemText primary="Đơn hàng của tôi" />
                                 </AccountNavItem>
                             </List>
