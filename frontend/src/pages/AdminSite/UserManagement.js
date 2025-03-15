@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from "react";
 import {
   Box, Typography, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, Button, IconButton, Select, MenuItem
+  TableHead, TableRow, Paper, Button, IconButton, Select, MenuItem,
+  TextField
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import axios from "axios";
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
+  const [searchEmail, setSearchEmail] = useState("");
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [searchEmail]);
 
   // Lấy danh sách user
   const fetchUsers = async () => {
@@ -24,7 +26,12 @@ const UserManagement = () => {
       const response = await axios.get("http://localhost:9999/admin/users", {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setUsers(response.data);
+      if (searchEmail) {
+        const UserFiltered = response.data.filter(user => user.email.toLowerCase().includes(searchEmail.toLowerCase()));
+        setUsers(UserFiltered);
+      } else {
+        setUsers(response.data);
+      }
     } catch (error) {
       console.error("Error fetching users:", error);
     }
@@ -53,11 +60,11 @@ const UserManagement = () => {
   const handleRoleChange = async (userId, newRole) => {
     try {
       const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-        if (!token) {
-          console.error("Không tìm thấy token, vui lòng đăng nhập lại.");
-          return;
-        }
-      await axios.put(`http://localhost:9999/admin/users/${userId}`, { role: newRole },{
+      if (!token) {
+        console.error("Không tìm thấy token, vui lòng đăng nhập lại.");
+        return;
+      }
+      await axios.put(`http://localhost:9999/admin/users/${userId}`, { role: newRole }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUsers(users.map(user => user._id === userId ? { ...user, role: newRole } : user));
@@ -67,8 +74,16 @@ const UserManagement = () => {
   };
 
   return (
-    <Box sx={{ padding: 3,width: "100%", maxWidth: "calc(100% - 250px)", margin: "auto" }}>
+    <Box sx={{ padding: 3, width: "100%", maxWidth: "calc(100% - 250px)", margin: "auto" }}>
       <Typography variant="h4" gutterBottom>Quản lý Người Dùng</Typography>
+      <Box sx={{ display: "flex", gap: 3, marginBottom: 2 }}>
+        <TextField
+          label="Tìm kiếm email"
+          variant="outlined"
+          value={searchEmail}
+          onChange={(e) => setSearchEmail(e.target.value)}
+        />
+      </Box>
       <TableContainer component={Paper}>
         <Table>
           <TableHead>

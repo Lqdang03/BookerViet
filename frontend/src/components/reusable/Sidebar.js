@@ -33,13 +33,13 @@ const Sidebar = ({ isSidebarOpen }) => {
         <Divider sx={{ backgroundColor: "white" }}/>
         {[ 
           { text: "Dashboard", icon: <HomeIcon />, link: "/admin/dashboard" },
-          { text: "User Management", icon: <PeopleIcon />, link: "/admin/users" },
-          { text: "Book Management", icon: <MenuBookIcon />, link: "/admin/books" },
-          { text: "Order Management", icon: <ReceiptLongIcon />, link: "/admin/orders" },
-          { text: "Discount Management", icon: <LocalOfferIcon />, link: "/admin/discounts" },
-          { text: "Report Management", icon: <FeedbackIcon />, link: "/admin/reports" },
-          { text: "Feedback Management", icon: <RateReview />, link: "/admin/feedbacks" },
-          { text: "Analysis", icon: <BarChartIcon />, link: "/admin/analysis" }
+          { text: "Quản lý người dùng", icon: <PeopleIcon />, link: "/admin/users" },
+          { text: "Quản lý sách", icon: <MenuBookIcon />, link: "/admin/books" },
+          { text: "Quản lý đơn hàng", icon: <ReceiptLongIcon />, link: "/admin/orders" },
+          { text: "Quản lý mã giảm giá", icon: <LocalOfferIcon />, link: "/admin/discounts" },
+          { text: "Quản lý các báo cáo", icon: <FeedbackIcon />, link: "/admin/reports" },
+          { text: "Quản lý các đánh giá", icon: <RateReview />, link: "/admin/feedbacks" },
+          { text: "Thống kê", icon: <BarChartIcon />, link: "/admin/analysis" }
         ].map((item) => (
           <Tooltip title={!isSidebarOpen ? item.text : ""} placement="right" key={item.text}>
             <ListItem component={Link} to={item.link} button>

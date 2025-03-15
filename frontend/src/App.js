@@ -9,9 +9,6 @@ import HomePage from "./pages/HomePage";
 import Header from "./components/reusable/Header";
 import Footer from "./components/reusable/Footer";
 import AdminLayout from "./components/reusable/AdminLayout";
-import UserManagement from "./pages/AdminSite/UserManagerment";
-import BookManagement from "./pages/AdminSite/BookManagerment";
-import DiscountManagement from "./pages/AdminSite/DiscountManagerment";
 import AdminDashboard from "./pages/AdminSite/AdminDashboard.js";
 import axios from "axios";
 import BookDetail from "./pages/BookDetail";
@@ -23,6 +20,12 @@ import ComplaintPage from "./pages/ComplaintPage.js";
 import OrderPage from "./pages/OrderPage.js";
 import OrderSuccessPage from "./pages/OrderSuccessPage.js";
 import TrackOrder from "./pages/TrackOrder.js";
+import OrderManagement from "./pages/AdminSite/OrderManagement.js";
+import FeedbackManagement from "./pages/AdminSite/FeedbackManagement.js";
+import ReportManagement from "./pages/AdminSite/ReportManagement.js";
+import UserManagement from "./pages/AdminSite/UserManagement.js";
+import BookManagement from "./pages/AdminSite/BookManagement.js";
+import DiscountManagement from "./pages/AdminSite/DiscountManagement.js";
 
 function App() {
   const [userEmail, setUserEmail] = useState(null);
@@ -116,7 +119,10 @@ function App() {
           <Route path="dashboard" element={< AdminDashboard />} />
           <Route path="users" element={<UserManagement />} />
           <Route path="books" element={<BookManagement />} />
+          <Route path="orders" element={<OrderManagement />} />
           <Route path="discounts" element={<DiscountManagement />} />
+          <Route path="feedbacks" element={<FeedbackManagement />} />
+          <Route path="reports" element={<ReportManagement />} />
 
         </Route>
         <Route path="/account/login" element={<Login onLoginSuccess={updateUserEmail} />} />
