@@ -8,7 +8,7 @@ import {
 import { Delete, Edit } from "@mui/icons-material";
 import axios from "axios";
 
-const DiscountManagement = () => {
+const OrderManagement = () => {
     const [discounts, setDiscounts] = useState([]);
     const [open, setOpen] = useState(false);
     const [currentDiscount, setCurrentDiscount] = useState({
@@ -94,11 +94,8 @@ const DiscountManagement = () => {
     };
 
     return (
-        <Container>
-            <Typography variant="h4" gutterBottom>Discount Management</Typography>
-            <Box style={{ display: "flex", justifyContent: "flex-end" }}>
-                <Button variant="contained" color="primary" onClick={() => handleOpen()}>Add Discount</Button>
-            </Box>
+        <Box sx={{padding: 1, width: "100%", maxWidth: "calc(100% - 250px)", margin: "auto"}}>
+            <Typography variant="h4" gutterBottom>Orders Management</Typography>
             <TableContainer component={Paper} sx={{ marginTop: 2 }}>
                 <Table>
                     <TableHead>
@@ -153,8 +150,8 @@ const DiscountManagement = () => {
                     <Button onClick={handleSubmit} color="primary">Save</Button>
                 </DialogActions>
             </Dialog>
-        </Container>
+        </Box>
     );
 };
 
-export default DiscountManagement;
+export default OrderManagement;

@@ -4,12 +4,15 @@ import {
   TableRow, Paper, Button, IconButton, Dialog, DialogActions, DialogContent,
   DialogTitle, TextField, Select, MenuItem, FormControl, InputLabel,
   TablePagination, Switch, TextareaAutosize,
-  Grid
+  Grid,
+  Snackbar,
+  Alert
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import ImageIcon from "@mui/icons-material/Image";
 import axios from "axios";
+import CategoryManagement from "./CategoryManagement";
 
 const BookManagement = () => {
   const [books, setBooks] = useState([]);
@@ -27,7 +30,20 @@ const BookManagement = () => {
     publisher: "", publishDate: "", price: "", originalPrice: "", stock: "", isActivated: true,
     images: [], categories: []
   });
+  const [alert, setAlert] = useState({ open: false, message: "", severity: "info" });
 
+  //Sử dụng cho mở category dialog
+  const [openCategoryManagement, setOpenCategoryManagement] = useState(false);
+  const [categoryMode, setCategoryMode] = useState("add"); // "add", "edit", "delete"
+  
+  // hiển thị thông báo
+  const handleAlert = (message, severity = "info") => {
+    setAlert({ open: true, message, severity });
+  };
+  // Close alert
+  const handleCloseAlert = () => {
+    setAlert({ ...alert, open: false });
+  };
 
   // Lấy danh sách sách từ API
   const fetchBooks = async () => {
@@ -44,7 +60,7 @@ const BookManagement = () => {
       if (searchTerm || searchCategory) {
         const filteredBook = response.data.filter(book => {
           const matchTitle = book.title.toLowerCase().includes(searchTerm.toLowerCase());
-          const matchCategory = (!searchCategory || searchCategory == book.categories);
+          const matchCategory = !searchCategory.length || book.categories.some(cat => searchCategory.includes(cat._id));
           return matchTitle && matchCategory;
         });
         setBooks(filteredBook);
@@ -80,15 +96,6 @@ const BookManagement = () => {
 
   // Hiển thị dialog thêm/sửa sách
   const handleOpenBookDialog = (book = null) => {
-    setSelectedBook(book);
-    setFormData(
-      book || { title: "", author: "", genre: "", description: "", language: "", translator: "", publisher: "", publishDate: "", price: "", originalPrice: "", stock: "", isActivated: true, images: [], categories: [] }
-    );
-    setOpenDialog(true);
-  };
-
-  // Hiển thị dialog thêm thể loại
-  const handleOpenCategoryDialog = (book = null) => {
     setSelectedBook(book);
     setFormData(
       book || { title: "", author: "", genre: "", description: "", language: "", translator: "", publisher: "", publishDate: "", price: "", originalPrice: "", stock: "", isActivated: true, images: [], categories: [] }
@@ -135,10 +142,12 @@ const BookManagement = () => {
         await axios.put(`http://localhost:9999/admin/books/${selectedBook._id}`, formData, {
           headers: { Authorization: `Bearer ${token}` }
         });
+        handleAlert("Sửa thông tin sách thành công", "success");
       } else {
         await axios.post("http://localhost:9999/admin/books", formData, {
           headers: { Authorization: `Bearer ${token}` }
         });
+        handleAlert("Thêm thông tin sách thành công", "success");
       }
       fetchBooks();
       setOpenDialog(false);
@@ -159,6 +168,7 @@ const BookManagement = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setBooks(books.filter(book => book._id !== id));
+      handleAlert("Xóa sách thành công", "error")
     } catch (error) {
       console.error("Lỗi khi xóa sách:", error);
     }
@@ -179,6 +189,12 @@ const BookManagement = () => {
     return new Intl.NumberFormat("vi-VN").format(price) + " VNĐ";
   };
 
+  //xử lý mở dialog category
+  const handleOpenCategoryManagement = (mode) => {
+    setCategoryMode(mode);
+    setOpenCategoryManagement(true);
+  };
+  
   return (
     <Box sx={{ padding: 1, width: "100%", maxWidth: "calc(100% - 250px)", margin: "auto" }}>
       <Typography variant="h4" gutterBottom>Quản lý Sách</Typography>
@@ -186,19 +202,23 @@ const BookManagement = () => {
         <TextField
           label="Tìm kiếm theo tên sách"
           variant="outlined"
-          fullWidth
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
 
         <FormControl fullWidth variant="outlined">
           <InputLabel >Danh mục</InputLabel>
-          <Select multiple value={searchCategory || []} onChange={(e) => setSearchCategory(e.target.value)} label="Danh mục">
-            {categories.map((cat) => (<MenuItem key={cat._id} value={cat._id}>{cat.name}</MenuItem>))}
+          <Select
+            multiple
+            value={searchCategory || []}
+            onChange={(e) => setSearchCategory(e.target.value)}
+            label="Danh mục"
+          >
+            {categories.map((cat) => (
+              <MenuItem key={cat._id} value={cat._id}>{cat.name}</MenuItem>
+            ))}
           </Select>
         </FormControl>
-
-        <Button style={{ padding: 0 }} variant="contained" color="warning" onClick={() => handleOpenCategoryDialog()}>Thêm thể loại</Button>
 
         <Button style={{ padding: 0 }} variant="contained" color="primary" onClick={() => handleOpenBookDialog()}>Thêm Sách</Button>
 
@@ -218,9 +238,11 @@ const BookManagement = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {books.map((book, index) => (
+            {books
+              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+              .map((book, index) => (
               <TableRow key={book._id}>
-                <TableCell>{index + 1}</TableCell>
+                <TableCell>{page * rowsPerPage + index + 1}</TableCell>
                 <TableCell>
                   {book.images.length > 0 ? (
                     <img
@@ -285,7 +307,7 @@ const BookManagement = () => {
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField fullWidth label="Người xuất bản" name="publisher" value={formData.publisher} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }} />
-              <TextField fullWidth label="Ngày Xuất Bản" name="publishDate" type="date" value={formData.publishDate} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }} />
+              <TextField fullWidth label="Ngày Xuất Bản" name="publishDate" type="date" value={formData.publishDate ? new Date(formData.publishDate).toISOString().split("T")[0] : ""} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }} />
               <TextField fullWidth label="Giá" name="price" type="number" value={formData.price} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }} />
               <TextField fullWidth label="Giá gốc" name="originalPrice" type="number" value={formData.originalPrice} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }} />
               <TextField fullWidth label="Số lượng" name="stock" type="number" value={formData.stock} onChange={handleChange} margin="dense" InputLabelProps={{ shrink: true }} />
@@ -298,6 +320,11 @@ const BookManagement = () => {
                   {categories.map((cat) => (<MenuItem key={cat._id} value={cat._id}>{cat.name}</MenuItem>))}
                 </Select>
               </FormControl>
+              <Box mt={2}>
+                <Button variant="outlined" color="primary" onClick={() => handleOpenCategoryManagement("add")} sx={{ mr: 1 }}>Thêm danh mục</Button>
+                <Button variant="outlined" color="primary" onClick={() => handleOpenCategoryManagement("edit")} sx={{ mr: 1 }}>Sửa danh mục</Button>
+                <Button variant="outlined" color="error" onClick={() => handleOpenCategoryManagement("delete")}>Xóa danh mục</Button>
+              </Box>
               <Box display="flex" alignItems="center" mt={2}>
                 <Typography>Kích hoạt</Typography>
                 <Switch checked={formData.isActivated} onChange={handleSwitchChange} />
@@ -311,6 +338,24 @@ const BookManagement = () => {
         </DialogActions>
       </Dialog>
 
+      {/* dialog category */}
+      <CategoryManagement
+        open={openCategoryManagement}
+        onClose={() => setOpenCategoryManagement(false)}
+        categories={categories}
+        setCategories={setCategories}
+        mode={categoryMode}
+      />
+      <Snackbar
+        open={alert.open}
+        autoHideDuration={6000}
+        onClose={handleCloseAlert}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert onClose={handleCloseAlert} severity={alert.severity}>
+          {alert.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
