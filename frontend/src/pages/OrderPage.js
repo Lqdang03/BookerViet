@@ -130,42 +130,50 @@ function OrderPage() {
   // Fetch districts based on selected province from GHN API
   const fetchDistricts = useCallback(async (provinceId) => {
     try {
-      const response = await axios.get(`http://localhost:9999/ghn/district?provinceID=${provinceId}`);
-      
+      const response = await axios.get("http://localhost:9999/ghn/district", {
+        params: {
+          provinceID: provinceId
+        }
+      });
+
       setDistricts(response.data.map(district => ({
         id: district.DistrictID,
         name: district.DistrictName,
         provinceId: district.ProvinceID
       })));
-    
-    setWards([]);
-    // Reset district and ward in shipping address
-    setShippingAddress(prev => ({
-      ...prev,
-      district: "",
-      ward: ""
-    }));
-  } catch (error) {
-    console.error("Error fetching districts:", error);
-    setAlert({
-      open: true,
-      message: "Không thể tải danh sách quận/huyện",
-      severity: "error"
-    });
-  }
-}, []);
+
+      setWards([]);
+      // Reset district and ward in shipping address
+      setShippingAddress(prev => ({
+        ...prev,
+        district: "",
+        ward: ""
+      }));
+    } catch (error) {
+      console.error("Error fetching districts:", error);
+      setAlert({
+        open: true,
+        message: "Không thể tải danh sách quận/huyện",
+        severity: "error"
+      });
+    }
+  }, []);
 
   // Fetch wards based on selected district from GHN API
   const fetchWards = useCallback(async (districtId) => {
     try {
-      const response = await axios.get(`http://localhost:9999/ghn/ward?districtID=${districtId}`);
-      
+      const response = await axios.get("http://localhost:9999/ghn/ward", {
+        params: {
+          districtID: districtId
+        }
+      });
+
       setWards(response.data.map(ward => ({
         id: ward.WardCode,
         name: ward.WardName,
         districtId: ward.DistrictID
       })));
-      
+
       // Reset ward in shipping address
       setShippingAddress(prev => ({
         ...prev,
@@ -189,37 +197,34 @@ function OrderPage() {
 
     try {
       setCalculatingFee(true);
-      
-      // Calculate total weight of books (assuming average book weight of 500g)
-      const totalWeight = cartItems.reduce(
-        (total, item) => total + (item.quantity * 500), 
-        0
-      );
-      
-      // Calculate total value of order for insurance
-      const totalValue = cartItems.reduce(
-        (total, item) => total + (item.book.price * item.quantity), 
-        0
-      );
+
+      const totalWeight = cartItems.reduce((total, item) => total + (item.quantity * 500), 0);
+      const totalValue = cartItems.reduce((total, item) => total + (item.book.price * item.quantity), 0);
 
       const response = await axios.get("http://localhost:9999/ghn/calculate-fee", {
         params: {
           to_ward_code: shippingAddress.ward,
           to_district_id: parseInt(shippingAddress.district),
-          weight: totalWeight,
-          insurance_value: totalValue
+          insurance_value: totalValue,
+          weight: totalWeight
+        },
+        headers: {
+          Token: "YOUR_GHN_TOKEN" // Đảm bảo gửi token nếu GHN cần
         }
       });
-      
-      const calculatedFee = response.data.data.total;
-      
-      // Apply free shipping for orders over 300,000đ
-      setShippingFee(totalValue > 300000 ? 0 : calculatedFee);
-      
+
+      if (response.data && response.data.data) {
+        const calculatedFee = response.data.data.total;
+        // Updated: Always charge shipping fee regardless of order total
+        setShippingFee(calculatedFee);
+      } else {
+        setShippingFee(35000);
+        console.warn("Unexpected response format from API", response.data);
+      }
+
       setCalculatingFee(false);
     } catch (error) {
-      console.error("Error calculating shipping fee:", error);
-      // Fallback to default shipping fee
+      console.error("Error calculating shipping fee:", error.response?.data || error.message);
       setShippingFee(35000);
       setCalculatingFee(false);
       setAlert({
@@ -229,6 +234,8 @@ function OrderPage() {
       });
     }
   }, [cartItems, shippingAddress.district, shippingAddress.ward]);
+
+
 
   useEffect(() => {
     fetchCart();
@@ -357,7 +364,7 @@ function OrderPage() {
     (acc, item) => acc + item.book.price * item.quantity,
     0
   );
-  
+
   // Calculate total amount
   const totalAmount = subtotal + shippingFee - discountAmount - pointsToUse;
 
@@ -390,81 +397,100 @@ function OrderPage() {
         return;
       }
 
-      // Format address with province/district/ward if they exist
-      let fullAddress = shippingAddress.address;
-      
-      if (shippingAddress.ward && wards.length > 0) {
-        const selectedWard = wards.find(w => w.id === shippingAddress.ward);
-        if (selectedWard) fullAddress += `, ${selectedWard.name}`;
-      }
-      
-      if (shippingAddress.district && districts.length > 0) {
-        const selectedDistrict = districts.find(d => d.id === shippingAddress.district);
-        if (selectedDistrict) fullAddress += `, ${selectedDistrict.name}`;
-      }
-      
-      if (shippingAddress.province && provinces.length > 0) {
-        const selectedProvince = provinces.find(p => p.id === shippingAddress.province);
-        if (selectedProvince) fullAddress += `, ${selectedProvince.name}`;
-      }
+      // Get the names of selected province/district/ward
+      const selectedProvince = provinces.find(p => p.id === shippingAddress.province);
+      const selectedDistrict = districts.find(d => d.id === shippingAddress.district);
+      const selectedWard = wards.find(w => w.id === shippingAddress.ward);
 
       // Create order object matching backend schema
       const orderData = {
-        items: cartItems.map(item => ({
-          book: item.book._id,
-          quantity: item.quantity
-        })),
-        shippingAddress: {
+        shippingInfo: {
           name: shippingAddress.name,
           phoneNumber: shippingAddress.phoneNumber,
-          address: fullAddress,
+          address: shippingAddress.address,
           provinceId: shippingAddress.province,
           districtId: shippingAddress.district,
-          wardCode: shippingAddress.ward
+          wardCode: shippingAddress.ward,
+          // Add province/district/ward names
+          provineName: selectedProvince?.name || "",
+          districtName: selectedDistrict?.name || "",
+          wardName: selectedWard?.name || "",
+          note: shippingAddress.notes || "",
+          fee: shippingFee
         },
         paymentMethod: paymentMethod,
-        shippingFee: shippingFee,
         totalDiscount: discountAmount,
         pointUsed: pointsToUse,
-        notes: shippingAddress.notes || "",
-        discountCode: appliedDiscount ? appliedDiscount.code : null
+        notes: shippingAddress.notes || ""
       };
 
-      // Send order to server
-      const response = await axios.post("http://localhost:9999/orders/create", orderData, {
+      // Send the order request
+      const response = await axios.post("http://localhost:9999/order/create", orderData, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // Handle online payment if selected
-      if (paymentMethod === "Online") {
-        // Redirect to payment gateway with order ID
-        window.location.href = `http://localhost:9999/payment/process/${response.data.savedOrder._id}`;
-        return;
+      // Get the order ID from the response
+      const orderId = response.data.data?._id || response.data.savedOrder?._id;
+
+      if (!orderId) {
+        throw new Error("Order ID not found in response");
       }
 
-      // Clear cart
-      await axios.delete("http://localhost:9999/cart/clear", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      localStorage.setItem("latestOrder", JSON.stringify({
+        shippingInfo: {
+          name: shippingAddress.name,
+          phoneNumber: shippingAddress.phoneNumber,
+          address: shippingAddress.address,
+          province: provinces.find(p => p.id === shippingAddress.province)?.name || "",
+          district: districts.find(d => d.id === shippingAddress.district)?.name || "",
+          ward: wards.find(w => w.id === shippingAddress.ward)?.name || "",
+          note: shippingAddress.notes || "",
+          fee: shippingFee
+        },
+        paymentMethod,
+        totalDiscount: discountAmount,
+        pointUsed: pointsToUse,
+        totalAmount,
+        items: cartItems
+      }));
+      
+      // Chuyển hướng sang trang Order Success (không cần orderId)
+      navigate("/order-success");
+      
 
-      // Show success message
-      setAlert({
-        open: true,
-        message: "Đặt hàng thành công!",
-        severity: "success"
-      });
 
-      // Redirect to order confirmation page
-      setTimeout(() => {
-        navigate(`/order-success/${response.data.savedOrder._id}`);
-      }, 2000);
     } catch (error) {
-      console.error("Error placing order:", error.response?.data || error.message);
-      setAlert({
-        open: true,
-        message: error.response?.data?.message || "Có lỗi xảy ra khi đặt hàng",
-        severity: "error"
-      });
+      console.error("Error details:", error);
+
+      // Log more specific error information
+      if (error.response) {
+        console.error("Server response data:", error.response.data);
+        console.error("Server response status:", error.response.status);
+
+        // More specific error message
+        setAlert({
+          open: true,
+          message: error.response.data.message ||
+            `Lỗi ${error.response.status}: Có lỗi xảy ra khi đặt hàng`,
+          severity: "error"
+        });
+      } else if (error.request) {
+        // Request was made but no response received
+        console.error("No response received:", error.request);
+        setAlert({
+          open: true,
+          message: "Không nhận được phản hồi từ máy chủ",
+          severity: "error"
+        });
+      } else {
+        // Something else caused the error
+        console.error("Error message:", error.message);
+        setAlert({
+          open: true,
+          message: `Lỗi: ${error.message}`,
+          severity: "error"
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -776,7 +802,7 @@ function OrderPage() {
                       {calculatingFee && <CircularProgress size={12} sx={{ ml: 1 }} />}
                     </Typography>
                     <Typography variant="body1">
-                      {shippingFee > 0 ? `${shippingFee.toLocaleString()}₫` : 'Miễn phí'}
+                      {shippingFee.toLocaleString()}₫
                     </Typography>
                   </Box>
                   {discountAmount > 0 && (
@@ -800,12 +826,12 @@ function OrderPage() {
                   <Typography variant="h6" color="error">{totalAmount.toLocaleString()}₫</Typography>
                 </Box>
 
-                <Box sx={{ display: 'flex', justifyContent: 'space-between'}}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Button
                     component={Link}
                     to="/cart"
                     variant="text"
-                    sx={{fontSize: 10}}
+                    sx={{ fontSize: 10 }}
                     startIcon={<ArrowBackIcon />}
                   >
                     Quay về giỏ hàng
@@ -813,7 +839,7 @@ function OrderPage() {
                   <Button
                     variant="contained"
                     color="primary"
-                    sx={{fontSize: 15}}
+                    sx={{ fontSize: 15 }}
                     onClick={handlePlaceOrder}
                     disabled={loading || calculatingFee}
                   >

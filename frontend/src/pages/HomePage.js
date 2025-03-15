@@ -47,12 +47,12 @@ const HomePage = ({ updateWishlistCount, updateCartData }) => {
             link: "/",
             alt: "Bestsellers Collection"
         },
-        {
-            id: 4,
-            imageUrl: "/pictures/BookerViet.png",
-            link: "/",
-            alt: "Bestsellers Collection"
-        }
+        // {
+        //     id: 4,
+        //     imageUrl: "/pictures/BookerViet.png",
+        //     link: "/",
+        //     alt: "Bestsellers Collection"
+        // }
     ];
 
     useEffect(() => {
