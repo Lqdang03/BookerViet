@@ -35,7 +35,7 @@ const BookManagement = () => {
   //Sử dụng cho mở category dialog
   const [openCategoryManagement, setOpenCategoryManagement] = useState(false);
   const [categoryMode, setCategoryMode] = useState("add"); // "add", "edit", "delete"
-  
+
   // hiển thị thông báo
   const handleAlert = (message, severity = "info") => {
     setAlert({ open: true, message, severity });
@@ -194,7 +194,7 @@ const BookManagement = () => {
     setCategoryMode(mode);
     setOpenCategoryManagement(true);
   };
-  
+
   return (
     <Box sx={{ padding: 1, width: "100%", maxWidth: "calc(100% - 250px)", margin: "auto" }}>
       <Typography variant="h4" gutterBottom>Quản lý Sách</Typography>
@@ -241,31 +241,31 @@ const BookManagement = () => {
             {books
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((book, index) => (
-              <TableRow key={book._id}>
-                <TableCell>{page * rowsPerPage + index + 1}</TableCell>
-                <TableCell>
-                  {book.images.length > 0 ? (
-                    <img
-                      src={book.images[0]}
-                      alt={book.title}
-                      width="50"
-                      height="50"
-                      style={{ cursor: "pointer" }}
-                      onClick={() => handleOpenImageDialog(book.images)}
-                    />
-                  ) : (<ImageIcon />)}
-                </TableCell>
-                <TableCell>{book.title}</TableCell>
-                <TableCell>{book.author}</TableCell>
-                <TableCell>{book.genre}</TableCell>
-                <TableCell>{formatPrice(book.price)}</TableCell>
-                <TableCell>{book.stock}</TableCell>
-                <TableCell>
-                  <IconButton onClick={() => handleOpenBookDialog(book)} color="primary"><EditIcon /></IconButton>
-                  <IconButton color="error" onClick={() => handleDelete(book._id)}><DeleteIcon /></IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
+                <TableRow key={book._id}>
+                  <TableCell>{page * rowsPerPage + index + 1}</TableCell>
+                  <TableCell>
+                    {book.images.length > 0 ? (
+                      <img
+                        src={book.images[0]}
+                        alt={book.title}
+                        width="50"
+                        height="50"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => handleOpenImageDialog(book.images)}
+                      />
+                    ) : (<ImageIcon />)}
+                  </TableCell>
+                  <TableCell>{book.title}</TableCell>
+                  <TableCell>{book.author}</TableCell>
+                  <TableCell>{book.genre}</TableCell>
+                  <TableCell>{formatPrice(book.price)}</TableCell>
+                  <TableCell>{book.stock}</TableCell>
+                  <TableCell>
+                    <IconButton onClick={() => handleOpenBookDialog(book)} color="primary"><EditIcon /></IconButton>
+                    <IconButton color="error" onClick={() => handleDelete(book._id)}><DeleteIcon /></IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
         <TablePagination
@@ -345,6 +345,8 @@ const BookManagement = () => {
         categories={categories}
         setCategories={setCategories}
         mode={categoryMode}
+        handleAlert={handleAlert}
+        fetchCategories={fetchCategories}
       />
       <Snackbar
         open={alert.open}
