@@ -11,6 +11,7 @@ const categoryRoutes = require("./routes/categoryRoute");
 const orderRoutes = require("./routes/orderRoute");
 const ghnRoutes = require("./routes/ghnRoute");           
 const { checkAuthorize } = require("./middleware/authMiddleware");
+const reviewRoutes = require("./routes/reviewRoute");
 
 const DB = require("./config/db");
 
