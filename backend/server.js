@@ -8,11 +8,11 @@ const cartRoutes = require("./routes/cartRoute");
 const bookRoutes = require("./routes/bookRoute");
 const adminRoutes = require("./routes/adminRoute");
 const categoryRoutes = require("./routes/categoryRoute");
-const orderRoutes = require("./routes/orderRoute");           
+const orderRoutes = require("./routes/orderRoute");
+const reviewRoutes = require("./routes/reviewRoute");  // Import review routes
 const { checkAuthorize } = require("./middleware/authMiddleware");
 
 const DB = require("./config/db");
-
 
 const app = express();
 const port = process.env.PORT || 9999;
@@ -29,6 +29,7 @@ app.use("/admin", adminRoutes);
 app.use("/book", bookRoutes);
 app.use("/category", categoryRoutes);
 app.use("/order", orderRoutes);
+app.use("/reviews", reviewRoutes);  
 
 // Test phân quyền
 app.get("/open", (req, res) => {
