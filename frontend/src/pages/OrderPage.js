@@ -49,10 +49,10 @@ function OrderPage() {
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [wards, setWards] = useState([]);
+  const [shippingFee, setShippingFee] = useState(0);
+  const [calculatingFee, setCalculatingFee] = useState(false);
 
   // Fetch cart items
-  // In the fetchCart function, modify the setShippingAddress part:
-
   const fetchCart = useCallback(async () => {
     try {
       setLoading(true);
@@ -84,7 +84,6 @@ function OrderPage() {
       console.log("User data received:", userData);
 
       // Update shipping address with user profile data
-      // Use the correct field names 
       setShippingAddress(prev => ({
         ...prev,
         name: userData.name || "",
@@ -110,43 +109,145 @@ function OrderPage() {
     }
   }, [navigate]);
 
-  // Fetch address data
-  const fetchAddressData = useCallback(async () => {
+  // Fetch provinces from GHN API
+  const fetchProvinces = useCallback(async () => {
     try {
-      // This would typically be an API call to get provinces/cities
-      // For example purposes we're using a placeholder
-      const provincesResponse = await axios.get("http://localhost:9999/address/provinces");
-      setProvinces(provincesResponse.data);
+      const response = await axios.get("http://localhost:9999/ghn/province");
+      setProvinces(response.data.map(province => ({
+        id: province.ProvinceID,
+        name: province.ProvinceName
+      })));
     } catch (error) {
-      console.error("Error fetching address data:", error);
+      console.error("Error fetching provinces:", error);
+      setAlert({
+        open: true,
+        message: "Không thể tải danh sách tỉnh/thành phố",
+        severity: "error"
+      });
     }
   }, []);
 
-  // Fetch districts based on selected province
+  // Fetch districts based on selected province from GHN API
   const fetchDistricts = useCallback(async (provinceId) => {
     try {
-      const districtsResponse = await axios.get(`http://localhost:9999/address/districts/${provinceId}`);
-      setDistricts(districtsResponse.data);
+      const response = await axios.get("http://localhost:9999/ghn/district", {
+        params: {
+          provinceID: provinceId
+        }
+      });
+
+      setDistricts(response.data.map(district => ({
+        id: district.DistrictID,
+        name: district.DistrictName,
+        provinceId: district.ProvinceID
+      })));
+
       setWards([]);
+      // Reset district and ward in shipping address
+      setShippingAddress(prev => ({
+        ...prev,
+        district: "",
+        ward: ""
+      }));
     } catch (error) {
       console.error("Error fetching districts:", error);
+      setAlert({
+        open: true,
+        message: "Không thể tải danh sách quận/huyện",
+        severity: "error"
+      });
     }
   }, []);
 
-  // Fetch wards based on selected district
+  // Fetch wards based on selected district from GHN API
   const fetchWards = useCallback(async (districtId) => {
     try {
-      const wardsResponse = await axios.get(`http://localhost:9999/address/wards/${districtId}`);
-      setWards(wardsResponse.data);
+      const response = await axios.get("http://localhost:9999/ghn/ward", {
+        params: {
+          districtID: districtId
+        }
+      });
+
+      setWards(response.data.map(ward => ({
+        id: ward.WardCode,
+        name: ward.WardName,
+        districtId: ward.DistrictID
+      })));
+
+      // Reset ward in shipping address
+      setShippingAddress(prev => ({
+        ...prev,
+        ward: ""
+      }));
     } catch (error) {
       console.error("Error fetching wards:", error);
+      setAlert({
+        open: true,
+        message: "Không thể tải danh sách phường/xã",
+        severity: "error"
+      });
     }
   }, []);
+
+  // Calculate shipping fee using GHN API
+  const calculateShippingFee = useCallback(async () => {
+    if (!shippingAddress.ward || !shippingAddress.district) {
+      return;
+    }
+
+    try {
+      setCalculatingFee(true);
+
+      const totalWeight = cartItems.reduce((total, item) => total + (item.quantity * 500), 0);
+      const totalValue = cartItems.reduce((total, item) => total + (item.book.price * item.quantity), 0);
+
+      const response = await axios.get("http://localhost:9999/ghn/calculate-fee", {
+        params: {
+          to_ward_code: shippingAddress.ward,
+          to_district_id: parseInt(shippingAddress.district),
+          insurance_value: totalValue,
+          weight: totalWeight
+        },
+        headers: {
+          Token: "YOUR_GHN_TOKEN" // Đảm bảo gửi token nếu GHN cần
+        }
+      });
+
+      if (response.data && response.data.data) {
+        const calculatedFee = response.data.data.total;
+        // Updated: Always charge shipping fee regardless of order total
+        setShippingFee(calculatedFee);
+      } else {
+        setShippingFee(35000);
+        console.warn("Unexpected response format from API", response.data);
+      }
+
+      setCalculatingFee(false);
+    } catch (error) {
+      console.error("Error calculating shipping fee:", error.response?.data || error.message);
+      setShippingFee(35000);
+      setCalculatingFee(false);
+      setAlert({
+        open: true,
+        message: "Không thể tính phí vận chuyển, đã áp dụng phí mặc định",
+        severity: "warning"
+      });
+    }
+  }, [cartItems, shippingAddress.district, shippingAddress.ward]);
+
+
 
   useEffect(() => {
     fetchCart();
-    fetchAddressData();
-  }, [fetchCart, fetchAddressData]);
+    fetchProvinces();
+  }, [fetchCart, fetchProvinces]);
+
+  // Recalculate shipping fee when address changes
+  useEffect(() => {
+    if (shippingAddress.ward && shippingAddress.district) {
+      calculateShippingFee();
+    }
+  }, [shippingAddress.ward, shippingAddress.district, calculateShippingFee]);
 
   // Handle form input changes
   const handleInputChange = (e) => {
@@ -154,9 +255,9 @@ function OrderPage() {
     setShippingAddress(prev => ({ ...prev, [name]: value }));
 
     // Fetch dependent data when province/district changes
-    if (name === "province") {
+    if (name === "province" && value) {
       fetchDistricts(value);
-    } else if (name === "district") {
+    } else if (name === "district" && value) {
       fetchWards(value);
     }
   };
@@ -258,12 +359,13 @@ function OrderPage() {
     }
   };
 
-  // Calculate totals
+  // Calculate subtotal
   const subtotal = cartItems.reduce(
     (acc, item) => acc + item.book.price * item.quantity,
     0
   );
-  const shippingFee = subtotal > 300000 ? 0 : 30000;
+
+  // Calculate total amount
   const totalAmount = subtotal + shippingFee - discountAmount - pointsToUse;
 
   // Submit order
@@ -282,7 +384,7 @@ function OrderPage() {
       }
 
       // Validate required fields
-      const requiredFields = ["name", "phoneNumber", "address"];
+      const requiredFields = ["name", "phoneNumber", "address", "province", "district", "ward"];
       const missingFields = requiredFields.filter(field => !shippingAddress[field]);
 
       if (missingFields.length > 0) {
@@ -295,74 +397,100 @@ function OrderPage() {
         return;
       }
 
-      // Format address with province/district/ward if they exist
-      let fullAddress = shippingAddress.address;
-      if (shippingAddress.ward && wards.length > 0) {
-        const selectedWard = wards.find(w => w.id === shippingAddress.ward);
-        if (selectedWard) fullAddress += `, ${selectedWard.name}`;
-      }
-      if (shippingAddress.district && districts.length > 0) {
-        const selectedDistrict = districts.find(d => d.id === shippingAddress.district);
-        if (selectedDistrict) fullAddress += `, ${selectedDistrict.name}`;
-      }
-      if (shippingAddress.province && provinces.length > 0) {
-        const selectedProvince = provinces.find(p => p.id === shippingAddress.province);
-        if (selectedProvince) fullAddress += `, ${selectedProvince.name}`;
-      }
+      // Get the names of selected province/district/ward
+      const selectedProvince = provinces.find(p => p.id === shippingAddress.province);
+      const selectedDistrict = districts.find(d => d.id === shippingAddress.district);
+      const selectedWard = wards.find(w => w.id === shippingAddress.ward);
 
       // Create order object matching backend schema
       const orderData = {
-        items: cartItems.map(item => ({
-          book: item.book._id,
-          quantity: item.quantity
-        })),
-        shippingAddress: {
+        shippingInfo: {
           name: shippingAddress.name,
           phoneNumber: shippingAddress.phoneNumber,
-          address: fullAddress
+          address: shippingAddress.address,
+          provinceId: shippingAddress.province,
+          districtId: shippingAddress.district,
+          wardCode: shippingAddress.ward,
+          // Add province/district/ward names
+          provineName: selectedProvince?.name || "",
+          districtName: selectedDistrict?.name || "",
+          wardName: selectedWard?.name || "",
+          note: shippingAddress.notes || "",
+          fee: shippingFee
         },
         paymentMethod: paymentMethod,
         totalDiscount: discountAmount,
         pointUsed: pointsToUse,
-        notes: shippingAddress.notes || "",
-        discountCode: appliedDiscount ? appliedDiscount.code : null
+        notes: shippingAddress.notes || ""
       };
 
-      // Send order to server
-      const response = await axios.post("http://localhost:9999/orders/create", orderData, {
+      // Send the order request
+      const response = await axios.post("http://localhost:9999/order/create", orderData, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // Handle online payment if selected
-      if (paymentMethod === "Online") {
-        // Redirect to payment gateway with order ID
-        window.location.href = `http://localhost:9999/payment/process/${response.data.savedOrder._id}`;
-        return;
+      // Get the order ID from the response
+      const orderId = response.data.data?._id || response.data.savedOrder?._id;
+
+      if (!orderId) {
+        throw new Error("Order ID not found in response");
       }
 
-      // Clear cart
-      await axios.delete("http://localhost:9999/cart/clear", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      localStorage.setItem("latestOrder", JSON.stringify({
+        shippingInfo: {
+          name: shippingAddress.name,
+          phoneNumber: shippingAddress.phoneNumber,
+          address: shippingAddress.address,
+          province: provinces.find(p => p.id === shippingAddress.province)?.name || "",
+          district: districts.find(d => d.id === shippingAddress.district)?.name || "",
+          ward: wards.find(w => w.id === shippingAddress.ward)?.name || "",
+          note: shippingAddress.notes || "",
+          fee: shippingFee
+        },
+        paymentMethod,
+        totalDiscount: discountAmount,
+        pointUsed: pointsToUse,
+        totalAmount,
+        items: cartItems
+      }));
+      
+      // Chuyển hướng sang trang Order Success (không cần orderId)
+      navigate("/order-success");
+      
 
-      // Show success message
-      setAlert({
-        open: true,
-        message: "Đặt hàng thành công!",
-        severity: "success"
-      });
 
-      // Redirect to order confirmation page
-      setTimeout(() => {
-        navigate(`/order-success/${response.data.savedOrder._id}`);
-      }, 2000);
     } catch (error) {
-      console.error("Error placing order:", error.response?.data || error.message);
-      setAlert({
-        open: true,
-        message: error.response?.data?.message || "Có lỗi xảy ra khi đặt hàng",
-        severity: "error"
-      });
+      console.error("Error details:", error);
+
+      // Log more specific error information
+      if (error.response) {
+        console.error("Server response data:", error.response.data);
+        console.error("Server response status:", error.response.status);
+
+        // More specific error message
+        setAlert({
+          open: true,
+          message: error.response.data.message ||
+            `Lỗi ${error.response.status}: Có lỗi xảy ra khi đặt hàng`,
+          severity: "error"
+        });
+      } else if (error.request) {
+        // Request was made but no response received
+        console.error("No response received:", error.request);
+        setAlert({
+          open: true,
+          message: "Không nhận được phản hồi từ máy chủ",
+          severity: "error"
+        });
+      } else {
+        // Something else caused the error
+        console.error("Error message:", error.message);
+        setAlert({
+          open: true,
+          message: `Lỗi: ${error.message}`,
+          severity: "error"
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -452,13 +580,13 @@ function OrderPage() {
                     />
                   </Grid>
                   <Grid item xs={12} sm={4}>
-                    <FormControl fullWidth>
+                    <FormControl fullWidth required>
                       <InputLabel>Tỉnh/Thành phố</InputLabel>
                       <Select
                         name="province"
                         value={shippingAddress.province}
                         onChange={handleInputChange}
-                        label="Tỉnh/Thành phố"
+                        label="Tỉnh/Thành phố *"
                       >
                         {provinces.map(province => (
                           <MenuItem key={province.id} value={province.id}>
@@ -469,13 +597,13 @@ function OrderPage() {
                     </FormControl>
                   </Grid>
                   <Grid item xs={12} sm={4}>
-                    <FormControl fullWidth>
+                    <FormControl fullWidth required>
                       <InputLabel>Quận/Huyện</InputLabel>
                       <Select
                         name="district"
                         value={shippingAddress.district}
                         onChange={handleInputChange}
-                        label="Quận/Huyện"
+                        label="Quận/Huyện *"
                         disabled={!shippingAddress.province}
                       >
                         {districts.map(district => (
@@ -487,13 +615,13 @@ function OrderPage() {
                     </FormControl>
                   </Grid>
                   <Grid item xs={12} sm={4}>
-                    <FormControl fullWidth>
+                    <FormControl fullWidth required>
                       <InputLabel>Phường/Xã</InputLabel>
                       <Select
                         name="ward"
                         value={shippingAddress.ward}
                         onChange={handleInputChange}
-                        label="Phường/Xã"
+                        label="Phường/Xã *"
                         disabled={!shippingAddress.district}
                       >
                         {wards.map(ward => (
@@ -548,7 +676,6 @@ function OrderPage() {
                         </Box>
                       }
                     />
-
                   </RadioGroup>
                 </FormControl>
               </Paper>
@@ -670,8 +797,13 @@ function OrderPage() {
                     <Typography variant="body1">{subtotal.toLocaleString()}₫</Typography>
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body1">Phí vận chuyển</Typography>
-                    <Typography variant="body1">{shippingFee > 0 ? `${shippingFee.toLocaleString()}₫` : 'Miễn phí'}</Typography>
+                    <Typography variant="body1">
+                      Phí vận chuyển
+                      {calculatingFee && <CircularProgress size={12} sx={{ ml: 1 }} />}
+                    </Typography>
+                    <Typography variant="body1">
+                      {shippingFee.toLocaleString()}₫
+                    </Typography>
                   </Box>
                   {discountAmount > 0 && (
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
@@ -694,12 +826,12 @@ function OrderPage() {
                   <Typography variant="h6" color="error">{totalAmount.toLocaleString()}₫</Typography>
                 </Box>
 
-                <Box sx={{ display: 'flex', justifyContent: 'space-between'}}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Button
                     component={Link}
                     to="/cart"
                     variant="text"
-                    sx={{fontSize: 10}}
+                    sx={{ fontSize: 10 }}
                     startIcon={<ArrowBackIcon />}
                   >
                     Quay về giỏ hàng
@@ -707,9 +839,9 @@ function OrderPage() {
                   <Button
                     variant="contained"
                     color="primary"
-                    sx={{fontSize: 15}}
+                    sx={{ fontSize: 15 }}
                     onClick={handlePlaceOrder}
-                    disabled={loading}
+                    disabled={loading || calculatingFee}
                   >
                     {loading ? <CircularProgress size={24} /> : 'Đặt hàng'}
                   </Button>

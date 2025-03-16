@@ -16,11 +16,44 @@ import { Link } from "react-router-dom";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 // import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import axios from "axios";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 
 const HomePage = ({ updateWishlistCount, updateCartData }) => {
     const [books, setBooks] = useState([]);
     const [notifications, setNotifications] = useState([]);
     const [wishlist, setWishlist] = useState([]);
+
+    // Sample banner images - replace with your actual images
+    const bannerImages = [
+        {
+            id: 1,
+            imageUrl: "https://cdn.thuonghieuvietnoitieng.com/danh-muc-san-pham/sach-1.png?e=1741181960&s=f865229f557f1919e4d25d7bc46aa553",
+            link: "/",
+            alt: "Summer Reading Promotion"
+        },
+        {
+            id: 2,
+            imageUrl: "https://cdn1.fahasa.com/media/magentothem/banner7/muasamkhongtienmatT325_840x320.png",
+            link: "/",
+            alt: "New Releases"
+        },
+        {
+            id: 3,
+            imageUrl: "https://sunbook.vn/wp-content/uploads/2023/08/hmodule_banner_img1_1.webp",
+            link: "/",
+            alt: "Bestsellers Collection"
+        },
+        // {
+        //     id: 4,
+        //     imageUrl: "/pictures/BookerViet.png",
+        //     link: "/",
+        //     alt: "Bestsellers Collection"
+        // }
+    ];
 
     useEffect(() => {
         axios.get("http://localhost:9999/book/")
@@ -49,6 +82,71 @@ const HomePage = ({ updateWishlistCount, updateCartData }) => {
         }
     }, []);
 
+    // Custom arrow components for the carousel
+    const NextArrow = (props) => {
+        const { onClick } = props;
+        return (
+            <IconButton
+                onClick={onClick}
+                sx={{
+                    position: 'absolute',
+                    right: 20,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    zIndex: 1,
+                    bgcolor: 'rgba(255, 255, 255, 0.7)',
+                    '&:hover': {
+                        bgcolor: 'rgba(255, 255, 255, 0.9)'
+                    }
+                }}
+            >
+                <NavigateNextIcon />
+            </IconButton>
+        );
+    };
+
+    const PrevArrow = (props) => {
+        const { onClick } = props;
+        return (
+            <IconButton
+                onClick={onClick}
+                sx={{
+                    position: 'absolute',
+                    left: 20,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    zIndex: 1,
+                    bgcolor: 'rgba(255, 255, 255, 0.7)',
+                    '&:hover': {
+                        bgcolor: 'rgba(255, 255, 255, 0.9)'
+                    }
+                }}
+            >
+                <NavigateBeforeIcon />
+            </IconButton>
+        );
+    };
+
+    // Slider settings
+    const sliderSettings = {
+        dots: true,
+        infinite: true,
+        speed: 500,
+        slidesToShow: 1,
+        slidesToScroll: 1,
+        autoplay: true,
+        autoplaySpeed: 4000,
+        nextArrow: <NextArrow />,
+        prevArrow: <PrevArrow />,
+        responsive: [
+            {
+                breakpoint: 600,
+                settings: {
+                    arrows: false
+                }
+            }
+        ]
+    };
 
     const toggleWishlist = async (bookId) => {
         const token = localStorage.getItem("token") || sessionStorage.getItem("token");
@@ -82,31 +180,53 @@ const HomePage = ({ updateWishlistCount, updateCartData }) => {
         }
     };
 
-    // const addToCart = async (bookId) => {
-    //     const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-    //     if (!token) {
-    //         setNotifications(prev => [...prev, { id: Date.now(), message: "Vui lòng đăng nhập để thêm vào giỏ hàng", severity: "warning" }]);
-    //         return;
-    //     }
-
-    //     try {
-    //         await axios.post("http://localhost:9999/cart/add", { bookId, quantity: 1 }, { headers: { Authorization: `Bearer ${token}` } });
-
-    //         updateCartData(); // Cập nhật lại giỏ hàng
-    //         setNotifications(prev => [...prev, { id: Date.now(), message: "Đã thêm vào giỏ hàng", severity: "success" }]);
-    //     } catch (error) {
-    //         setNotifications(prev => [...prev, { id: Date.now(), message: "Không thể thêm vào giỏ hàng", severity: "error" }]);
-    //     }
-    // };
-
     return (
         <Container maxWidth="lg">
+            {/* Banner Carousel Section */}
+            <Box sx={{ mt: 4, mb: 2 }}>
+                <Slider {...sliderSettings}>
+                    {bannerImages.map((banner) => (
+                        <div key={banner.id}>
+                            <Link to={banner.link}>
+                                <Box
+                                    sx={{
+                                        height: { xs: 150, sm: 250, md: 300, lg: 400 },
+                                        width: '100%',
+                                        position: 'relative',
+                                        borderRadius: 2,
+                                        overflow: 'hidden'
+                                    }}
+                                >
+                                    <img
+                                        src={banner.imageUrl}
+                                        alt={banner.alt}
+                                        style={{
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'cover'
+                                        }}
+                                    />
+                                </Box>
+                            </Link>
+                        </div>
+                    ))}
+                </Slider>
+            </Box>
+
             <Box p={3} textAlign="center">
                 <Typography variant="h5" gutterBottom mb={3}>Danh sách sách</Typography>
-                <Grid container spacing={3} justifyContent="flex-start">
+                <Grid container spacing={2} justifyContent="flex-start" >
                     {books.map((book) => (
-                        <Grid item xs={12} sm={6} md={4} lg={3} key={book._id}>
-                            <Card sx={{ width: 220, minHeight: 250, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', pb: 2 }}>
+                        <Grid item xs={12} sm={6} md={4} lg={2.4} key={book._id}>
+                            <Card sx={{
+                                maxWidth: "100%",
+                                height: '100%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                position: 'relative',
+                                mb: 2
+                            }}>
                                 <Box sx={{ position: 'relative', width: '100%' }}>
                                     {book.originalPrice > book.price && (
                                         <Box
@@ -236,16 +356,6 @@ const HomePage = ({ updateWishlistCount, updateCartData }) => {
                                             </Typography>
                                         )}
                                     </Box>
-                                    {/* <Button
-                                        variant="contained"
-                                        color="primary"
-                                        size="small"
-                                        startIcon={<ShoppingCartIcon />}
-                                        onClick={() => addToCart(book._id)}
-                                        sx={{ mt: 1 }}
-                                    >
-                                        Thêm vào giỏ hàng
-                                    </Button> */}
                                 </CardContent>
                             </Card>
                         </Grid>

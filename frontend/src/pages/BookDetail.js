@@ -738,7 +738,7 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
                       >
                         Hình thức bìa
                       </TableCell>
-                      <TableCell>{book.coverType || "Bìa mềm"}</TableCell>
+                      <TableCell>{book.cover || "Bìa mềm"}</TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell
@@ -747,7 +747,7 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
                       >
                         Số trang
                       </TableCell>
-                      <TableCell>{book.pages || "160"}</TableCell>
+                      <TableCell>{book.totalPage || "160"} trang</TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell
@@ -767,7 +767,7 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
                       >
                         Độ tuổi
                       </TableCell>
-                      <TableCell>{book.ageRating || "18+"}</TableCell>
+                      <TableCell>{book.minAge || "18"}+</TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell
@@ -776,7 +776,7 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
                       >
                         Trọng lượng
                       </TableCell>
-                      <TableCell>{book.weight || "180g"}</TableCell>
+                      <TableCell>{book.weight || "180g"}g</TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
