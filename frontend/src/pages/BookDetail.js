@@ -18,9 +18,12 @@ import {
   Divider,
   Tabs,
   Tab,
+  Rating,
+
 } from "@mui/material";
 import { Link, useParams } from "react-router-dom";
 import FavoriteIcon from "@mui/icons-material/Favorite";
+import { Edit, Delete } from "@mui/icons-material";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import axios from "axios";
 import BookDetailBreadCrumb from "../components/Breadcrumbs/BookDetailBreadCrumb";
@@ -36,6 +39,15 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
   const [relatedBooks, setRelatedBooks] = useState([]);
   const [wishlist, setWishlist] = useState([]);
 
+  const [reviews, setReviews] = useState([]);
+  const [userReview, setUserReview] = useState(null);  // Store the user's own review
+  const [averageRating, setAverageRating] = useState(0);  // Store average rating
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [rating, setRating] = useState(1);
+  const [comment, setComment] = useState("");
+  const [editingReview, setEditingReview] = useState(null);
+
+
   useEffect(() => {
     setLoading(true);
     // Fetch book details
@@ -47,10 +59,13 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
 
         // After getting book details, fetch related books from the same category
         if (response.data.categories && response.data.categories.length > 0) {
-          // Use the first category to find related books
           const categoryId = response.data.categories[0];
           fetchRelatedBooks(categoryId, response.data._id);
         }
+
+        // Fetch reviews for the book
+        fetchReviews();
+
       })
       .catch((error) => {
         console.error("Lỗi khi lấy thông tin sách:", error);
@@ -58,8 +73,7 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
       });
 
     // Check if book is in wishlist
-    // Check if book is in wishlist
-    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+    const token = getToken();
     if (token) {
       axios
         .get("http://localhost:9999/user/wishlist", {
@@ -67,7 +81,6 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
         })
         .then((response) => {
           if (response.data && response.data.wishlist) {
-            // Store entire wishlist array of IDs instead of just checking one book
             const wishlistIds = response.data.wishlist.map((book) => book._id);
             setWishlist(wishlistIds);
             setInWishlist(wishlistIds.includes(id));
@@ -78,6 +91,140 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
         );
     }
   }, [id]);
+
+  const getToken = () => localStorage.getItem("token") || sessionStorage.getItem("token");
+
+  const fetchReviews = () => {
+    axios
+      .get(`http://localhost:9999/reviews/${id}`)
+      .then((response) => {
+        // Kiểm tra và đảm bảo rằng reviews là mảng
+        if (Array.isArray(response.data.reviews)) {
+          setReviews(response.data.reviews);
+        } else {
+          console.error("Dữ liệu reviews không phải là mảng:", response.data.reviews);
+        }
+
+        // Set averageRating
+        setAverageRating(response.data.averageRating);
+
+        // Fetch user's own review nếu có token
+        const token = getToken();
+        if (token) {
+          axios
+            .get(`http://localhost:9999/reviews/user/${id}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            })
+            .then((userReviewResponse) => {
+              // Kiểm tra xem dữ liệu trả về có phải là đối tượng hay không
+              if (userReviewResponse.data && typeof userReviewResponse.data === 'object') {
+                // Kiểm tra nếu userReviewResponse là đối tượng đánh giá người dùng
+                const userReview = userReviewResponse.data.book === id ? userReviewResponse.data : null;
+                setUserReview(userReview);
+              } else {
+                console.error("Dữ liệu userReview không phải là đối tượng:", userReviewResponse.data);
+              }
+            })
+            .catch((error) => console.error("Lỗi khi lấy đánh giá của người dùng:", error));
+        }
+      })
+      .catch((error) => {
+        console.error("Lỗi khi lấy đánh giá sách:", error);
+      });
+  };
+
+
+
+  const handleSubmitReview = async () => {
+    const token = getToken();
+
+    if (!token) {
+      setNotifications([...notifications, "Bạn cần đăng nhập để đánh giá."]);
+      return;
+    }
+
+    try {
+      await axios.post(
+        `http://localhost:9999/reviews/${id}`,
+        { rating, comment },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setShowReviewForm(false);  // Close the form after submission
+      setRating(1);  // Reset rating
+      setComment("");  // Reset comment
+      fetchReviews();  // Re-fetch reviews to update UI
+    } catch (error) {
+      console.error("Lỗi khi gửi đánh giá:", error);
+    }
+  };
+
+  const handleEdit = (review) => {
+    setEditingReview(review); // Lưu đánh giá đang chỉnh sửa
+    setRating(review.rating);  // Cập nhật rating vào form
+    setComment(review.comment); // Cập nhật comment vào form
+  };
+
+  const handleSubmitEdit = async () => {
+    const token = getToken();
+
+    if (!token) {
+      setNotifications([...notifications, "Bạn cần đăng nhập để chỉnh sửa đánh giá."]);
+      return;
+    }
+
+    console.log('Submitting review:', editingReview);
+
+    try {
+      const response = await axios.put(
+        `http://localhost:9999/reviews/update/${editingReview._id}`,
+        editingReview,  // Gửi toàn bộ đối tượng editingReview đã được cập nhật
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.status === 200) {
+        fetchReviews();  // Fetch lại reviews sau khi cập nhật đánh giá
+
+        // Reset các state
+        setEditingReview(null);
+        alert('Đánh giá đã được cập nhật!');
+      }
+    } catch (error) {
+      console.error('Cập nhật thất bại:', error);
+      alert('Cập nhật thất bại, vui lòng thử lại!');
+    }
+  };
+
+
+
+  const handleDelete = async (reviewId) => {
+    const token = getToken(); // Lấy token người dùng
+
+    if (!token) {
+      setNotifications((prev) => [...prev, "Bạn cần đăng nhập để xóa đánh giá."]);
+      return;
+    }
+
+    try {
+      const response = await axios.delete(
+        `http://localhost:9999/reviews/delete/${reviewId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.status === 200) {
+        // Sau khi xóa thành công, cập nhật lại danh sách đánh giá
+        fetchReviews();
+        alert("Đánh giá đã được xóa!");
+      } else {
+        alert("Xóa đánh giá không thành công!");
+      }
+    } catch (error) {
+      console.error("Xóa đánh giá thất bại:", error);
+      alert("Xóa thất bại, vui lòng thử lại!");
+    }
+  };
+
+
 
   // Add this function
   const fetchRelatedBooks = (categoryId, currentBookId) => {
@@ -674,18 +821,185 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
               </Typography>
             )}
           </Box>
-          <Box
-            role="tabpanel"
-            hidden={tabValue !== 1}
-            id="tabpanel-1"
-            sx={{ p: 3 }}
-          >
-            {tabValue === 1 && (
+
+
+          {/* Ratings and Reviews Section */}
+          <Box role="tabpanel" hidden={tabValue !== 1} id="tabpanel-1" sx={{ p: 3 }}>
+            {tabValue === 1 && reviews.length === 0 ? (
               <Typography sx={{ textAlign: "center", py: 4 }}>
                 Chưa có đánh giá nào cho sản phẩm này.
               </Typography>
+            ) : (
+              <>
+                <Typography variant="h6" sx={{ py: 2 }}>
+                  Đánh giá trung bình:
+                  <span style={{ display: "inline-flex" }}>
+                    <Rating value={averageRating} precision={0.1} readOnly sx={{ ml: 1 }} />
+                  </span>
+                  <span style={{ marginLeft: "8px" }}>
+                    {averageRating.toFixed(1)} / 5
+                  </span>
+                </Typography>
+
+                {/* Render reviews */}
+                {reviews.map((review) => (
+                  <Card key={review._id} sx={{ mb: 2 }}>
+                    <CardContent sx={{ position: 'relative' }}>
+                      <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+                        {review.user.name}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                        {new Date(review.createdAt).toLocaleDateString()}
+                      </Typography>
+                      <Typography variant="body1" sx={{ py: 1 }}>
+                        {review.comment}
+                      </Typography>
+                      <Typography variant="body2">
+                        <Rating value={review.rating} precision={0.1} readOnly />
+                      </Typography>
+
+                      {/* Nút Edit và Delete chỉ hiển thị nếu review thuộc về người dùng hiện tại */}
+                      {userReview && userReview._id === review._id && (
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            top: 8,
+                            right: 8,
+                            display: "flex",
+                            flexDirection: "row",
+                            gap: 1,
+                          }}
+                        >
+                          {/* Nút Edit */}
+                          <Button
+                            variant="outlined"
+                            color="primary"
+                            onClick={() => handleEdit(review)}
+                            sx={{
+                              padding: "4px 8px",
+                              minWidth: "auto",
+                              fontSize: "0.75rem",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 0.5,
+                            }}
+                          >
+                            <Edit fontSize="small" />
+                            Chỉnh sửa
+                          </Button>
+
+                          {/* Nút Delete */}
+                          <Button
+                            variant="outlined"
+                            color="error"
+                            onClick={() => handleDelete(review._id)}
+                            sx={{
+                              padding: "4px 8px",
+                              minWidth: "auto",
+                              fontSize: "0.75rem",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 0.5,
+                            }}
+                          >
+                            <Delete fontSize="small" />
+                            Xóa
+                          </Button>
+                        </Box>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+
+
+                {/* Edit review form */}
+                {editingReview && (
+                  <Box sx={{ p: 3, mt: 3 }}>
+                    <Typography variant="h6">Chỉnh sửa đánh giá sản phẩm</Typography>
+                    <Box sx={{ mb: 2 }}>
+                      <Typography>Rating (1-5):</Typography>
+                      <Rating
+                        value={editingReview.rating}
+                        onChange={(e, newValue) =>
+                          setEditingReview({ ...editingReview, rating: newValue })
+                        }
+                        precision={0.1}
+                      />
+                    </Box>
+                    <Box sx={{ mb: 2 }}>
+                      <Typography>Comment:</Typography>
+                      <textarea
+                        value={editingReview.comment}
+                        onChange={(e) =>
+                          setEditingReview({ ...editingReview, comment: e.target.value })
+                        }
+                        rows="4"
+                        style={{ width: "100%" }}
+                      />
+                    </Box>
+                    <Button variant="contained" color="primary" onClick={handleSubmitEdit}>
+                      Lưu đánh giá
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      sx={{ ml: 2 }}
+                      onClick={() => setEditingReview(null)} // Cancel edit
+                    >
+                      Hủy
+                    </Button>
+                  </Box>
+                )}
+
+              </>
+            )}
+
+            {/* Button to open review form */}
+            {!showReviewForm && (
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => setShowReviewForm(true)} // Toggle form visibility
+                sx={{ mt: 3 }}
+              >
+                Đánh giá sản phẩm
+              </Button>
+            )}
+
+            {/* Review form */}
+            {showReviewForm && (
+              <Box sx={{ p: 3, mt: 3 }}>
+                <Typography variant="h6">Đánh giá sản phẩm</Typography>
+                <Box sx={{ mb: 2 }}>
+                  <Typography>Rating (1-5):</Typography>
+                  <Rating
+                    value={rating}
+                    onChange={(e, newValue) => setRating(newValue)} // Update rating value
+                    precision={0.1}
+                  />
+                </Box>
+                <Box sx={{ mb: 2 }}>
+                  <Typography>Comment:</Typography>
+                  <textarea
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    rows="4"
+                    style={{ width: "100%" }}
+                  />
+                </Box>
+                <Button variant="contained" color="primary" onClick={handleSubmitReview}>
+                  Gửi đánh giá
+                </Button>
+                <Button
+                  variant="outlined"
+                  sx={{ ml: 2 }}
+                  onClick={() => setShowReviewForm(false)} // Close form
+                >
+                  Hủy
+                </Button>
+              </Box>
             )}
           </Box>
+
         </Box>
 
         {/* Related Products Section */}

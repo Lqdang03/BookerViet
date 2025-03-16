@@ -14,7 +14,6 @@ const { checkAuthorize } = require("./middleware/authMiddleware");
 
 const DB = require("./config/db");
 
-
 const app = express();
 const port = process.env.PORT || 9999;
 
@@ -30,6 +29,7 @@ app.use("/admin", adminRoutes);
 app.use("/book", bookRoutes);
 app.use("/category", categoryRoutes);
 app.use("/order", orderRoutes);
+app.use("/reviews", reviewRoutes);  
 app.use("/ghn", ghnRoutes);
 
 // Test phân quyền
