@@ -5,6 +5,7 @@ const adminBookController = require("../controllers/AdminBookController");
 const adminDiscountController = require("../controllers/AdminDiscountController");
 const {updateBoxInfo} = require("../controllers/OrderController");
 const {confirmOrder} = require("../controllers/GhnController");
+const adminReviewController = require("../controllers/AdminReviewController");
 
 const router = express.Router();
 
@@ -29,6 +30,8 @@ router.post("/books", checkAuthorize(["admin"]), adminBookController.createBook)
 router.put("/books/:id", checkAuthorize(["admin"]), adminBookController.updateBook);
 router.delete("/books/:id", checkAuthorize(["admin"]), adminBookController.deleteBook);
 
+
+
 // ✅ Quản lý danh mục sách
 router.get("/categories", checkAuthorize(["admin"]), adminBookController.getAllCategories);
 router.post("/categories", checkAuthorize(["admin"]), adminBookController.createCategory);
@@ -41,5 +44,15 @@ router.get("/discounts/:id", checkAuthorize(["admin"]), adminDiscountController.
 router.post("/discounts", checkAuthorize(["admin"]), adminDiscountController.createDiscount);
 router.put("/discounts/:id", checkAuthorize(["admin"]), adminDiscountController.updateDiscount);
 router.delete("/discounts/:id", checkAuthorize(["admin"]), adminDiscountController.deleteDiscount);
+
+// ✅ Quản lý đánh giá và xếp hạng
+router.get("/reviews", checkAuthorize(["admin"]), adminReviewController.getAllReviews);
+router.delete("/reviews/:reviewId", checkAuthorize(["admin"]), adminReviewController.deleteReview);
+router.get("/books/:id/reviews", checkAuthorize(["admin"]), adminReviewController.getReviewsByBook);
+router.get("/users/:id/reviews", checkAuthorize(["admin"]), adminReviewController.getReviewsByUser);
+
+
+
+
 
 module.exports = router;
