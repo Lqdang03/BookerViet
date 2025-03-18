@@ -18,17 +18,13 @@ import {
   Divider,
   Tabs,
   Tab,
-  Rating,
-  Menu, MenuItem
-
 } from "@mui/material";
 import { Link, useParams } from "react-router-dom";
 import FavoriteIcon from "@mui/icons-material/Favorite";
-import { Edit, Delete } from "@mui/icons-material";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import axios from "axios";
 import BookDetailBreadCrumb from "../components/Breadcrumbs/BookDetailBreadCrumb";
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+import ReviewAndRating from "./ReviewAndRating";
 
 const BookDetail = ({ updateWishlistCount, updateCartData }) => {
   const { id } = useParams();
@@ -856,189 +852,29 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
 
 
           {/* Ratings and Reviews Section */}
-          <Box role="tabpanel" hidden={tabValue !== 1} id="tabpanel-1" sx={{ p: 3 }}>
-            {tabValue === 1 && reviews.length === 0 ? (
-              <Typography sx={{ textAlign: "center", py: 4, fontSize: "1.2rem", color: "text.secondary" }}>
-                Chưa có đánh giá nào cho sản phẩm này.
-              </Typography>
-            ) : (
-              <>
-                <Typography variant="h6" sx={{ py: 2, fontWeight: "bold", color: "text.primary" }}>
-                  Đánh giá trung bình:
-                  <span style={{ display: "inline-flex" }}>
-                    <Rating value={averageRating} precision={0.1} readOnly sx={{ ml: 1 }} />
-                  </span>
-                  <span style={{ marginLeft: "8px", fontSize: "1.1rem", color: "text.secondary" }}>
-                    {averageRating.toFixed(1)} / 5
-                  </span>
-                </Typography>
-
-                {/* Render reviews */}
-                {reviews.map((review) => (
-                  <Card key={review._id} sx={{ mb: 2, boxShadow: 3, borderRadius: 2 }}>
-                    <CardContent sx={{ position: 'relative', padding: 2 }}>
-                      <Typography variant="body1" sx={{ fontWeight: "bold", fontSize: "1rem", color: "text.primary" }}>
-                        {review.user.name}
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "0.9rem" }}>
-                        {new Date(review.createdAt).toLocaleDateString()}
-                      </Typography>
-                      <Typography variant="body1" sx={{ py: 1, fontSize: "1rem", color: "text.primary" }}>
-                        {review.comment}
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "0.9rem" }}>
-                        <Rating value={review.rating} precision={0.1} readOnly />
-                      </Typography>
-
-                      {/* Edit and Delete buttons */}
-                      {userReview && userReview._id === review._id && (
-                        <Box sx={{ position: "absolute", top: 8, right: 8 }}>
-                          <IconButton onClick={(e) => handleMenuOpen(e, review)}>
-                            <MoreVertIcon />
-                          </IconButton>
-                          <Menu
-                            anchorEl={anchorEl}
-                            open={Boolean(anchorEl) && selectedReview && selectedReview._id === review._id}
-                            onClose={handleMenuClose}
-                          >
-                            <MenuItem
-                              onClick={() => {
-                                handleEdit(review);
-                                handleMenuClose();
-                              }}
-                            >
-                              <Edit fontSize="small" sx={{ mr: 1 }} />
-                              Chỉnh sửa
-                            </MenuItem>
-                            <MenuItem
-                              onClick={() => {
-                                handleDelete(review._id);
-                                handleMenuClose();
-                              }}
-                            >
-                              <Delete fontSize="small" sx={{ mr: 1 }} />
-                              Xóa
-                            </MenuItem>
-                          </Menu>
-                        </Box>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-
-                {/* Edit review form */}
-                {editingReview && (
-                  <Box sx={{ p: 3, mt: 3, borderRadius: 2, boxShadow: 2, backgroundColor: "#f5f5f5" }}>
-                    <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold", color: "text.primary" }}>
-                      Chỉnh sửa đánh giá sản phẩm
-                    </Typography>
-                    <Box sx={{ mb: 2 }}>
-                      <Typography sx={{ fontWeight: "bold" }}>Rating (1-5):</Typography>
-                      <Rating
-                        value={editingReview.rating}
-                        onChange={(e, newValue) =>
-                          setEditingReview({ ...editingReview, rating: newValue })
-                        }
-                        precision={1}
-                        sx={{ mb: 2 }}
-                      />
-                    </Box>
-                    <Box sx={{ mb: 2 }}>
-                      <Typography sx={{ fontWeight: "bold" }}>Comment:</Typography>
-                      <textarea
-                        value={editingReview.comment}
-                        onChange={(e) =>
-                          setEditingReview({ ...editingReview, comment: e.target.value })
-                        }
-                        rows="4"
-                        style={{
-                          width: "100%",
-                          padding: "10px",
-                          borderRadius: "4px",
-                          border: "1px solid #ccc",
-                          fontSize: "1rem",
-                          fontFamily: "Arial, sans-serif",
-                        }}
-                      />
-                    </Box>
-                    <Box>
-                      <Button variant="contained" color="primary" onClick={handleSubmitEdit} sx={{ mr: 2 }}>
-                        Lưu đánh giá
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        sx={{ ml: 2 }}
-                        onClick={() => setEditingReview(null)} // Cancel edit
-                      >
-                        Hủy
-                      </Button>
-                    </Box>
-                  </Box>
-                )}
-
-              </>
-            )}
-
-            {/* Button to open review form */}
-            {!showReviewForm && !hasReviewed && (
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => setShowReviewForm(true)} // Toggle form visibility
-                sx={{ mt: 3, width: "100%", borderRadius: 2 }}
-              >
-                Đánh giá sản phẩm
-              </Button>
-            )}
-
-            {/* Review form */}
-            {showReviewForm && (
-              <Box sx={{ p: 3, mt: 3, borderRadius: 2, boxShadow: 2, backgroundColor: "#f5f5f5" }}>
-                <Typography variant="h6" sx={{ mb: 2, fontWeight: "bold", color: "text.primary" }}>
-                  Đánh giá sản phẩm
-                </Typography>
-                <Box sx={{ mb: 2 }}>
-                  <Typography sx={{ fontWeight: "bold" }}>Rating (1-5):</Typography>
-                  <Rating
-                    value={rating}
-                    onChange={(e, newValue) => setRating(newValue)} // Update rating value
-                    precision={1}
-                    sx={{ mb: 2 }}
-                  />
-                </Box>
-                <Box sx={{ mb: 2 }}>
-                  <Typography sx={{ fontWeight: "bold" }}>Comment:</Typography>
-                  <textarea
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    rows="4"
-                    style={{
-                      width: "100%",
-                      padding: "10px",
-                      borderRadius: "4px",
-                      border: "1px solid #ccc",
-                      fontSize: "1rem",
-                      fontFamily: "Arial, sans-serif",
-                    }}
-                  />
-                </Box>
-                <Box>
-                  <Button variant="contained" color="primary" onClick={handleSubmitReview} sx={{ mr: 2 }}>
-                    Gửi đánh giá
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    sx={{ ml: 2 }}
-                    onClick={() => setShowReviewForm(false)} // Close form
-                  >
-                    Hủy
-                  </Button>
-                </Box>
-              </Box>
-            )}
-          </Box>
-
-
+          <ReviewAndRating
+            tabValue={tabValue}
+            reviews={reviews}
+            averageRating={averageRating}
+            userReview={userReview}
+            showReviewForm={showReviewForm}
+            hasReviewed={hasReviewed}
+            rating={rating}
+            comment={comment}
+            editingReview={editingReview}
+            anchorEl={anchorEl}
+            selectedReview={selectedReview}
+            setEditingReview={setEditingReview}
+            setRating={setRating}
+            setComment={setComment}
+            setShowReviewForm={setShowReviewForm}
+            handleMenuOpen={handleMenuOpen}
+            handleMenuClose={handleMenuClose}
+            handleEdit={handleEdit}
+            handleDelete={handleDelete}
+            handleSubmitEdit={handleSubmitEdit}
+            handleSubmitReview={handleSubmitReview}
+          />
         </Box>
 
         {/* Related Products Section */}
