@@ -116,12 +116,13 @@ const confirmOrder = async (req, res) => {
     if (!order) {
       return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
     }
+
+    if(order.paymentStatus !== "Completed"){
+      return res.status(400).json({ message: "Đơn hàng chưa được thanh toán" });
+    }
+
     if (order.boxInfo === null) {
-      return res
-        .status(400)
-        .json({
-          message: "Vui lòng nhập thông tin (weight, length, width, height)",
-        });
+      return res.status(400).json({ message: "Vui lòng nhập thông tin (weight, length, width, height)"});
     }
 
     let totalValue = 0;
@@ -137,7 +138,7 @@ const confirmOrder = async (req, res) => {
           .status(400)
           .json({ message: `Sách "${book.title}" không đủ hàng!` });
       }
-      totalValue += book.price * item.quantity;
+      totalValue += item.price * item.quantity;
     }
     totalValue += order?.shippingInfo?.fee;
 
