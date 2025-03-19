@@ -137,9 +137,6 @@ const cancelComplaint = async (req, res) => {
       return res.status(404).json({ message: "Phản ánh không tồn tại!" });
     }
 
-    console.log(complaint.user);
-    console.log(user._id);
-
     if (!complaint.user.equals(user._id)) {
       return res.status(403).json({ message: "Bạn không có quyền hủy phản ánh!" });
     }

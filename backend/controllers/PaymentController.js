@@ -102,10 +102,10 @@ const getPaymentReturn = async (req, res) => {
     const signed = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
 
     if (secureHash === signed) {
-      if (vnp_Params["vnp_ResponseCode"] === "00") {        
-        res.status(200).json({ message: "Thanh toán thành công!", status: "success" });
+      if (vnp_Params["vnp_ResponseCode"] === "00") {
         order.paymentStatus = "Completed";
-        await order.save();
+        await order.save(); 
+        res.status(200).json({ message: "Thanh toán thành công!", status: "success" });
       } else {
         res.status(400).json({ message: "Thanh toán thất bại!", status: "fail" });
       }
