@@ -81,5 +81,36 @@ const updateBoxInfo = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
-const orderController = {createOrder, updateBoxInfo};
+
+const getMyOrders = async (req, res) => {
+    try {
+        const orders = await Order.find({ user: req.user.id });
+        res.status(200).json(orders);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+const getOrderDetails = async (req, res) => {
+    const orderId = req.params.id;
+    const user = req.user;
+    try {
+        const order = await Order.findById(orderId).populate('items.book', 'title');
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+        console.log('INFO order');
+        console.log(order);
+        console.log('INFO user');
+        console.log(user);
+
+        if (order.user.toString() !== user._id.toString() && user.role !== 'admin') {
+            return res.status(403).json({ message: 'Forbidden' });
+        }
+        res.status(200).json(order);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+const orderController = {createOrder, updateBoxInfo, getMyOrders, getOrderDetails};
 module.exports = orderController;
