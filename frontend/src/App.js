@@ -21,7 +21,7 @@ import OrderPage from "./pages/OrderPage.js";
 import OrderSuccessPage from "./pages/OrderSuccessPage.js";
 import TrackOrder from "./pages/TrackOrder.js";
 import OrderManagement from "./pages/AdminSite/OrderManagement.js";
-import FeedbackManagement from "./pages/AdminSite/FeedbackManagement.js";
+import ReviewAndRatingManagement from "./pages/AdminSite/ReviewAndRatingManagement.js";
 import ReportManagement from "./pages/AdminSite/ReportManagement.js";
 import UserManagement from "./pages/AdminSite/UserManagement.js";
 import BookManagement from "./pages/AdminSite/BookManagement.js";
@@ -121,7 +121,7 @@ function App() {
           <Route path="books" element={<BookManagement />} />
           <Route path="orders" element={<OrderManagement />} />
           <Route path="discounts" element={<DiscountManagement />} />
-          <Route path="feedbacks" element={<FeedbackManagement />} />
+          <Route path="review_rating" element={<ReviewAndRatingManagement />} />
           <Route path="reports" element={<ReportManagement />} />
 
         </Route>
