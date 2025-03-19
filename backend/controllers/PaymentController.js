@@ -29,7 +29,7 @@ const createPayment = async (req, res) => {
     const order = await Order.findById(orderId).populate("items.book","title price");
 
     if (!order) {
-      res.status(404).json({ message: `Order ${orderId} không tồn tại` });
+      return res.status(404).json({ message: `Order ${orderId} không tồn tại` });
     }
 
     let amount = 0 ;
@@ -53,8 +53,8 @@ const createPayment = async (req, res) => {
       vnp_TmnCode: VNP_TMNCODE,
       vnp_Locale: "vn",
       vnp_CurrCode: "VND",
-      vnp_TxnRef: orderId,
-      vnp_OrderInfo: `Thanh toán đơn hàng ${orderId}`,
+      vnp_TxnRef: moment().format("YYYYMMDDHHmmss"),
+      vnp_OrderInfo: orderId,
       vnp_OrderType: "other",
       vnp_Amount: amount * 100, // Convert VND to VNPAY format
       vnp_ReturnUrl: VNP_RETURNURL,
@@ -74,9 +74,9 @@ const createPayment = async (req, res) => {
     const paymentUrl = `${VNP_URL}?${qs.stringify(vnp_Params, {
       encode: false,
     })}`;
-    res.status(200).json({ paymentUrl });
+    return res.status(200).json({ paymentUrl });
   } catch (error) {
-    res.status(500).json({ message: "Lỗi server!", error: error.message });
+    return res.status(500).json({ message: "Lỗi server!", error: error.message });
   }
 };
 
@@ -84,6 +84,13 @@ const getPaymentReturn = async (req, res) => {
   try {
     let vnp_Params = req.query;
     const secureHash = vnp_Params["vnp_SecureHash"];
+    const orderId = vnp_Params["vnp_OrderInfo"];
+    const order = Order.findById(orderId);
+    if(!order){
+      return res.status(404).json({ message: `Order ${orderId} không tồn tại` });
+    }
+
+
     delete vnp_Params["vnp_SecureHash"];
     delete vnp_Params["vnp_SecureHashType"];
 
@@ -95,8 +102,10 @@ const getPaymentReturn = async (req, res) => {
     const signed = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
 
     if (secureHash === signed) {
-      if (vnp_Params["vnp_ResponseCode"] === "00") {
+      if (vnp_Params["vnp_ResponseCode"] === "00") {        
         res.status(200).json({ message: "Thanh toán thành công!", status: "success" });
+        order.paymentStatus = "Completed";
+        await order.save();
       } else {
         res.status(400).json({ message: "Thanh toán thất bại!", status: "fail" });
       }
