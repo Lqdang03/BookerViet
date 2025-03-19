@@ -138,7 +138,7 @@ function App() {
         <Route path="/category/:id" element={<ViewBookByCategory updateWishlistCount={fetchWishlistCount}/>}/>
         <Route path="/complaint" element={<ComplaintPage/>}/>
         <Route path="/checkout" element={<OrderPage/>}/>
-        <Route path="/order-success" element={<OrderSuccessPage updateCartData={fetchCartData} />} />
+        <Route path="/payment-success" element={<OrderSuccessPage updateCartData={fetchCartData} />} />
         <Route path="/track-order" element={<TrackOrder/>} />
       </Routes>
       {!isAdminRoute && <Footer />}
