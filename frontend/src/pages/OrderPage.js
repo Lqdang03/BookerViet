@@ -382,11 +382,11 @@ function OrderPage() {
         navigate("/login");
         return;
       }
-
+  
       // Validate required fields
       const requiredFields = ["name", "phoneNumber", "address", "province", "district", "ward"];
       const missingFields = requiredFields.filter(field => !shippingAddress[field]);
-
+  
       if (missingFields.length > 0) {
         setAlert({
           open: true,
@@ -396,12 +396,12 @@ function OrderPage() {
         setLoading(false);
         return;
       }
-
+  
       // Get the names of selected province/district/ward
       const selectedProvince = provinces.find(p => p.id === shippingAddress.province);
       const selectedDistrict = districts.find(d => d.id === shippingAddress.district);
       const selectedWard = wards.find(w => w.id === shippingAddress.ward);
-
+  
       // Create order object matching backend schema
       const orderData = {
         shippingInfo: {
@@ -423,19 +423,20 @@ function OrderPage() {
         pointUsed: pointsToUse,
         notes: shippingAddress.notes || ""
       };
-
+  
       // Send the order request
       const response = await axios.post("http://localhost:9999/order/create", orderData, {
         headers: { Authorization: `Bearer ${token}` }
       });
-
+  
       // Get the order ID from the response
       const orderId = response.data.data?._id || response.data.savedOrder?._id;
-
+  
       if (!orderId) {
         throw new Error("Order ID not found in response");
       }
-
+  
+      // Store order info in localStorage
       localStorage.setItem("latestOrder", JSON.stringify({
         shippingInfo: {
           name: shippingAddress.name,
@@ -454,19 +455,33 @@ function OrderPage() {
         items: cartItems
       }));
       
-      // Chuyển hướng sang trang Order Success (không cần orderId)
-      navigate("/order-success");
-      
-
-
+      // If payment method is online, redirect to payment gateway
+      if (paymentMethod === "Online") {
+        // Call create payment API
+        const paymentResponse = await axios.post(
+          "http://localhost:9999/payment/create", 
+          { orderId },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        
+        // Redirect to payment URL
+        if (paymentResponse.data.paymentUrl) {
+          window.location.href = paymentResponse.data.paymentUrl;
+        } else {
+          throw new Error("Payment URL not found in response");
+        }
+      } else {
+        // For COD, redirect directly to order success page
+        navigate("/payment-success");
+      }
     } catch (error) {
       console.error("Error details:", error);
-
+  
       // Log more specific error information
       if (error.response) {
         console.error("Server response data:", error.response.data);
         console.error("Server response status:", error.response.status);
-
+  
         // More specific error message
         setAlert({
           open: true,
