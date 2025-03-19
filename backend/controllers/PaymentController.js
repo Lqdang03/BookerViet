@@ -103,7 +103,6 @@ const getPaymentReturn = async (req, res) => {
 
     if (secureHash === signed) {
       if (vnp_Params["vnp_ResponseCode"] === "00") {
-        console.log('UPDATE ????');       
         order.paymentStatus = "Completed";
         await order.save(); 
         res.status(200).json({ message: "Thanh toán thành công!", status: "success" });
