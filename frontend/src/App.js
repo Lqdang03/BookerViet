@@ -26,6 +26,7 @@ import ReportManagement from "./pages/AdminSite/ReportManagement.js";
 import UserManagement from "./pages/AdminSite/UserManagement.js";
 import BookManagement from "./pages/AdminSite/BookManagement.js";
 import DiscountManagement from "./pages/AdminSite/DiscountManagement.js";
+import Analysis from "./pages/AdminSite/Analysis.js";
 
 function App() {
   const [userEmail, setUserEmail] = useState(null);
@@ -123,7 +124,7 @@ function App() {
           <Route path="discounts" element={<DiscountManagement />} />
           <Route path="feedbacks" element={<FeedbackManagement />} />
           <Route path="reports" element={<ReportManagement />} />
-
+          <Route path="analysis" element={<Analysis />} />
         </Route>
         <Route path="/account/login" element={<Login onLoginSuccess={updateUserEmail} />} />
         <Route path="/account/register" element={<Resgiter />} />
