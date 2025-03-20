@@ -3,12 +3,15 @@ import {
     Typography, Button, Table, TableBody, TableCell, TableContainer,
     TableHead, TableRow, Paper, IconButton, Dialog, DialogTitle, DialogContent,
     DialogActions, TextField, Grid, Box, FormControl, InputLabel, Select, MenuItem,
-    Alert
+    Alert,
+    TablePagination
 } from "@mui/material";
 import { Delete, Check } from "@mui/icons-material";
 import axios from "axios";
 
 const OrderManagement = () => {
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -34,7 +37,7 @@ const OrderManagement = () => {
                 setLoading(false);
                 return;
             }
-            
+
             const response = await axios.get("http://localhost:9999/admin/orders", {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -52,11 +55,11 @@ const OrderManagement = () => {
             try {
                 const token = localStorage.getItem("token") || sessionStorage.getItem("token");
                 if (!token) return;
-                
+
                 await axios.delete(`http://localhost:9999/admin/orders/${orderId}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                
+
                 // Refresh danh sách đơn hàng sau khi xóa
                 fetchOrders();
             } catch (error) {
@@ -106,15 +109,15 @@ const OrderManagement = () => {
             if (!token || !currentOrder) return;
 
             // Cập nhật thông tin boxInfo
-            await axios.post(`http://localhost:9999/admin/orders/update-box-info/${currentOrder._id}`, 
+            await axios.post(`http://localhost:9999/admin/orders/update-box-info/${currentOrder._id}`,
                 { boxInfo },
-                { headers: { Authorization: `Bearer ${token}` }}
+                { headers: { Authorization: `Bearer ${token}` } }
             );
 
             // Chuyển trạng thái đơn hàng sang Processing
-            await axios.post(`http://localhost:9999/admin/orders/confirm/${currentOrder._id}`, 
+            await axios.post(`http://localhost:9999/admin/orders/confirm/${currentOrder._id}`,
                 {},
-                { headers: { Authorization: `Bearer ${token}` }}
+                { headers: { Authorization: `Bearer ${token}` } }
             );
 
             // Đóng dialog và refresh danh sách
@@ -184,10 +187,19 @@ const OrderManagement = () => {
     if (loading) return <Typography>Đang tải dữ liệu...</Typography>;
     if (error) return <Alert severity="error">{error}</Alert>;
 
+    //Thực hiện phân trang
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
     return (
-        <Box sx={{padding: 1, width: "100%", maxWidth: "calc(100% - 250px)", margin: "auto"}}>
+        <Box sx={{ padding: 1, width: "100%", maxWidth: "calc(100% - 250px)", margin: "auto" }}>
             <Typography variant="h4" gutterBottom>Quản lý đơn hàng</Typography>
-            
+
             <TableContainer component={Paper} sx={{ marginTop: 2 }}>
                 <Table>
                     <TableHead>
@@ -213,8 +225,8 @@ const OrderManagement = () => {
                                 <TableCell>{getPaymentStatusTranslation(order.paymentStatus)}</TableCell>
                                 <TableCell>{calculateTotalAmount(order).toLocaleString('vi-VN')} VNĐ</TableCell>
                                 <TableCell>
-                                    <Box 
-                                        sx={{ 
+                                    <Box
+                                        sx={{
                                             color: getStatusColor(order.orderStatus),
                                             fontWeight: 'bold'
                                         }}
@@ -225,7 +237,7 @@ const OrderManagement = () => {
                                 <TableCell>
                                     {order.boxInfo ? (
                                         <Typography variant="body2">
-                                            KT: {order.boxInfo.length}x{order.boxInfo.width}x{order.boxInfo.height}cm, 
+                                            KT: {order.boxInfo.length}x{order.boxInfo.width}x{order.boxInfo.height}cm,
                                             {order.boxInfo.weight}kg
                                         </Typography>
                                     ) : (
@@ -235,15 +247,15 @@ const OrderManagement = () => {
                                 <TableCell>
                                     {order.orderStatus === 'Pending' && (
                                         <>
-                                            <IconButton 
-                                                color="primary" 
+                                            <IconButton
+                                                color="primary"
                                                 onClick={() => handleOpenBoxDialog(order)}
                                                 title="Xác nhận và chuyển sang đang xử lý"
                                             >
                                                 <Check />
                                             </IconButton>
-                                            <IconButton 
-                                                color="error" 
+                                            <IconButton
+                                                color="error"
                                                 onClick={() => handleDeleteOrder(order._id)}
                                                 title="Xóa đơn hàng"
                                             >
@@ -256,6 +268,15 @@ const OrderManagement = () => {
                         ))}
                     </TableBody>
                 </Table>
+                <TablePagination
+                    rowsPerPageOptions={[5, 10, 25]}
+                    component="div"
+                    count={orders.length}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                />
             </TableContainer>
 
             {/* Dialog nhập thông tin box */}
@@ -311,8 +332,8 @@ const OrderManagement = () => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCloseBoxDialog} color="secondary">Hủy</Button>
-                    <Button 
-                        onClick={handleConfirmOrder} 
+                    <Button
+                        onClick={handleConfirmOrder}
                         color="primary"
                         disabled={!boxInfo.weight || !boxInfo.length || !boxInfo.width || !boxInfo.height}
                     >
