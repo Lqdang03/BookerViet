@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import {
     Container, Typography, Button, Table, TableBody, TableCell, TableContainer,
     TableHead, TableRow, Paper, IconButton, Dialog, DialogTitle, DialogContent,
-    DialogActions, Select, MenuItem, FormControl, InputLabel, Box, Grid
+    DialogActions, Select, MenuItem, FormControl, InputLabel, Box, Grid,
+    TablePagination
 } from "@mui/material";
 import { Delete } from "@mui/icons-material";
 import { Star, StarBorder } from "@mui/icons-material";
@@ -14,6 +15,8 @@ const ReviewAndRatingManagement = () => {
     const [selectedUser, setSelectedUser] = useState("");
     const [books, setBooks] = useState([]);
     const [users, setUsers] = useState([]);
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
 
     useEffect(() => {
         fetchFeedbacks();
@@ -51,7 +54,7 @@ const ReviewAndRatingManagement = () => {
         try {
             const token = localStorage.getItem("token") || sessionStorage.getItem("token");
             if (!token) return;
-            const response = await axios.get("http://localhost:9999/admin/users",{
+            const response = await axios.get("http://localhost:9999/admin/users", {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setUsers(response.data);
@@ -95,6 +98,16 @@ const ReviewAndRatingManagement = () => {
             stars.push(i <= rating ? <Star key={i} color="primary" /> : <StarBorder key={i} color="primary" />);
         }
         return stars;
+    };
+
+    //Thực hiện phân trang
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
     };
 
     return (
@@ -143,8 +156,11 @@ const ReviewAndRatingManagement = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {feedbacks.map((feedback) => (
+                        {feedbacks
+                        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                        .map((feedback, index) => (
                             <TableRow key={feedback._id}>
+                                <TableCell>{page * rowsPerPage + index + 1}</TableCell>
                                 <TableCell>{feedback.user.name}</TableCell>
                                 <TableCell>{feedback.book.title}</TableCell>
                                 <TableCell>{renderStars(feedback.rating)}</TableCell>
@@ -158,6 +174,15 @@ const ReviewAndRatingManagement = () => {
                         ))}
                     </TableBody>
                 </Table>
+                <TablePagination
+                    rowsPerPageOptions={[5, 10, 25]}
+                    component="div"
+                    count={feedbacks.length}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                />
             </TableContainer>
         </Box>
     );

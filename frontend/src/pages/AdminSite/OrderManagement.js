@@ -216,56 +216,59 @@ const OrderManagement = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {orders.map((order) => (
-                            <TableRow key={order._id}>
-                                <TableCell>{order._id.slice(-6).toUpperCase()}</TableCell>
-                                <TableCell>{order.user ? `${order.user.name} (${order.user.email})` : 'N/A'}</TableCell>
-                                <TableCell>{formatDate(order.createdAt)}</TableCell>
-                                <TableCell>{getPaymentMethodTranslation(order.paymentMethod)}</TableCell>
-                                <TableCell>{getPaymentStatusTranslation(order.paymentStatus)}</TableCell>
-                                <TableCell>{calculateTotalAmount(order).toLocaleString('vi-VN')} VNĐ</TableCell>
-                                <TableCell>
-                                    <Box
-                                        sx={{
-                                            color: getStatusColor(order.orderStatus),
-                                            fontWeight: 'bold'
-                                        }}
-                                    >
-                                        {getStatusTranslation(order.orderStatus)}
-                                    </Box>
-                                </TableCell>
-                                <TableCell>
-                                    {order.boxInfo ? (
-                                        <Typography variant="body2">
-                                            KT: {order.boxInfo.length}x{order.boxInfo.width}x{order.boxInfo.height}cm,
-                                            {order.boxInfo.weight}kg
-                                        </Typography>
-                                    ) : (
-                                        <Typography variant="body2" color="text.secondary">Chưa có</Typography>
-                                    )}
-                                </TableCell>
-                                <TableCell>
-                                    {order.orderStatus === 'Pending' && (
-                                        <>
-                                            <IconButton
-                                                color="primary"
-                                                onClick={() => handleOpenBoxDialog(order)}
-                                                title="Xác nhận và chuyển sang đang xử lý"
-                                            >
-                                                <Check />
-                                            </IconButton>
-                                            <IconButton
-                                                color="error"
-                                                onClick={() => handleDeleteOrder(order._id)}
-                                                title="Xóa đơn hàng"
-                                            >
-                                                <Delete />
-                                            </IconButton>
-                                        </>
-                                    )}
-                                </TableCell>
-                            </TableRow>
-                        ))}
+                        {orders
+                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                            .map((order, index) => (
+                                <TableRow key={order._id}>
+                                    <TableCell>{page * rowsPerPage + index + 1}</TableCell>
+                                    <TableCell>{order._id.slice(-6).toUpperCase()}</TableCell>
+                                    <TableCell>{order.user ? `${order.user.name} (${order.user.email})` : 'N/A'}</TableCell>
+                                    <TableCell>{formatDate(order.createdAt)}</TableCell>
+                                    <TableCell>{getPaymentMethodTranslation(order.paymentMethod)}</TableCell>
+                                    <TableCell>{getPaymentStatusTranslation(order.paymentStatus)}</TableCell>
+                                    <TableCell>{calculateTotalAmount(order).toLocaleString('vi-VN')} VNĐ</TableCell>
+                                    <TableCell>
+                                        <Box
+                                            sx={{
+                                                color: getStatusColor(order.orderStatus),
+                                                fontWeight: 'bold'
+                                            }}
+                                        >
+                                            {getStatusTranslation(order.orderStatus)}
+                                        </Box>
+                                    </TableCell>
+                                    <TableCell>
+                                        {order.boxInfo ? (
+                                            <Typography variant="body2">
+                                                KT: {order.boxInfo.length}x{order.boxInfo.width}x{order.boxInfo.height}cm,
+                                                {order.boxInfo.weight}kg
+                                            </Typography>
+                                        ) : (
+                                            <Typography variant="body2" color="text.secondary">Chưa có</Typography>
+                                        )}
+                                    </TableCell>
+                                    <TableCell>
+                                        {order.orderStatus === 'Pending' && (
+                                            <>
+                                                <IconButton
+                                                    color="primary"
+                                                    onClick={() => handleOpenBoxDialog(order)}
+                                                    title="Xác nhận và chuyển sang đang xử lý"
+                                                >
+                                                    <Check />
+                                                </IconButton>
+                                                <IconButton
+                                                    color="error"
+                                                    onClick={() => handleDeleteOrder(order._id)}
+                                                    title="Xóa đơn hàng"
+                                                >
+                                                    <Delete />
+                                                </IconButton>
+                                            </>
+                                        )}
+                                    </TableCell>
+                                </TableRow>
+                            ))}
                     </TableBody>
                 </Table>
                 <TablePagination
