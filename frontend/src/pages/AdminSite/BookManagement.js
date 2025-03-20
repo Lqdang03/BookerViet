@@ -16,13 +16,13 @@ import CategoryManagement from "./CategoryManagement";
 
 const BookManagement = () => {
   const [books, setBooks] = useState([]);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [categories, setCategories] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
   const [openImageDialog, setOpenImageDialog] = useState(false);
   const [selectedImages, setSelectedImages] = useState([]);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchCategory, setSearchCategory] = useState("");
   const [formData, setFormData] = useState({
