@@ -45,16 +45,22 @@ function OrderSuccessPage({ updateCartData }) {
         // Extract payment status from URL parameters
         const queryParams = new URLSearchParams(location.search);
         const vnpResponseCode = queryParams.get("vnp_ResponseCode");
-        const orderId = queryParams.get("vnp_TxnRef");
+        const orderId = queryParams.get("vnp_OrderInfo");
         
         console.log("Payment response:", { vnpResponseCode, orderId });
         
         // Load order details first
         const orderData = loadOrderDetails();
+        console.log("Loaded order data:", orderData);
         
         // If URL has payment gateway parameters, process them
         if (vnpResponseCode) {
-          await handlePaymentResponse(vnpResponseCode, orderId);
+          // Handle payment confirmation with backend if necessary
+          if (orderId) {
+            await confirmPaymentWithBackend(vnpResponseCode, orderId, queryParams);
+          } else {
+            await handlePaymentResponse(vnpResponseCode);
+          }
         } else if (orderData) {
           // If no payment parameters, assume it's a COD order
           setPaymentStatus({
@@ -92,38 +98,72 @@ function OrderSuccessPage({ updateCartData }) {
     processPaymentResponse();
   }, [location.search, updateCartData]);
   
-  const handlePaymentResponse = async (responseCode, orderId) => {
+  const confirmPaymentWithBackend = async (responseCode, orderId, queryParams) => {
     try {
       const token = localStorage.getItem("token") || sessionStorage.getItem("token");
       
+      if (token && orderId) {
+        // Call the payment/return endpoint with all URL parameters
+        const response = await axios.get(
+          `http://localhost:9999/payment/return${location.search}`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+        
+        console.log("Payment return response:", response.data);
+        
+        // Check for status instead of success
+        if (response.data.status === "success") {
+          // If payment was successful, fetch the updated order details
+          try {
+            const orderResponse = await axios.get(
+              `http://localhost:9999/orders/${orderId}`,
+              {
+                headers: { Authorization: `Bearer ${token}` }
+              }
+            );
+            
+            if (orderResponse.data) {
+              setOrderDetails(orderResponse.data);
+              localStorage.setItem("latestOrder", JSON.stringify(orderResponse.data));
+            }
+          } catch (orderError) {
+            console.error("Error fetching order details:", orderError);
+          }
+          
+          setPaymentStatus({
+            isProcessing: false,
+            success: true, 
+            message: "Thanh toán thành công! Đơn hàng của bạn đã được xác nhận."
+          });
+        } else {
+          setPaymentStatus({
+            isProcessing: false,
+            success: false,
+            message: response.data.message || "Thanh toán không thành công."
+          });
+        }
+        setSnackbarOpen(true);
+        return;
+      }
+      
+      // If no token or orderId, fall back to client-side handling
+      handlePaymentResponse(responseCode);
+      
+    } catch (error) {
+      console.error("Error confirming payment with backend:", error);
+      // Fall back to client-side handling if backend call fails
+      handlePaymentResponse(responseCode);
+    }
+  };
+  
+  const handlePaymentResponse = async (responseCode) => {
+    try {
       // Debug logging
       console.log("Processing payment with code:", responseCode);
       
-      // Optional: Verify payment status with backend for better security
-      if (token && orderId) {
-        try {
-          const response = await axios.get(`http://localhost:9999/payment/status/${orderId}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          
-          console.log("Backend payment verification response:", response.data);
-          
-          if (response.data.success) {
-            setPaymentStatus({
-              isProcessing: false,
-              success: true,
-              message: "Thanh toán thành công! Đơn hàng của bạn đã được xác nhận."
-            });
-            setSnackbarOpen(true);
-            return;
-          }
-        } catch (error) {
-          console.error("Backend payment verification failed:", error);
-          // Continue with client-side verification if backend fails
-        }
-      }
-      
-      // If no backend verification or it failed, use the URL parameters
+      // Handle based on response code
       if (responseCode === "00") {
         setPaymentStatus({
           isProcessing: false,
