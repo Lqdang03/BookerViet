@@ -85,11 +85,12 @@ const getPaymentReturn = async (req, res) => {
     let vnp_Params = req.query;
     const secureHash = vnp_Params["vnp_SecureHash"];
     const orderId = vnp_Params["vnp_OrderInfo"];
-    const order = Order.findById(orderId);
+    
+    // Add await here
+    const order = await Order.findById(orderId);
     if(!order){
       return res.status(404).json({ message: `Order ${orderId} không tồn tại` });
     }
-
 
     delete vnp_Params["vnp_SecureHash"];
     delete vnp_Params["vnp_SecureHashType"];
@@ -102,18 +103,21 @@ const getPaymentReturn = async (req, res) => {
     const signed = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
 
     if (secureHash === signed) {
-      if (vnp_Params["vnp_ResponseCode"] === "00") {        
-        res.status(200).json({ message: "Thanh toán thành công!", status: "success" });
+      if (vnp_Params["vnp_ResponseCode"] === "00") {
+        // Update order first
         order.paymentStatus = "Completed";
         await order.save();
+        
+        // Then send response
+        return res.status(200).json({ message: "Thanh toán thành công!", status: "success" });
       } else {
-        res.status(400).json({ message: "Thanh toán thất bại!", status: "fail" });
+        return res.status(400).json({ message: "Thanh toán thất bại!", status: "fail" });
       }
     } else {
-      res.status(400).json({ message: "Sai chữ ký bảo mật!" });
+      return res.status(400).json({ message: "Sai chữ ký bảo mật!" });
     }
   } catch (error) {
-    res.status(500).json({ message: "Lỗi server!", error: error.message });
+    return res.status(500).json({ message: "Lỗi server!", error: error.message });
   }
 };
   

@@ -421,7 +421,10 @@ const TrackOrder = () => {
                             </Avatar>
                             <Box>
                               <Typography variant="body2">
-                                {item.book?.title || "Sách"} x{item.quantity}
+                                {item.book?.title || "Sách"}
+                              </Typography>
+                              <Typography variant="caption" display="block">
+                                Số lượng: {item.quantity}
                               </Typography>
                               <Typography variant="caption" color="text.secondary">
                                 {formatPrice(item.price)}
