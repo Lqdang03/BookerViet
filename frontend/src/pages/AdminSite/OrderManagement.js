@@ -220,7 +220,6 @@ const OrderManagement = () => {
                             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                             .map((order, index) => (
                                 <TableRow key={order._id}>
-                                    <TableCell>{page * rowsPerPage + index + 1}</TableCell>
                                     <TableCell>{order._id.slice(-6).toUpperCase()}</TableCell>
                                     <TableCell>{order.user ? `${order.user.name} (${order.user.email})` : 'N/A'}</TableCell>
                                     <TableCell>{formatDate(order.createdAt)}</TableCell>

@@ -112,12 +112,12 @@ const ReviewAndRatingManagement = () => {
 
     return (
         <Box sx={{ padding: 2, width: "100%", maxWidth: "calc(100% - 250px)", margin: "auto" }}>
-            <Typography variant="h4" gutterBottom>Feedback Management</Typography>
+            <Typography variant="h4" gutterBottom>Quản lý các đánh giá</Typography>
 
             <Grid container spacing={2} sx={{ marginBottom: 2 }}>
                 <Grid item xs={12} sm={6} md={4}>
                     <FormControl fullWidth>
-                        <InputLabel>Filter by Book</InputLabel>
+                        <InputLabel>Tìm kiếm theo tên sách</InputLabel>
                         <Select value={selectedBook} onChange={(e) => setSelectedBook(e.target.value)}>
                             <MenuItem value="">All</MenuItem>
                             {books.map((book) => (
@@ -129,7 +129,7 @@ const ReviewAndRatingManagement = () => {
 
                 <Grid item xs={12} sm={6} md={4}>
                     <FormControl fullWidth>
-                        <InputLabel>Filter by User</InputLabel>
+                        <InputLabel>tìm kiếm theo người dùng</InputLabel>
                         <Select value={selectedUser} onChange={(e) => setSelectedUser(e.target.value)}>
                             <MenuItem value="">All</MenuItem>
                             {users.map((user) => (
@@ -148,6 +148,7 @@ const ReviewAndRatingManagement = () => {
                 <Table>
                     <TableHead>
                         <TableRow>
+                            <TableCell>STT</TableCell>
                             <TableCell>User</TableCell>
                             <TableCell>Book</TableCell>
                             <TableCell>Rating</TableCell>
@@ -157,21 +158,21 @@ const ReviewAndRatingManagement = () => {
                     </TableHead>
                     <TableBody>
                         {feedbacks
-                        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                        .map((feedback, index) => (
-                            <TableRow key={feedback._id}>
-                                <TableCell>{page * rowsPerPage + index + 1}</TableCell>
-                                <TableCell>{feedback.user.name}</TableCell>
-                                <TableCell>{feedback.book.title}</TableCell>
-                                <TableCell>{renderStars(feedback.rating)}</TableCell>
-                                <TableCell>{feedback.comment}</TableCell>
-                                <TableCell>
-                                    <IconButton color="error" onClick={() => handleDelete(feedback._id)}>
-                                        <Delete />
-                                    </IconButton>
-                                </TableCell>
-                            </TableRow>
-                        ))}
+                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                            .map((feedback, index) => (
+                                <TableRow key={feedback._id}>
+                                    <TableCell>{page * rowsPerPage + index + 1}</TableCell>
+                                    <TableCell>{feedback.user.name}</TableCell>
+                                    <TableCell>{feedback.book.title}</TableCell>
+                                    <TableCell>{renderStars(feedback.rating)}</TableCell>
+                                    <TableCell>{feedback.comment}</TableCell>
+                                    <TableCell>
+                                        <IconButton color="error" onClick={() => handleDelete(feedback._id)}>
+                                            <Delete />
+                                        </IconButton>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
                     </TableBody>
                 </Table>
                 <TablePagination
