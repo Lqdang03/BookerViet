@@ -20,7 +20,7 @@ import ComplaintPage from "./pages/ComplaintPage.js";
 import OrderPage from "./pages/OrderPage.js";
 import OrderSuccessPage from "./pages/OrderSuccessPage.js";
 import TrackOrder from "./pages/TrackOrder.js";
-import OrderManagement from "./pages/AdminSite/OrderManagement.js";
+import OrderManagement from "./pages/AdminSite/OrderManagement/OrderManagement.js";
 import ReviewAndRatingManagement from "./pages/AdminSite/ReviewAndRatingManagement.js";
 import ReportManagement from "./pages/AdminSite/ReportManagement.js";
 import UserManagement from "./pages/AdminSite/UserManagement.js";
