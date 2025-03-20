@@ -110,6 +110,7 @@ const getPaymentReturn = async (req, res) => {
         
         // Then send response
         return res.status(200).json({ message: "Thanh toán thành công!", status: "success" });
+
       } else {
         return res.status(400).json({ message: "Thanh toán thất bại!", status: "fail" });
       }
