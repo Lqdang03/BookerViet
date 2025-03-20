@@ -9,11 +9,12 @@ const bookRoutes = require("./routes/bookRoute");
 const adminRoutes = require("./routes/adminRoute");
 const categoryRoutes = require("./routes/categoryRoute");
 const orderRoutes = require("./routes/orderRoute");
-const ghnRoutes = require("./routes/ghnRoute");           
+const ghnRoutes = require("./routes/ghnRoute");
+const paymentRoutes = require("./routes/paymentRoute");           
 const { checkAuthorize } = require("./middleware/authMiddleware");
+const reviewRoutes = require("./routes/reviewRoute");
 
 const DB = require("./config/db");
-
 
 const app = express();
 const port = process.env.PORT || 9999;
@@ -30,7 +31,9 @@ app.use("/admin", adminRoutes);
 app.use("/book", bookRoutes);
 app.use("/category", categoryRoutes);
 app.use("/order", orderRoutes);
+app.use("/reviews", reviewRoutes);  
 app.use("/ghn", ghnRoutes);
+app.use("/payment", paymentRoutes);
 
 // Test phân quyền
 app.get("/open", (req, res) => {

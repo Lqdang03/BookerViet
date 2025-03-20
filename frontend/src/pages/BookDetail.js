@@ -24,6 +24,7 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import axios from "axios";
 import BookDetailBreadCrumb from "../components/Breadcrumbs/BookDetailBreadCrumb";
+import ReviewAndRating from "./ReviewAndRating";
 
 const BookDetail = ({ updateWishlistCount, updateCartData }) => {
   const { id } = useParams();
@@ -36,6 +37,22 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
   const [relatedBooks, setRelatedBooks] = useState([]);
   const [wishlist, setWishlist] = useState([]);
 
+  const [reviews, setReviews] = useState([]);
+  const [userReview, setUserReview] = useState(null);  // Store the user's own review
+  const [averageRating, setAverageRating] = useState(0);  // Store average rating
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [rating, setRating] = useState(1);
+  const [comment, setComment] = useState("");
+  const [editingReview, setEditingReview] = useState(null);
+  const [hasReviewed, setHasReviewed] = useState(
+    localStorage.getItem("hasReviewed") === "true"
+  );
+
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedReview, setSelectedReview] = useState(null);
+
+
+
   useEffect(() => {
     setLoading(true);
     // Fetch book details
@@ -47,10 +64,13 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
 
         // After getting book details, fetch related books from the same category
         if (response.data.categories && response.data.categories.length > 0) {
-          // Use the first category to find related books
           const categoryId = response.data.categories[0];
           fetchRelatedBooks(categoryId, response.data._id);
         }
+
+        // Fetch reviews for the book
+        fetchReviews();
+
       })
       .catch((error) => {
         console.error("Lỗi khi lấy thông tin sách:", error);
@@ -58,8 +78,7 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
       });
 
     // Check if book is in wishlist
-    // Check if book is in wishlist
-    const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+    const token = getToken();
     if (token) {
       axios
         .get("http://localhost:9999/user/wishlist", {
@@ -67,7 +86,6 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
         })
         .then((response) => {
           if (response.data && response.data.wishlist) {
-            // Store entire wishlist array of IDs instead of just checking one book
             const wishlistIds = response.data.wishlist.map((book) => book._id);
             setWishlist(wishlistIds);
             setInWishlist(wishlistIds.includes(id));
@@ -78,6 +96,163 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
         );
     }
   }, [id]);
+
+  const getToken = () => localStorage.getItem("token") || sessionStorage.getItem("token");
+
+  const fetchReviews = () => {
+    axios
+      .get(`http://localhost:9999/reviews/${id}`)
+      .then((response) => {
+        // Kiểm tra và đảm bảo rằng reviews là mảng
+        if (Array.isArray(response.data.reviews)) {
+          setReviews(response.data.reviews);
+        } else {
+          console.error("Dữ liệu reviews không phải là mảng:", response.data.reviews);
+        }
+
+        // Set averageRating
+        setAverageRating(response.data.averageRating);
+
+        // Fetch user's own review nếu có token
+        const token = getToken();
+        if (token) {
+          axios
+            .get(`http://localhost:9999/reviews/user/${id}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            })
+            .then((userReviewResponse) => {
+              if (userReviewResponse.data && typeof userReviewResponse.data === 'object') {
+                // Nếu review của user tồn tại, cập nhật state
+                const userReview = userReviewResponse.data.book === id ? userReviewResponse.data : null;
+                setUserReview(userReview);
+                setHasReviewed(userReview ? true : false);
+              } else {
+                console.error("Dữ liệu userReview không phải là đối tượng:", userReviewResponse.data);
+                setHasReviewed(false);
+              }
+            })
+            .catch((error) => console.error("Lỗi khi lấy đánh giá của người dùng:", error));
+          setHasReviewed(false);
+        }
+      })
+      .catch((error) => {
+        console.error("Lỗi khi lấy đánh giá sách:", error);
+
+      });
+  };
+
+  const addNotification = (message, severity = "info") => {
+    setNotifications((prev) => [
+      ...prev,
+      { id: new Date().getTime(), message, severity }
+    ]);
+  };
+
+
+
+  const handleSubmitReview = async () => {
+    const token = getToken();
+
+    if (!token) {
+      addNotification("Bạn cần đăng nhập để đánh giá.", "warning");
+      return;
+    }
+
+    try {
+      await axios.post(
+        `http://localhost:9999/reviews/${id}`,
+        { rating, comment },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      localStorage.setItem("hasReviewed", "true");
+      setShowReviewForm(false);  // Close the form after submission
+      setHasReviewed(true);
+      setRating(1);  // Reset rating
+      setComment("");  // Reset comment
+      fetchReviews();  // Re-fetch reviews to update UI
+
+      addNotification("Đánh giá đã được gửi!", "success");
+
+    } catch (error) {
+      console.error("Lỗi khi gửi đánh giá:", error);
+      addNotification("Lỗi khi gửi đánh giá. Vui lòng thử lại.", "error");
+    }
+  };
+
+  const handleEdit = (review) => {
+    setEditingReview(review); // Lưu đánh giá đang chỉnh sửa
+    setRating(review.rating);  // Cập nhật rating vào form
+    setComment(review.comment); // Cập nhật comment vào form
+  };
+
+  const handleSubmitEdit = async () => {
+    const token = getToken();
+
+    if (!token) {
+      addNotification("Bạn cần đăng nhập để chỉnh sửa đánh giá.", "warning");
+      return;
+    }
+
+    console.log("Submitting review:", editingReview);
+
+    try {
+      const response = await axios.put(
+        `http://localhost:9999/reviews/update/${editingReview._id}`,
+        editingReview,  // Gửi toàn bộ đối tượng editingReview đã được cập nhật
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.status === 200) {
+        fetchReviews();  // Fetch lại reviews sau khi cập nhật đánh giá
+        setEditingReview(null);
+        addNotification("Đánh giá đã được cập nhật!", "success");
+      }
+    } catch (error) {
+      console.error("Cập nhật thất bại:", error);
+      addNotification("Cập nhật thất bại, vui lòng thử lại!", "error");
+    }
+  };
+
+  const handleDelete = async (reviewId) => {
+    const token = getToken();
+
+    if (!token) {
+      addNotification("Bạn cần đăng nhập để xóa đánh giá.", "warning");
+      return;
+    }
+
+    try {
+      const response = await axios.delete(
+        `http://localhost:9999/reviews/delete/${reviewId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.status === 200) {
+        if (userReview && userReview._id === reviewId) {
+          setHasReviewed(false);
+          localStorage.removeItem("hasReviewed");
+        }
+        fetchReviews();
+        addNotification("Đánh giá đã được xóa!", "success");
+      } else {
+        addNotification("Xóa đánh giá không thành công!", "error");
+      }
+    } catch (error) {
+      console.error("Xóa đánh giá thất bại:", error);
+      addNotification("Xóa thất bại, vui lòng thử lại!", "error");
+    }
+  };
+
+  const handleMenuOpen = (event, review) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedReview(review);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setSelectedReview(null);
+  };
 
   // Add this function
   const fetchRelatedBooks = (categoryId, currentBookId) => {
@@ -674,18 +849,32 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
               </Typography>
             )}
           </Box>
-          <Box
-            role="tabpanel"
-            hidden={tabValue !== 1}
-            id="tabpanel-1"
-            sx={{ p: 3 }}
-          >
-            {tabValue === 1 && (
-              <Typography sx={{ textAlign: "center", py: 4 }}>
-                Chưa có đánh giá nào cho sản phẩm này.
-              </Typography>
-            )}
-          </Box>
+
+
+          {/* Ratings and Reviews Section */}
+          <ReviewAndRating
+            tabValue={tabValue}
+            reviews={reviews}
+            averageRating={averageRating}
+            userReview={userReview}
+            showReviewForm={showReviewForm}
+            hasReviewed={hasReviewed}
+            rating={rating}
+            comment={comment}
+            editingReview={editingReview}
+            anchorEl={anchorEl}
+            selectedReview={selectedReview}
+            setEditingReview={setEditingReview}
+            setRating={setRating}
+            setComment={setComment}
+            setShowReviewForm={setShowReviewForm}
+            handleMenuOpen={handleMenuOpen}
+            handleMenuClose={handleMenuClose}
+            handleEdit={handleEdit}
+            handleDelete={handleDelete}
+            handleSubmitEdit={handleSubmitEdit}
+            handleSubmitReview={handleSubmitReview}
+          />
         </Box>
 
         {/* Related Products Section */}
@@ -880,6 +1069,10 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
             </Alert>
           </Snackbar>
         ))}
+
+
+
+
       </Container>
     </>
 

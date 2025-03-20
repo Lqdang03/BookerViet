@@ -1,26 +1,24 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
-import { 
-  Box, 
-  Typography, 
-  Grid, 
-  Card, 
-  CardContent, 
-  CardMedia, 
-  Button, 
-  IconButton, 
-  List,
-  ListItem,
-  ListItemText,
-  Checkbox,
-  Divider,
-  Paper,
-  FormGroup,
-  FormControlLabel,
-  CircularProgress
+import {
+    Box,
+    Typography,
+    Grid,
+    Card,
+    CardContent,
+    CardMedia,
+    IconButton,
+    Checkbox,
+    Paper,
+    FormGroup,
+    FormControlLabel,
+    CircularProgress,
+    Container,
+    FormControl, Select, MenuItem
 } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
+import BookResultBreadCrumb from "../components/Breadcrumbs/BookResultBreadCrumb";
 
 const BookResult = ({ updateWishlistCount, updateCartData }) => {
     const location = useLocation();
@@ -34,6 +32,33 @@ const BookResult = ({ updateWishlistCount, updateCartData }) => {
     const [wishlist, setWishlist] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchParams] = useSearchParams();
+    const [sortOption, setSortOption] = useState("default");
+
+    const handleSortChange = (event) => {
+        setSortOption(event.target.value);
+    };
+
+    useEffect(() => {
+        let sortedBooks = [...filteredBooks];
+        switch (sortOption) {
+            case "priceAsc":
+                sortedBooks.sort((a, b) => a.price - b.price);
+                break;
+            case "priceDesc":
+                sortedBooks.sort((a, b) => b.price - a.price);
+                break;
+            case "titleAsc":
+                sortedBooks.sort((a, b) => a.title.localeCompare(b.title));
+                break;
+            case "titleDesc":
+                sortedBooks.sort((a, b) => b.title.localeCompare(a.title));
+                break;
+            default:
+                break;
+        }
+        setFilteredBooks(sortedBooks);
+    }, [sortOption]);
+
 
     // Fetch categories
     useEffect(() => {
@@ -88,8 +113,8 @@ const BookResult = ({ updateWishlistCount, updateCartData }) => {
         if (selectedCategories.length === 0) {
             setFilteredBooks(books);
         } else {
-            const filtered = books.filter(book => 
-                book.categories && book.categories.some(categoryId => 
+            const filtered = books.filter(book =>
+                book.categories && book.categories.some(categoryId =>
                     selectedCategories.includes(categoryId)
                 )
             );
@@ -141,193 +166,209 @@ const BookResult = ({ updateWishlistCount, updateCartData }) => {
     };
 
     return (
-        <Box sx={{ padding: 3 }}>
-            <Typography variant="h5" sx={{ marginBottom: 2, textAlign: "center" , fontSize: 30,  fontWeight: 400}}>
-                 Kết quả tìm kiếm cho: {query}
-            </Typography>
+        <div>
+            <BookResultBreadCrumb/>
+            <Container maxWidth="lg">
+            <Box sx={{ paddingBottom: 3 }}>
+                <Typography variant="h5" sx={{ marginBottom: 2, textAlign: "center", fontSize: 30, fontWeight: 400 }}>
+                    Kết quả tìm kiếm cho: {query}
+                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                    <FormControl variant="outlined" size="small">
+                        <Select value={sortOption} onChange={handleSortChange} displayEmpty>
+                            <MenuItem value="default">Mặc định</MenuItem>
+                            <MenuItem value="priceAsc">Giá thấp đến cao</MenuItem>
+                            <MenuItem value="priceDesc">Giá cao xuống thấp</MenuItem>
+                            <MenuItem value="titleAsc">Tên A-Z</MenuItem>
+                            <MenuItem value="titleDesc">Tên Z-A</MenuItem>
+                        </Select>
+                    </FormControl>
+                </Box>
 
-            <Grid container spacing={3}>
-                {/* Category selection column */}
-                <Grid item xs={12} md={3}>
-                    <Paper elevation={2} sx={{ p: 2, height: '100%' }}>
-                        <Typography variant="h6" sx={{ mb: 2 }}>
-                            Danh mục
-                        </Typography>
+                <Grid container spacing={3}>
+                    {/* Category selection column */}
+                    <Grid item xs={12} md={3}>
+                        <Paper elevation={2} sx={{ p: 2, height: '100%' }}>
+                            <Typography variant="h6" sx={{ mb: 2 }}>
+                                Danh mục
+                            </Typography>
+                            {isLoading ? (
+                                <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
+                                    <CircularProgress size={24} />
+                                </Box>
+                            ) : categories.length > 0 ? (
+                                <FormGroup>
+                                    {categories.map((category) => (
+                                        <FormControlLabel
+                                            key={category._id}
+                                            control={
+                                                <Checkbox
+                                                    checked={selectedCategories.includes(category._id)}
+                                                    onChange={() => handleCategoryChange(category._id)}
+                                                />
+                                            }
+                                            label={category.name}
+                                        />
+                                    ))}
+                                </FormGroup>
+                            ) : (
+                                <Typography>Không có danh mục nào.</Typography>
+                            )}
+                        </Paper>
+                    </Grid>
+
+                    {/* Books display column */}
+                    <Grid item xs={12} md={9}>
                         {isLoading ? (
-                            <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
-                                <CircularProgress size={24} />
+                            <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+                                <CircularProgress />
                             </Box>
-                        ) : categories.length > 0 ? (
-                            <FormGroup>
-                                {categories.map((category) => (
-                                    <FormControlLabel
-                                        key={category._id}
-                                        control={
-                                            <Checkbox 
-                                                checked={selectedCategories.includes(category._id)}
-                                                onChange={() => handleCategoryChange(category._id)}
-                                            />
-                                        }
-                                        label={category.name}
-                                    />
-                                ))}
-                            </FormGroup>
-                        ) : (
-                            <Typography>Không có danh mục nào.</Typography>
-                        )}
-                    </Paper>
-                </Grid>
-
-                {/* Books display column */}
-                <Grid item xs={12} md={9}>
-                    {isLoading ? (
-                        <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-                            <CircularProgress />
-                        </Box>
-                    ) : filteredBooks.length > 0 ? (
-                        <Grid container spacing={2}>
-                            {filteredBooks.map((book) => (
-                                <Grid item xs={12} sm={6} md={4} lg={4} key={book._id}>
-                                    <Card sx={{ width: '100%', minHeight: 250, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', pb: 2 }}>
-                                        <Box sx={{ position: 'relative', width: '100%' }}>
-                                            {book.originalPrice > book.price && (
-                                                <Box
+                        ) : filteredBooks.length > 0 ? (
+                            <Grid container spacing={2}>
+                                {filteredBooks.map((book) => (
+                                    <Grid item xs={12} sm={6} md={4} lg={3} key={book._id}>
+                                        <Card sx={{ width: '100%', minHeight: 250, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', pb: 2 }}>
+                                            <Box sx={{ position: 'relative', width: '100%' }}>
+                                                {book.originalPrice > book.price && (
+                                                    <Box
+                                                        sx={{
+                                                            position: 'absolute',
+                                                            top: 0,
+                                                            right: 0,
+                                                            width: '38px',
+                                                            height: '38px',
+                                                            backgroundImage: 'url(//bizweb.dktcdn.net/100/445/986/themes/848655/assets/label-sale.png?1737605118310)',
+                                                            backgroundRepeat: 'no-repeat',
+                                                            backgroundSize: 'contain',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            fontSize: '12px',
+                                                            fontWeight: 'bold',
+                                                            color: 'red',
+                                                            zIndex: 2
+                                                        }}
+                                                    >
+                                                        -{Math.round((1 - book.price / book.originalPrice) * 100)}%
+                                                    </Box>
+                                                )}
+                                                {book.stock === 0 && (
+                                                    <Box
+                                                        sx={{
+                                                            position: 'absolute',
+                                                            top: 0,
+                                                            left: 0,
+                                                            bgcolor: 'rgba(0, 0, 0, 0.7)',
+                                                            color: 'white',
+                                                            padding: '4px 8px',
+                                                            fontSize: '12px',
+                                                            fontWeight: 'bold',
+                                                            zIndex: 2,
+                                                            borderRadius: '0 0 4px 0'
+                                                        }}
+                                                    >
+                                                        Hết hàng
+                                                    </Box>
+                                                )}
+                                                <IconButton
+                                                    onClick={() => toggleWishlist(book._id)}
+                                                    color={wishlist.includes(book._id) ? "error" : "default"}
+                                                    size="small"
                                                     sx={{
                                                         position: 'absolute',
-                                                        top: 0,
-                                                        right: 0,
-                                                        width: '38px',
-                                                        height: '38px',
-                                                        backgroundImage: 'url(//bizweb.dktcdn.net/100/445/986/themes/848655/assets/label-sale.png?1737605118310)',
-                                                        backgroundRepeat: 'no-repeat',
-                                                        backgroundSize: 'contain',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        fontSize: '12px',
-                                                        fontWeight: 'bold',
-                                                        color: 'red',
+                                                        bottom: 5,
+                                                        right: 20,
+                                                        bgcolor: 'rgba(255, 255, 255, 0.8)',
+                                                        '&:hover': {
+                                                            bgcolor: 'rgba(255, 255, 255, 0.9)'
+                                                        },
                                                         zIndex: 2
                                                     }}
                                                 >
-                                                    -{Math.round((1 - book.price / book.originalPrice) * 100)}%
-                                                </Box>
-                                            )}
-                                            {book.stock === 0 && (
-                                                <Box
-                                                    sx={{
-                                                        position: 'absolute',
-                                                        top: 0,
-                                                        left: 0,
-                                                        bgcolor: 'rgba(0, 0, 0, 0.7)',
-                                                        color: 'white',
-                                                        padding: '4px 8px',
-                                                        fontSize: '12px',
-                                                        fontWeight: 'bold',
-                                                        zIndex: 2,
-                                                        borderRadius: '0 0 4px 0'
-                                                    }}
-                                                >
-                                                    Hết hàng
-                                                </Box>
-                                            )}
-                                            <IconButton
-                                                onClick={() => toggleWishlist(book._id)}
-                                                color={wishlist.includes(book._id) ? "error" : "default"}
-                                                size="small"
-                                                sx={{
-                                                    position: 'absolute',
-                                                    bottom: 5,
-                                                    right: 20,
-                                                    bgcolor: 'rgba(255, 255, 255, 0.8)',
-                                                    '&:hover': {
-                                                        bgcolor: 'rgba(255, 255, 255, 0.9)'
-                                                    },
-                                                    zIndex: 2
-                                                }}
-                                            >
-                                                <FavoriteIcon />
-                                            </IconButton>
-                                            <Link to={`/book/${book._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                                                <Box
-                                                    sx={{
-                                                        position: 'relative',
-                                                        width: '180px',
-                                                        height: '180px',
-                                                        display: 'flex',
-                                                        justifyContent: 'center',
-                                                        alignItems: 'center',
-                                                        overflow: 'hidden',
-                                                        mt: 2,
-                                                        mx: 'auto',
-                                                        border: '1px solid #e0e0e0',
-                                                        borderRadius: '4px',
-                                                        backgroundColor: '#fff',
-                                                        padding: '3px'
-                                                    }}
-                                                >
-                                                    <CardMedia
-                                                        component="img"
-                                                        image={book.images[0]}
-                                                        alt={book.title}
+                                                    <FavoriteIcon />
+                                                </IconButton>
+                                                <Link to={`/book/${book._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                                    <Box
                                                         sx={{
-                                                            width: '100%',
-                                                            height: '100%',
-                                                            objectFit: 'contain',
-                                                            cursor: 'pointer',
-                                                            transition: 'transform 0.4s ease-in-out',
-                                                            '&:hover': {
-                                                                transform: 'scale(1.1)'
-                                                            }
+                                                            position: 'relative',
+                                                            width: '180px',
+                                                            height: '180px',
+                                                            display: 'flex',
+                                                            justifyContent: 'center',
+                                                            alignItems: 'center',
+                                                            overflow: 'hidden',
+                                                            mt: 2,
+                                                            mx: 'auto',
+                                                            border: '1px solid #e0e0e0',
+                                                            borderRadius: '4px',
+                                                            backgroundColor: '#fff',
+                                                            padding: '3px'
                                                         }}
-                                                    />
-                                                </Box>
-                                            </Link>
-                                        </Box>
-                                        <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', width: '180px', padding: '15px 0', "&:last-child": { paddingBottom: 0 } }}>
-                                            <Link to={`/book/${book._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                                                <Typography
-                                                    gutterBottom
-                                                    variant="h6"
-                                                    sx={{
-                                                        fontSize: '0.9rem',
-                                                        textAlign: 'left',
-                                                        display: '-webkit-box',
-                                                        WebkitBoxOrient: 'vertical',
-                                                        WebkitLineClamp: 2,
-                                                        overflow: 'hidden',
-                                                        textOverflow: 'ellipsis',
-                                                        height: '40px',
-                                                        cursor: 'pointer',
-                                                        marginBottom: '5px',
-                                                        paddingBottom: "5px",
-                                                        '&:hover': { color: '#187bcd' }
-                                                    }}
-                                                >
-                                                    {book.title}
-                                                </Typography>
-                                            </Link>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                <Typography variant="h5" color="error" sx={{ fontSize: '1.1rem', fontWeight: 'bold', textAlign: 'left', marginTop: '2px' }}>
-                                                    {book.price.toLocaleString()}₫
-                                                </Typography>
-                                                {book.originalPrice > book.price && (
-                                                    <Typography variant="body2" sx={{ textDecoration: 'line-through', color: 'gray', fontSize: '0.75rem' }}>
-                                                        {book.originalPrice.toLocaleString()}₫
-                                                    </Typography>
-                                                )}
+                                                    >
+                                                        <CardMedia
+                                                            component="img"
+                                                            image={book.images[0]}
+                                                            alt={book.title}
+                                                            sx={{
+                                                                width: '100%',
+                                                                height: '100%',
+                                                                objectFit: 'contain',
+                                                                cursor: 'pointer',
+                                                                transition: 'transform 0.4s ease-in-out',
+                                                                '&:hover': {
+                                                                    transform: 'scale(1.1)'
+                                                                }
+                                                            }}
+                                                        />
+                                                    </Box>
+                                                </Link>
                                             </Box>
-                                        </CardContent>
-                                    </Card>
-                                </Grid>
-                            ))}
-                        </Grid>
-                    ) : (
-                        <Typography>Không tìm thấy sách phù hợp.</Typography>
-                    )}
+                                            <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', width: '180px', padding: '15px 0', "&:last-child": { paddingBottom: 0 } }}>
+                                                <Link to={`/book/${book._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                                    <Typography
+                                                        gutterBottom
+                                                        variant="h6"
+                                                        sx={{
+                                                            fontSize: '0.9rem',
+                                                            textAlign: 'left',
+                                                            display: '-webkit-box',
+                                                            WebkitBoxOrient: 'vertical',
+                                                            WebkitLineClamp: 2,
+                                                            overflow: 'hidden',
+                                                            textOverflow: 'ellipsis',
+                                                            height: '40px',
+                                                            cursor: 'pointer',
+                                                            marginBottom: '5px',
+                                                            paddingBottom: "5px",
+                                                            '&:hover': { color: '#187bcd' }
+                                                        }}
+                                                    >
+                                                        {book.title}
+                                                    </Typography>
+                                                </Link>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <Typography variant="h5" color="error" sx={{ fontSize: '1.1rem', fontWeight: 'bold', textAlign: 'left', marginTop: '2px' }}>
+                                                        {book.price.toLocaleString()}₫
+                                                    </Typography>
+                                                    {book.originalPrice > book.price && (
+                                                        <Typography variant="body2" sx={{ textDecoration: 'line-through', color: 'gray', fontSize: '0.75rem' }}>
+                                                            {book.originalPrice.toLocaleString()}₫
+                                                        </Typography>
+                                                    )}
+                                                </Box>
+                                            </CardContent>
+                                        </Card>
+                                    </Grid>
+                                ))}
+                            </Grid>
+                        ) : (
+                            <Typography>Không tìm thấy sách phù hợp.</Typography>
+                        )}
+                    </Grid>
                 </Grid>
-            </Grid>
-        </Box>
+            </Box>
+        </Container>
+        </div>
     );
 };
 
