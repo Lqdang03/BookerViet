@@ -51,6 +51,43 @@ function OrderPage() {
   const [wards, setWards] = useState([]);
   const [shippingFee, setShippingFee] = useState(0);
   const [calculatingFee, setCalculatingFee] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState(null);
+
+  // Check authentication status
+  const checkAuthentication = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+
+      if (!token) {
+        setIsAuthenticated(false);
+        setIsLoading(false);
+        return false;
+      }
+
+      const config = {
+        headers: { 'Authorization': `Bearer ${token}` }
+      };
+
+      const response = await axios.get('http://localhost:9999/user/profile', config);
+      if (response.data?.user) {
+        setUser(response.data.user);
+        setIsAuthenticated(true);
+        return true;
+      } else {
+        setIsAuthenticated(false);
+        return false;
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy thông tin user:", error);
+      setIsAuthenticated(false);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   // Fetch cart items
   const fetchCart = useCallback(async () => {
@@ -58,12 +95,7 @@ function OrderPage() {
       setLoading(true);
       const token = localStorage.getItem("token") || sessionStorage.getItem("token");
       if (!token) {
-        setAlert({
-          open: true,
-          message: "Vui lòng đăng nhập để tiếp tục",
-          severity: "error"
-        });
-        navigate("/login");
+        setLoading(false);
         return;
       }
 
@@ -107,7 +139,7 @@ function OrderPage() {
         severity: "error"
       });
     }
-  }, [navigate]);
+  }, []);
 
   // Fetch provinces from GHN API
   const fetchProvinces = useCallback(async () => {
@@ -235,19 +267,24 @@ function OrderPage() {
     }
   }, [cartItems, shippingAddress.district, shippingAddress.ward]);
 
-
-
   useEffect(() => {
-    fetchCart();
-    fetchProvinces();
-  }, [fetchCart, fetchProvinces]);
+    const init = async () => {
+      const isAuth = await checkAuthentication();
+      if (isAuth) {
+        fetchCart();
+        fetchProvinces();
+      }
+    };
+
+    init();
+  }, [checkAuthentication, fetchCart, fetchProvinces]);
 
   // Recalculate shipping fee when address changes
   useEffect(() => {
-    if (shippingAddress.ward && shippingAddress.district) {
+    if (isAuthenticated && shippingAddress.ward && shippingAddress.district) {
       calculateShippingFee();
     }
-  }, [shippingAddress.ward, shippingAddress.district, calculateShippingFee]);
+  }, [shippingAddress.ward, shippingAddress.district, calculateShippingFee, isAuthenticated]);
 
   // Handle form input changes
   const handleInputChange = (e) => {
@@ -379,14 +416,14 @@ function OrderPage() {
           message: "Vui lòng đăng nhập để tiếp tục",
           severity: "error"
         });
-        navigate("/login");
+        navigate("/account/login");
         return;
       }
-  
+
       // Validate required fields
       const requiredFields = ["name", "phoneNumber", "address", "province", "district", "ward"];
       const missingFields = requiredFields.filter(field => !shippingAddress[field]);
-  
+
       if (missingFields.length > 0) {
         setAlert({
           open: true,
@@ -396,12 +433,12 @@ function OrderPage() {
         setLoading(false);
         return;
       }
-  
+
       // Get the names of selected province/district/ward
       const selectedProvince = provinces.find(p => p.id === shippingAddress.province);
       const selectedDistrict = districts.find(d => d.id === shippingAddress.district);
       const selectedWard = wards.find(w => w.id === shippingAddress.ward);
-  
+
       // Create order object matching backend schema
       const orderData = {
         shippingInfo: {
@@ -423,19 +460,19 @@ function OrderPage() {
         pointUsed: pointsToUse,
         notes: shippingAddress.notes || ""
       };
-  
+
       // Send the order request
       const response = await axios.post("http://localhost:9999/order/create", orderData, {
         headers: { Authorization: `Bearer ${token}` }
       });
-  
+
       // Get the order ID from the response
       const orderId = response.data.data?._id || response.data.savedOrder?._id;
-  
+
       if (!orderId) {
         throw new Error("Order ID not found in response");
       }
-  
+
       // Store order info in localStorage
       localStorage.setItem("latestOrder", JSON.stringify({
         shippingInfo: {
@@ -454,16 +491,16 @@ function OrderPage() {
         totalAmount,
         items: cartItems
       }));
-      
+
       // If payment method is online, redirect to payment gateway
       if (paymentMethod === "Online") {
         // Call create payment API
         const paymentResponse = await axios.post(
-          "http://localhost:9999/payment/create", 
+          "http://localhost:9999/payment/create",
           { orderId },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        
+
         // Redirect to payment URL
         if (paymentResponse.data.paymentUrl) {
           window.location.href = paymentResponse.data.paymentUrl;
@@ -476,12 +513,12 @@ function OrderPage() {
       }
     } catch (error) {
       console.error("Error details:", error);
-  
+
       // Log more specific error information
       if (error.response) {
         console.error("Server response data:", error.response.data);
         console.error("Server response status:", error.response.status);
-  
+
         // More specific error message
         setAlert({
           open: true,
@@ -516,6 +553,42 @@ function OrderPage() {
     setAlert({ ...alert, open: false });
   };
 
+  // Login page component
+  const LoginPrompt = () => (
+    <Container maxWidth="sm" sx={{ mt: 8 }}>
+      <Paper elevation={3} sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Typography variant="h5" component="h1" gutterBottom>
+          Vui lòng đăng nhập để tiếp tục
+        </Typography>
+        <Typography variant="body1" sx={{ mb: 3, textAlign: 'center' }}>
+          Bạn cần đăng nhập để truy cập trang thanh toán và hoàn tất đơn hàng của mình.
+        </Typography>
+        <Box sx={{ mt: 2 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            component={Link}
+            to="/account/login"
+          >
+            Đăng nhập
+          </Button>
+        </Box>
+      </Paper>
+    </Container>
+  );
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <>
+        <CheckoutBreadCrumb />
+        <Container sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
+          <CircularProgress />
+        </Container>
+      </>
+    );
+  }
+
   return (
     <>
       <CheckoutBreadCrumb />
@@ -531,339 +604,345 @@ function OrderPage() {
       </Snackbar>
 
       <Container sx={{ mt: 1, mb: 4 }}>
-        <Typography variant="h5" gutterBottom sx={{ mb: 1 }}>
-          Thanh toán
-        </Typography>
-
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : cartItems.length === 0 ? (
-          <Paper sx={{ p: 3, textAlign: 'center' }}>
-            <Typography variant="body1" color="textSecondary">
-              Không có sản phẩm nào trong giỏ hàng
-            </Typography>
-            <Button
-              component={Link}
-              to="/"
-              variant="contained"
-              sx={{ mt: 2 }}
-              startIcon={<ArrowBackIcon />}
-            >
-              Tiếp tục mua hàng
-            </Button>
-          </Paper>
+        {!isAuthenticated ? (
+          <LoginPrompt />
         ) : (
-          <Grid container spacing={3}>
-            {/* Shipping Information */}
-            <Grid item xs={12} md={8}>
-              <Paper sx={{ p: 3, mb: 3 }}>
-                <Typography variant="h6" gutterBottom>
-                  Thông tin giao hàng
+          <>
+            <Typography variant="h5" gutterBottom sx={{ mb: 1 }}>
+              Thanh toán
+            </Typography>
+
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+                <CircularProgress />
+              </Box>
+            ) : cartItems.length === 0 ? (
+              <Paper sx={{ p: 3, textAlign: 'center' }}>
+                <Typography variant="body1" color="textSecondary">
+                  Không có sản phẩm nào trong giỏ hàng
                 </Typography>
-
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      required
-                      fullWidth
-                      label="Họ và tên"
-                      name="name"
-                      value={shippingAddress.name}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField
-                      required
-                      fullWidth
-                      label="Số điện thoại"
-                      name="phoneNumber"
-                      value={shippingAddress.phoneNumber}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      required
-                      fullWidth
-                      label="Địa chỉ"
-                      name="address"
-                      value={shippingAddress.address}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={4}>
-                    <FormControl fullWidth required>
-                      <InputLabel>Tỉnh/Thành phố</InputLabel>
-                      <Select
-                        name="province"
-                        value={shippingAddress.province}
-                        onChange={handleInputChange}
-                        label="Tỉnh/Thành phố *"
-                      >
-                        {provinces.map(province => (
-                          <MenuItem key={province.id} value={province.id}>
-                            {province.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} sm={4}>
-                    <FormControl fullWidth required>
-                      <InputLabel>Quận/Huyện</InputLabel>
-                      <Select
-                        name="district"
-                        value={shippingAddress.district}
-                        onChange={handleInputChange}
-                        label="Quận/Huyện *"
-                        disabled={!shippingAddress.province}
-                      >
-                        {districts.map(district => (
-                          <MenuItem key={district.id} value={district.id}>
-                            {district.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} sm={4}>
-                    <FormControl fullWidth required>
-                      <InputLabel>Phường/Xã</InputLabel>
-                      <Select
-                        name="ward"
-                        value={shippingAddress.ward}
-                        onChange={handleInputChange}
-                        label="Phường/Xã *"
-                        disabled={!shippingAddress.district}
-                      >
-                        {wards.map(ward => (
-                          <MenuItem key={ward.id} value={ward.id}>
-                            {ward.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Ghi chú (tùy chọn)"
-                      name="notes"
-                      value={shippingAddress.notes}
-                      onChange={handleInputChange}
-                      multiline
-                      rows={2}
-                    />
-                  </Grid>
-                </Grid>
+                <Button
+                  component={Link}
+                  to="/"
+                  variant="contained"
+                  sx={{ mt: 2 }}
+                  startIcon={<ArrowBackIcon />}
+                >
+                  Tiếp tục mua hàng
+                </Button>
               </Paper>
-
-              {/* Payment Method */}
-              <Paper sx={{ p: 3 }}>
-                <Typography variant="h6" gutterBottom>
-                  Phương thức thanh toán
-                </Typography>
-                <FormControl component="fieldset">
-                  <RadioGroup
-                    name="paymentMethod"
-                    value={paymentMethod}
-                    onChange={handlePaymentMethodChange}
-                  >
-                    <FormControlLabel
-                      value="COD"
-                      control={<Radio />}
-                      label={
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <Typography>Thanh toán khi giao hàng (COD)</Typography>
-                        </Box>
-                      }
-                    />
-                    <FormControlLabel
-                      value="Online"
-                      control={<Radio />}
-                      label={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                          <Typography>Thanh toán trực tuyến </Typography>
-                          <AccountBalanceIcon />
-                        </Box>
-                      }
-                    />
-                  </RadioGroup>
-                </FormControl>
-              </Paper>
-
-              {/* Points and Discounts - only show if available */}
-              {availablePoints > 0 && (
-                <Paper sx={{ p: 3, mt: 3 }}>
-                  <Typography variant="h6" gutterBottom>
-                    Điểm thưởng và giảm giá
-                  </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <TextField
-                      label="Sử dụng điểm thưởng"
-                      type="number"
-                      value={pointsToUse}
-                      onChange={handlePointsChange}
-                      InputProps={{
-                        inputProps: { min: 0, max: availablePoints }
-                      }}
-                      helperText={`Bạn có ${availablePoints} điểm thưởng`}
-                      sx={{ width: 200 }}
-                    />
-                    <Typography variant="body2">
-                      (1 điểm = 1.000đ)
+            ) : (
+              <Grid container spacing={3}>
+                {/* Shipping Information */}
+                <Grid item xs={12} md={8}>
+                  <Paper sx={{ p: 3, mb: 3 }}>
+                    <Typography variant="h6" gutterBottom>
+                      Thông tin giao hàng
                     </Typography>
-                  </Box>
-                </Paper>
-              )}
-            </Grid>
 
-            {/* Order Summary */}
-            <Grid item xs={12} md={4}>
-              <Paper sx={{ p: 3, top: 20 }}>
-                <Typography variant="h6" gutterBottom>
-                  Đơn hàng ({cartItems.length} sản phẩm)
-                </Typography>
-
-                <Box sx={{ maxHeight: 300, overflow: 'auto', mb: 0 }}>
-                  {cartItems.map(item => (
-                    <Box key={item.book._id} sx={{ display: 'flex', mb: 2, pb: 2, borderBottom: '1px solid #eee' }}>
-                      <Box sx={{ width: 60, height: 80, flexShrink: 0 }}>
-                        <img
-                          src={item.book.images}
-                          alt={item.book.title}
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px' }}
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          required
+                          fullWidth
+                          label="Họ và tên"
+                          name="name"
+                          value={shippingAddress.name}
+                          onChange={handleInputChange}
                         />
-                      </Box>
-                      <Box sx={{ ml: 2, flex: 1 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                          {item.book.title}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Số lượng: {item.quantity}
-                        </Typography>
-                        <Typography variant="body2" color="error">
-                          {item.book.price.toLocaleString()}₫
-                        </Typography>
-                      </Box>
-                    </Box>
-                  ))}
-                </Box>
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          required
+                          fullWidth
+                          label="Số điện thoại"
+                          name="phoneNumber"
+                          value={shippingAddress.phoneNumber}
+                          onChange={handleInputChange}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          required
+                          fullWidth
+                          label="Địa chỉ"
+                          name="address"
+                          value={shippingAddress.address}
+                          onChange={handleInputChange}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <FormControl fullWidth required>
+                          <InputLabel>Tỉnh/Thành phố</InputLabel>
+                          <Select
+                            name="province"
+                            value={shippingAddress.province}
+                            onChange={handleInputChange}
+                            label="Tỉnh/Thành phố *"
+                          >
+                            {provinces.map(province => (
+                              <MenuItem key={province.id} value={province.id}>
+                                {province.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <FormControl fullWidth required>
+                          <InputLabel>Quận/Huyện</InputLabel>
+                          <Select
+                            name="district"
+                            value={shippingAddress.district}
+                            onChange={handleInputChange}
+                            label="Quận/Huyện *"
+                            disabled={!shippingAddress.province}
+                          >
+                            {districts.map(district => (
+                              <MenuItem key={district.id} value={district.id}>
+                                {district.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <FormControl fullWidth required>
+                          <InputLabel>Phường/Xã</InputLabel>
+                          <Select
+                            name="ward"
+                            value={shippingAddress.ward}
+                            onChange={handleInputChange}
+                            label="Phường/Xã *"
+                            disabled={!shippingAddress.district}
+                          >
+                            {wards.map(ward => (
+                              <MenuItem key={ward.id} value={ward.id}>
+                                {ward.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Ghi chú (tùy chọn)"
+                          name="notes"
+                          value={shippingAddress.notes}
+                          onChange={handleInputChange}
+                          multiline
+                          rows={2}
+                        />
+                      </Grid>
+                    </Grid>
+                  </Paper>
 
-                {/* Discount Code Input */}
-                <Box sx={{ mb: 2 }}>
-                  {!appliedDiscount ? (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <TextField
-                        fullWidth
-                        size="small"
-                        placeholder="Nhập mã giảm giá"
-                        value={discountCode}
-                        onChange={handleDiscountCodeChange}
-                        sx={{ flex: 1 }}
-                      />
+                  {/* Payment Method */}
+                  <Paper sx={{ p: 3 }}>
+                    <Typography variant="h6" gutterBottom>
+                      Phương thức thanh toán
+                    </Typography>
+                    <FormControl component="fieldset">
+                      <RadioGroup
+                        name="paymentMethod"
+                        value={paymentMethod}
+                        onChange={handlePaymentMethodChange}
+                      >
+                        <FormControlLabel
+                          value="COD"
+                          control={<Radio />}
+                          label={
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <Typography>Thanh toán khi giao hàng (COD)</Typography>
+                            </Box>
+                          }
+                        />
+                        <FormControlLabel
+                          value="Online"
+                          control={<Radio />}
+                          label={
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                              <Typography>Thanh toán trực tuyến </Typography>
+                              <AccountBalanceIcon />
+                            </Box>
+                          }
+                        />
+                      </RadioGroup>
+                    </FormControl>
+                  </Paper>
+
+                  {/* Points and Discounts - only show if available */}
+                  {availablePoints > 0 && (
+                    <Paper sx={{ p: 3, mt: 3 }}>
+                      <Typography variant="h6" gutterBottom>
+                        Điểm thưởng và giảm giá
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <TextField
+                          label="Sử dụng điểm thưởng"
+                          type="number"
+                          value={pointsToUse}
+                          onChange={handlePointsChange}
+                          InputProps={{
+                            inputProps: { min: 0, max: availablePoints }
+                          }}
+                          helperText={`Bạn có ${availablePoints} điểm thưởng`}
+                          sx={{ width: 200 }}
+                        />
+                        <Typography variant="body2">
+                          (1 điểm = 1.000đ)
+                        </Typography>
+                      </Box>
+                    </Paper>
+                  )}
+                </Grid>
+
+                {/* Order Summary */}
+                <Grid item xs={12} md={4}>
+                  <Paper sx={{ p: 3, top: 20 }}>
+                    <Typography variant="h6" gutterBottom>
+                      Đơn hàng ({cartItems.length} sản phẩm)
+                    </Typography>
+
+                    <Box sx={{ maxHeight: 300, overflow: 'auto', mb: 0 }}>
+                      {cartItems.map(item => (
+                        <Box key={item.book._id} sx={{ display: 'flex', mb: 2, pb: 2, borderBottom: '1px solid #eee' }}>
+                          <Box sx={{ width: 60, height: 80, flexShrink: 0 }}>
+                            <img
+                              src={item.book.images}
+                              alt={item.book.title}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px' }}
+                            />
+                          </Box>
+                          <Box sx={{ ml: 2, flex: 1 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                              {item.book.title}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              Số lượng: {item.quantity}
+                            </Typography>
+                            <Typography variant="body2" color="error">
+                              {item.book.price.toLocaleString()}₫
+                            </Typography>
+                          </Box>
+                        </Box>
+                      ))}
+                    </Box>
+
+                    {/* Discount Code Input */}
+                    <Box sx={{ mb: 2 }}>
+                      {!appliedDiscount ? (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            placeholder="Nhập mã giảm giá"
+                            value={discountCode}
+                            onChange={handleDiscountCodeChange}
+                            sx={{ flex: 1 }}
+                          />
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleApplyDiscount}
+                            disabled={applyingDiscount || !discountCode.trim()}
+                            sx={{ minWidth: '100px', height: '40px' }}
+                          >
+                            {applyingDiscount ? <CircularProgress size={20} /> : 'Áp dụng'}
+                          </Button>
+                        </Box>
+                      ) : (
+                        <Box sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          border: '1px dashed #4caf50',
+                          borderRadius: '4px',
+                          p: 1,
+                          backgroundColor: 'rgba(76, 175, 80, 0.1)'
+                        }}>
+                          <Box>
+                            <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#4caf50' }}>
+                              Mã {appliedDiscount.code}
+                            </Typography>
+                            <Typography variant="body2">
+                              {appliedDiscount.description || `Giảm ${appliedDiscount.amount.toLocaleString()}₫`}
+                            </Typography>
+                          </Box>
+                          <Button
+                            color="error"
+                            size="small"
+                            onClick={handleRemoveDiscount}
+                          >
+                            Xóa
+                          </Button>
+                        </Box>
+                      )}
+                    </Box>
+
+                    <Divider sx={{ my: 2 }} />
+
+                    <Box sx={{ mb: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body1">Tạm tính</Typography>
+                        <Typography variant="body1">{subtotal.toLocaleString()}₫</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body1">
+                          Phí vận chuyển
+                          {calculatingFee && <CircularProgress size={12} sx={{ ml: 1 }} />}
+                        </Typography>
+                        <Typography variant="body1">
+                          {shippingFee.toLocaleString()}₫
+                        </Typography>
+                      </Box>
+                      {discountAmount > 0 && (
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                          <Typography variant="body1">Giảm giá</Typography>
+                          <Typography variant="body1" color="error">-{discountAmount.toLocaleString()}₫</Typography>
+                        </Box>
+                      )}
+                      {pointsToUse > 0 && (
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                          <Typography variant="body1">Điểm thưởng sử dụng</Typography>
+                          <Typography variant="body1" color="error">-{pointsToUse.toLocaleString()}₫</Typography>
+                        </Box>
+                      )}
+                    </Box>
+
+                    <Divider sx={{ my: 2 }} />
+
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+                      <Typography variant="h6">Tổng cộng</Typography>
+                      <Typography variant="h6" color="error">{totalAmount.toLocaleString()}₫</Typography>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Button
+                        component={Link}
+                        to="/cart"
+                        variant="text"
+                        sx={{ fontSize: 10 }}
+                        startIcon={<ArrowBackIcon />}
+                      >
+                        Quay về giỏ hàng
+                      </Button>
                       <Button
                         variant="contained"
                         color="primary"
-                        onClick={handleApplyDiscount}
-                        disabled={applyingDiscount || !discountCode.trim()}
-                        sx={{ minWidth: '100px', height: '40px' }}
+                        sx={{ fontSize: 15 }}
+                        onClick={handlePlaceOrder}
+                        disabled={loading || calculatingFee}
                       >
-                        {applyingDiscount ? <CircularProgress size={20} /> : 'Áp dụng'}
+                        {loading ? <CircularProgress size={24} /> : 'Đặt hàng'}
                       </Button>
                     </Box>
-                  ) : (
-                    <Box sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      border: '1px dashed #4caf50',
-                      borderRadius: '4px',
-                      p: 1,
-                      backgroundColor: 'rgba(76, 175, 80, 0.1)'
-                    }}>
-                      <Box>
-                        <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#4caf50' }}>
-                          Mã {appliedDiscount.code}
-                        </Typography>
-                        <Typography variant="body2">
-                          {appliedDiscount.description || `Giảm ${appliedDiscount.amount.toLocaleString()}₫`}
-                        </Typography>
-                      </Box>
-                      <Button
-                        color="error"
-                        size="small"
-                        onClick={handleRemoveDiscount}
-                      >
-                        Xóa
-                      </Button>
-                    </Box>
-                  )}
-                </Box>
-
-                <Divider sx={{ my: 2 }} />
-
-                <Box sx={{ mb: 2 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body1">Tạm tính</Typography>
-                    <Typography variant="body1">{subtotal.toLocaleString()}₫</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body1">
-                      Phí vận chuyển
-                      {calculatingFee && <CircularProgress size={12} sx={{ ml: 1 }} />}
-                    </Typography>
-                    <Typography variant="body1">
-                      {shippingFee.toLocaleString()}₫
-                    </Typography>
-                  </Box>
-                  {discountAmount > 0 && (
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography variant="body1">Giảm giá</Typography>
-                      <Typography variant="body1" color="error">-{discountAmount.toLocaleString()}₫</Typography>
-                    </Box>
-                  )}
-                  {pointsToUse > 0 && (
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography variant="body1">Điểm thưởng sử dụng</Typography>
-                      <Typography variant="body1" color="error">-{pointsToUse.toLocaleString()}₫</Typography>
-                    </Box>
-                  )}
-                </Box>
-
-                <Divider sx={{ my: 2 }} />
-
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-                  <Typography variant="h6">Tổng cộng</Typography>
-                  <Typography variant="h6" color="error">{totalAmount.toLocaleString()}₫</Typography>
-                </Box>
-
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Button
-                    component={Link}
-                    to="/cart"
-                    variant="text"
-                    sx={{ fontSize: 10 }}
-                    startIcon={<ArrowBackIcon />}
-                  >
-                    Quay về giỏ hàng
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    sx={{ fontSize: 15 }}
-                    onClick={handlePlaceOrder}
-                    disabled={loading || calculatingFee}
-                  >
-                    {loading ? <CircularProgress size={24} /> : 'Đặt hàng'}
-                  </Button>
-                </Box>
-              </Paper>
-            </Grid>
-          </Grid>
+                  </Paper>
+                </Grid>
+              </Grid>
+            )}
+          </>
         )}
       </Container>
     </>

@@ -8,7 +8,7 @@ function AccountBreadCrumb() {
                 <Link to="/"  style={{ textDecoration: 'none' }}>
                     Trang chủ
                 </Link>
-                <Typography sx={{ color: '#187bcd'}}>Trang khách hàng</Typography>
+                <Typography sx={{ color: '#187bcd'}}>Trang thông tin khách hàng</Typography>
             </Breadcrumbs>
         </Container>
     );

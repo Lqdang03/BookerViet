@@ -31,7 +31,7 @@ const HomePage = ({ updateWishlistCount, updateCartData }) => {
     const bannerImages = [
         {
             id: 1,
-            imageUrl: "https://cdn.thuonghieuvietnoitieng.com/danh-muc-san-pham/sach-1.png?e=1741181960&s=f865229f557f1919e4d25d7bc46aa553",
+            imageUrl: "https://newshop.vn/public/uploads/landing-page/sach-hay-newshop/banner-mobile.png",
             link: "/",
             alt: "Summer Reading Promotion"
         },

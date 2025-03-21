@@ -181,6 +181,30 @@ const TrackOrder = () => {
     return orderId.length > 10 ? `${orderId.substring(0, 10)}...` : orderId;
   };
 
+  // Login prompt component
+  const LoginPrompt = () => (
+    <Container maxWidth="sm" sx={{ mt: 4 }}>
+      <Paper elevation={3} sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Typography variant="h5" component="h1" gutterBottom>
+          Vui lòng đăng nhập để tiếp tục
+        </Typography>
+        <Typography variant="body1" sx={{ mb: 3, textAlign: 'center' }}>
+          Bạn cần đăng nhập để theo dõi đơn hàng của mình.
+        </Typography>
+        <Box sx={{mb: 2}}>
+          <Button 
+            variant="contained" 
+            color="primary" 
+            component={RouterLink} 
+            to="/login"
+          >
+            Đăng nhập
+          </Button>
+        </Box>
+      </Paper>
+    </Container>
+  );
+
   return (
     <>
       <TrackOrderBreadCrumb />
@@ -190,20 +214,7 @@ const TrackOrder = () => {
         </Typography>
 
         {!isAuthenticated ? (
-          <Paper elevation={3} sx={{ p: 4, textAlign: "center" }}>
-            <Typography variant="h6" gutterBottom>
-              Vui lòng đăng nhập để xem đơn hàng của bạn
-            </Typography>
-            <Button
-              component={RouterLink}
-              to="/account/login"
-              variant="contained"
-              color="primary"
-              sx={{ mt: 2 }}
-            >
-              Đăng nhập
-            </Button>
-          </Paper>
+          <LoginPrompt />
         ) : (
           <>
             <Paper
