@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import {
     Container, Typography, Button, Table, TableBody, TableCell, TableContainer,
     TableHead, TableRow, Paper, IconButton, Dialog, DialogTitle, DialogContent,
-    DialogActions, Select, MenuItem, FormControl, InputLabel, Box, Grid
+    DialogActions, Select, MenuItem, FormControl, InputLabel, Box, Grid,
+    TablePagination
 } from "@mui/material";
 import { Delete } from "@mui/icons-material";
 import { Star, StarBorder } from "@mui/icons-material";
@@ -14,6 +15,8 @@ const ReviewAndRatingManagement = () => {
     const [selectedUser, setSelectedUser] = useState("");
     const [books, setBooks] = useState([]);
     const [users, setUsers] = useState([]);
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
 
     useEffect(() => {
         fetchFeedbacks();
@@ -51,7 +54,7 @@ const ReviewAndRatingManagement = () => {
         try {
             const token = localStorage.getItem("token") || sessionStorage.getItem("token");
             if (!token) return;
-            const response = await axios.get("http://localhost:9999/admin/users",{
+            const response = await axios.get("http://localhost:9999/admin/users", {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setUsers(response.data);
@@ -97,14 +100,24 @@ const ReviewAndRatingManagement = () => {
         return stars;
     };
 
+    //Thực hiện phân trang
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+
     return (
         <Box sx={{ padding: 2, width: "100%", maxWidth: "calc(100% - 250px)", margin: "auto" }}>
-            <Typography variant="h4" gutterBottom>Feedback Management</Typography>
+            <Typography variant="h4" gutterBottom>Quản lý các đánh giá</Typography>
 
             <Grid container spacing={2} sx={{ marginBottom: 2 }}>
                 <Grid item xs={12} sm={6} md={4}>
                     <FormControl fullWidth>
-                        <InputLabel>Filter by Book</InputLabel>
+                        <InputLabel>Tìm kiếm theo tên sách</InputLabel>
                         <Select value={selectedBook} onChange={(e) => setSelectedBook(e.target.value)}>
                             <MenuItem value="">All</MenuItem>
                             {books.map((book) => (
@@ -116,7 +129,7 @@ const ReviewAndRatingManagement = () => {
 
                 <Grid item xs={12} sm={6} md={4}>
                     <FormControl fullWidth>
-                        <InputLabel>Filter by User</InputLabel>
+                        <InputLabel>tìm kiếm theo người dùng</InputLabel>
                         <Select value={selectedUser} onChange={(e) => setSelectedUser(e.target.value)}>
                             <MenuItem value="">All</MenuItem>
                             {users.map((user) => (
@@ -135,6 +148,7 @@ const ReviewAndRatingManagement = () => {
                 <Table>
                     <TableHead>
                         <TableRow>
+                            <TableCell>STT</TableCell>
                             <TableCell>User</TableCell>
                             <TableCell>Book</TableCell>
                             <TableCell>Rating</TableCell>
@@ -143,21 +157,33 @@ const ReviewAndRatingManagement = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {feedbacks.map((feedback) => (
-                            <TableRow key={feedback._id}>
-                                <TableCell>{feedback.user.name}</TableCell>
-                                <TableCell>{feedback.book.title}</TableCell>
-                                <TableCell>{renderStars(feedback.rating)}</TableCell>
-                                <TableCell>{feedback.comment}</TableCell>
-                                <TableCell>
-                                    <IconButton color="error" onClick={() => handleDelete(feedback._id)}>
-                                        <Delete />
-                                    </IconButton>
-                                </TableCell>
-                            </TableRow>
-                        ))}
+                        {feedbacks
+                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                            .map((feedback, index) => (
+                                <TableRow key={feedback._id}>
+                                    <TableCell>{page * rowsPerPage + index + 1}</TableCell>
+                                    <TableCell>{feedback.user.name}</TableCell>
+                                    <TableCell>{feedback.book.title}</TableCell>
+                                    <TableCell>{renderStars(feedback.rating)}</TableCell>
+                                    <TableCell>{feedback.comment}</TableCell>
+                                    <TableCell>
+                                        <IconButton color="error" onClick={() => handleDelete(feedback._id)}>
+                                            <Delete />
+                                        </IconButton>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
                     </TableBody>
                 </Table>
+                <TablePagination
+                    rowsPerPageOptions={[5, 10, 25]}
+                    component="div"
+                    count={feedbacks.length}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                />
             </TableContainer>
         </Box>
     );
