@@ -6,6 +6,7 @@ const adminDiscountController = require("../controllers/AdminDiscountController"
 const {updateBoxInfo} = require("../controllers/OrderController");
 const {confirmOrder} = require("../controllers/GhnController");
 const adminReviewController = require("../controllers/AdminReviewController");
+const adminDashboardController = require("../controllers/AdminDashBoardController");
 
 const router = express.Router();
 
@@ -52,7 +53,7 @@ router.get("/books/:id/reviews", checkAuthorize(["admin"]), adminReviewControlle
 router.get("/users/:id/reviews", checkAuthorize(["admin"]), adminReviewController.getReviewsByUser);
 
 
-
-
+// ✅ Quản lý DashBoard
+router.get("/dashboard", checkAuthorize(["admin"]), adminDashboardController.getAdminDashboardStats);
 
 module.exports = router;
