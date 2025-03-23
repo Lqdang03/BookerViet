@@ -3,7 +3,8 @@ import {
     Container, Typography, Button, Table, TableBody, TableCell, TableContainer,
     TableHead, TableRow, Paper, IconButton, Dialog, DialogTitle, DialogContent,
     DialogActions, TextField, Grid, MenuItem, Select, InputLabel, FormControl,
-    Box
+    Box,
+    TablePagination
 } from "@mui/material";
 import { Delete, Edit } from "@mui/icons-material";
 import axios from "axios";
@@ -16,6 +17,8 @@ const DiscountManagement = () => {
         usageLimit: "", usedCount: 0, startDate: "", endDate: ""
     });
     const [isEditing, setIsEditing] = useState(false);
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
 
     useEffect(() => {
         fetchDiscounts();
@@ -98,6 +101,15 @@ const DiscountManagement = () => {
         return new Intl.NumberFormat("vi-VN").format(price) + " VNĐ";
     };
 
+    //Thực hiện phân trang
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
     return (
         <Box sx={{ padding: 1, width: "100%", maxWidth: "calc(100% - 250px)", margin: "auto" }}>
             <Typography variant="h4" gutterBottom>Quản lý mã giảm giá</Typography>
@@ -120,24 +132,35 @@ const DiscountManagement = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {discounts.map((discount) => (
-                            <TableRow key={discount._id}>
-                                <TableCell>{discount.code}</TableCell>
-                                <TableCell>{discount.type}</TableCell>
-                                <TableCell>{formatPrice(discount.value)}</TableCell>
-                                <TableCell>{formatPrice(discount.minPurchase)}</TableCell>
-                                <TableCell>{discount.usageLimit}</TableCell>
-                                <TableCell>{discount.usedCount}</TableCell>
-                                <TableCell>{new Date(discount.startDate).toLocaleDateString("vi-VN")}</TableCell>
-                                <TableCell>{new Date(discount.endDate).toLocaleDateString("vi-VN")}</TableCell>
-                                <TableCell>
-                                    <IconButton color="primary" onClick={() => handleOpen(discount)}><Edit /></IconButton>
-                                    <IconButton color="error" onClick={() => handleDelete(discount._id)}><Delete /></IconButton>
-                                </TableCell>
-                            </TableRow>
-                        ))}
+                        {discounts
+                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                            .map((discount) => (
+                                <TableRow key={discount._id}>
+                                    <TableCell>{discount.code}</TableCell>
+                                    <TableCell>{discount.type}</TableCell>
+                                    <TableCell>{formatPrice(discount.value)}</TableCell>
+                                    <TableCell>{formatPrice(discount.minPurchase)}</TableCell>
+                                    <TableCell>{discount.usageLimit}</TableCell>
+                                    <TableCell>{discount.usedCount}</TableCell>
+                                    <TableCell>{new Date(discount.startDate).toLocaleDateString("vi-VN")}</TableCell>
+                                    <TableCell>{new Date(discount.endDate).toLocaleDateString("vi-VN")}</TableCell>
+                                    <TableCell>
+                                        <IconButton color="primary" onClick={() => handleOpen(discount)}><Edit /></IconButton>
+                                        <IconButton color="error" onClick={() => handleDelete(discount._id)}><Delete /></IconButton>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
                     </TableBody>
                 </Table>
+                <TablePagination
+                    rowsPerPageOptions={[5, 10, 25]}
+                    component="div"
+                    count={discounts.length}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                />
             </TableContainer>
             <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
                 <DialogTitle>{isEditing ? "Chỉnh sửa mã giảm giá" : "Tạo mã giảm giá"}</DialogTitle>
@@ -155,10 +178,10 @@ const DiscountManagement = () => {
                                 </Select>
                             </FormControl>
                         </Grid>
-                        <Grid item xs={6}><TextField label="Giá trị" name="value" type="number" fullWidth value={currentDiscount.value} onChange={handleChange} InputLabelProps={{ shrink: true }}/></Grid>
-                        <Grid item xs={6}><TextField label="Giá trị tối thiểu áp dụng" name="minPurchase" type="number" fullWidth value={currentDiscount.minPurchase} onChange={handleChange} InputLabelProps={{ shrink: true }}/></Grid>
-                        <Grid item xs={6}><TextField label="Số lượng mã giới hạn" name="usageLimit" type="number" fullWidth value={currentDiscount.usageLimit} onChange={handleChange} InputLabelProps={{ shrink: true }}/></Grid>
-                        <Grid item xs={6}><TextField label="Số lượng mã đã dùng" name="usedCount" type="number" fullWidth value={currentDiscount.usedCount} onChange={handleChange} disabled InputLabelProps={{ shrink: true }}/></Grid>
+                        <Grid item xs={6}><TextField label="Giá trị" name="value" type="number" fullWidth value={currentDiscount.value} onChange={handleChange} InputLabelProps={{ shrink: true }} /></Grid>
+                        <Grid item xs={6}><TextField label="Giá trị tối thiểu áp dụng" name="minPurchase" type="number" fullWidth value={currentDiscount.minPurchase} onChange={handleChange} InputLabelProps={{ shrink: true }} /></Grid>
+                        <Grid item xs={6}><TextField label="Số lượng mã giới hạn" name="usageLimit" type="number" fullWidth value={currentDiscount.usageLimit} onChange={handleChange} InputLabelProps={{ shrink: true }} /></Grid>
+                        <Grid item xs={6}><TextField label="Số lượng mã đã dùng" name="usedCount" type="number" fullWidth value={currentDiscount.usedCount} onChange={handleChange} disabled InputLabelProps={{ shrink: true }} /></Grid>
                         <Grid item xs={6}><TextField label="Ngày bắt đầu" name="startDate" type="date" fullWidth value={currentDiscount.startDate} onChange={handleChange} InputLabelProps={{ shrink: true }} /></Grid>
                         <Grid item xs={6}><TextField label="Ngày kết thúc" name="endDate" type="date" fullWidth value={currentDiscount.endDate} onChange={handleChange} InputLabelProps={{ shrink: true }} /></Grid>
                     </Grid>

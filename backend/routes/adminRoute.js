@@ -6,6 +6,7 @@ const adminDiscountController = require("../controllers/AdminDiscountController"
 const {updateBoxInfo} = require("../controllers/OrderController");
 const {confirmOrder} = require("../controllers/GhnController");
 const adminReviewController = require("../controllers/AdminReviewController");
+const complaintController = require("../controllers/ComplaintController");
 const adminDashboardController = require("../controllers/AdminDashBoardController");
 
 const router = express.Router();
@@ -52,8 +53,10 @@ router.delete("/reviews/:reviewId", checkAuthorize(["admin"]), adminReviewContro
 router.get("/books/:id/reviews", checkAuthorize(["admin"]), adminReviewController.getReviewsByBook);
 router.get("/users/:id/reviews", checkAuthorize(["admin"]), adminReviewController.getReviewsByUser);
 
+// ✅ Quản lý khiếu nại
 
-// ✅ Quản lý DashBoard
+router.get("/complaints", checkAuthorize(["admin"]), complaintController.getAllComplaints);
+router.put("/complaints/:id", checkAuthorize(["admin"]), complaintController.updateComplaintStatus);// ✅ Quản lý DashBoard
 router.get("/dashboard", checkAuthorize(["admin"]), adminDashboardController.getAdminDashboardStats);
 
 module.exports = router;

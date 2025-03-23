@@ -17,6 +17,7 @@ import {
   TextField,
   Box,
   Grid,
+    TablePagination,
   Snackbar,
   CircularProgress,
   Alert,
@@ -31,6 +32,8 @@ const ReviewAndRatingManagement = () => {
   const [userEmail, setUserEmail] = useState("");
   const [books, setBooks] = useState([]);
   const [users, setUsers] = useState([]);
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [selectedReview, setSelectedReview] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -75,7 +78,7 @@ const ReviewAndRatingManagement = () => {
     try {
       const token = getToken();
       if (!token) return;
-      const response = await axios.get("http://localhost:9999/admin/users", {
+      const response = await axios.get("http://localhost:9999/admin/users",  {
         headers: { Authorization: `Bearer ${token}` },
       });
       const filteredUsers = response.data.filter(user => user.role !== "admin");
@@ -141,30 +144,44 @@ const ReviewAndRatingManagement = () => {
     );
   };
 
-  return (
-    <Box sx={{ padding: 2, width: "100%", maxWidth: "calc(100% - 250px)", margin: "auto" }}>
-      <Typography variant="h4" gutterBottom>
-        Quản Lí Đánh Giá
-      </Typography>
+    //Thực hiện phân trang
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
 
-      <Grid container spacing={2} sx={{ marginBottom: 2 }}>
-        <Grid item xs={12} sm={6} md={4}>
-          <TextField
-            label="Tìm kiếm theo tên sách"
-            value={bookName}
-            onChange={(e) => setBookName(e.target.value)}
-            fullWidth
-          />
-        </Grid>
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
 
-        <Grid item xs={12} sm={6} md={4}>
-          <TextField
-            label="Tìm kiếm theo email người dùng"
-            value={userEmail}
-            onChange={(e) => setUserEmail(e.target.value)}
-            fullWidth
-          />
-        </Grid>
+    return (
+        <Box sx={{ padding: 2, width: "100%", maxWidth: "calc(100% - 250px)", margin: "auto" }}>
+            <Typography variant="h4" gutterBottom>Quản lý các đánh giá</Typography>
+
+            <Grid container spacing={2} sx={{ marginBottom: 2 }}>
+                <Grid item xs={12} sm={6} md={4}>
+                    <FormControl fullWidth>
+                        <InputLabel>Tìm kiếm theo tên sách</InputLabel>
+                        <Select value={selectedBook} onChange={(e) => setSelectedBook(e.target.value)}>
+                            <MenuItem value="">All</MenuItem>
+                            {books.map((book) => (
+                                <MenuItem key={book._id} value={book._id}>{book.title}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                </Grid>
+
+                <Grid item xs={12} sm={6} md={4}>
+                    <FormControl fullWidth>
+                        <InputLabel>tìm kiếm theo người dùng</InputLabel>
+                        <Select value={selectedUser} onChange={(e) => setSelectedUser(e.target.value)}>
+                            <MenuItem value="">All</MenuItem>
+                            {users.map((user) => (
+                                <MenuItem key={user._id} value={user._id}>{user.name}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                </Grid>
 
         <Grid
           item
@@ -183,6 +200,7 @@ const ReviewAndRatingManagement = () => {
         <Table>
           <TableHead>
             <TableRow>
+                            <TableCell>STT</TableCell>
               <TableCell>Người Dùng</TableCell>
               <TableCell>Sách</TableCell>
               <TableCell>Đánh giá</TableCell>
@@ -191,21 +209,33 @@ const ReviewAndRatingManagement = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {feedbacks.map((feedback) => (
-              <TableRow key={feedback._id}>
-                <TableCell>{feedback.user.name}</TableCell>
-                <TableCell>{feedback.book.title}</TableCell>
-                <TableCell>{renderStars(feedback.rating)}</TableCell>
-                <TableCell>{feedback.comment}</TableCell>
-                <TableCell>
-                  <IconButton color="error" onClick={() => confirmDelete(feedback)}>
-                    <Delete />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
+            {feedbacks
+                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                            .map((feedback, index) => (
+                  <TableRow key={feedback._id}>
+                                    <TableCell>{page * rowsPerPage + index + 1}</TableCell>
+                    <TableCell>{feedback.user.name}</TableCell>
+                    <TableCell>{feedback.book.title}</TableCell>
+                    <TableCell>{renderStars(feedback.rating)}</TableCell>
+                    <TableCell>{feedback.comment}</TableCell>
+                    <TableCell>
+                      <IconButton color="error" onClick={() => confirmDelete(feedback)}>
+                        <Delete />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
           </TableBody>
         </Table>
+                <TablePagination
+                    rowsPerPageOptions={[5, 10, 25]}
+                    component="div"
+                    count={feedbacks.length}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                />
       </TableContainer>
 
       <Dialog open={deleteConfirm} onClose={() => setDeleteConfirm(false)}>

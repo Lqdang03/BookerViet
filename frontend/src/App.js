@@ -20,12 +20,13 @@ import ComplaintPage from "./pages/ComplaintPage.js";
 import OrderPage from "./pages/OrderPage.js";
 import OrderSuccessPage from "./pages/OrderSuccessPage.js";
 import TrackOrder from "./pages/TrackOrder.js";
-import OrderManagement from "./pages/AdminSite/OrderManagement.js";
+import OrderManagement from "./pages/AdminSite/OrderManagement/OrderManagement.js";
 import ReviewAndRatingManagement from "./pages/AdminSite/ReviewAndRatingManagement.js";
 import ReportManagement from "./pages/AdminSite/ReportManagement.js";
 import UserManagement from "./pages/AdminSite/UserManagement.js";
 import BookManagement from "./pages/AdminSite/BookManagement.js";
 import DiscountManagement from "./pages/AdminSite/DiscountManagement.js";
+import Analysis from "./pages/AdminSite/Analysis.js";
 
 function App() {
   const [userEmail, setUserEmail] = useState(null);
@@ -123,7 +124,7 @@ function App() {
           <Route path="discounts" element={<DiscountManagement />} />
           <Route path="review_rating" element={<ReviewAndRatingManagement />} />
           <Route path="reports" element={<ReportManagement />} />
-
+          <Route path="analysis" element={<Analysis />} />
         </Route>
         <Route path="/account/login" element={<Login onLoginSuccess={updateUserEmail} />} />
         <Route path="/account/register" element={<Resgiter />} />
