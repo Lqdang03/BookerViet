@@ -13,6 +13,7 @@ const ghnRoutes = require("./routes/ghnRoute");
 const paymentRoutes = require("./routes/paymentRoute");           
 const { checkAuthorize } = require("./middleware/authMiddleware");
 const reviewRoutes = require("./routes/reviewRoute");
+const discountRoutes = require("./routes/discountRoute");
 
 const DB = require("./config/db");
 
@@ -34,6 +35,7 @@ app.use("/order", orderRoutes);
 app.use("/reviews", reviewRoutes);  
 app.use("/ghn", ghnRoutes);
 app.use("/payment", paymentRoutes);
+app.use("/discount", discountRoutes);
 
 // Test phân quyền
 app.get("/open", (req, res) => {
