@@ -20,9 +20,11 @@ const OrderDetailsDialog = ({ open, order, onClose }) => {
   if (!order) return null;
 
   const calculateTotal = () => {
-    return order.items.reduce((acc, item) => acc + (item.book.price * item.quantity), 0) 
-           - (order.totalDiscount || 0) 
-           - (order.pointUsed || 0);
+    const subtotal = order.items.reduce((acc, item) => acc + (item.book.price * item.quantity), 0);
+    const discount = (order.totalDiscount || 0) + (order.pointUsed || 0);
+    const shippingFee = order.shippingInfo.fee || 0;
+    
+    return subtotal - discount + shippingFee;
   };
 
   return (
@@ -45,6 +47,7 @@ const OrderDetailsDialog = ({ open, order, onClose }) => {
             <Typography><strong>Quận/Huyện:</strong> {order.shippingInfo.districtName}</Typography>
             <Typography><strong>Phường/Xã:</strong> {order.shippingInfo.wardName}</Typography>
             <Typography><strong>SĐT:</strong> {order.shippingInfo.phoneNumber}</Typography>
+            <Typography><strong>Phí ship:</strong> {(order.shippingInfo.fee || 0).toLocaleString('vi-VN')} VNĐ</Typography>
           </Grid>
 
           {/* Thông tin thanh toán */}
@@ -99,6 +102,26 @@ const OrderDetailsDialog = ({ open, order, onClose }) => {
                       <TableCell>{(item.book?.price * item.quantity).toLocaleString('vi-VN')} VNĐ</TableCell>
                     </TableRow>
                   ))}
+                  
+                  {/* Hiển thị thông tin phí ship */}
+                  <TableRow>
+                    <TableCell colSpan={3} align="right"><strong>Phí vận chuyển:</strong></TableCell>
+                    <TableCell>{(order.shippingInfo.fee || 0).toLocaleString('vi-VN')} VNĐ</TableCell>
+                  </TableRow>
+                  
+                  {/* Hiển thị thông tin giảm giá nếu có */}
+                  {(order.totalDiscount > 0 || order.pointUsed > 0) && (
+                    <TableRow>
+                      <TableCell colSpan={3} align="right"><strong>Giảm giá:</strong></TableCell>
+                      <TableCell>-{((order.totalDiscount || 0) + (order.pointUsed || 0)).toLocaleString('vi-VN')} VNĐ</TableCell>
+                    </TableRow>
+                  )}
+                  
+                  {/* Tổng tiền */}
+                  <TableRow>
+                    <TableCell colSpan={3} align="right"><strong>Tổng cộng:</strong></TableCell>
+                    <TableCell><strong>{calculateTotal().toLocaleString('vi-VN')} VNĐ</strong></TableCell>
+                  </TableRow>
                 </TableBody>
               </Table>
             </TableContainer>
