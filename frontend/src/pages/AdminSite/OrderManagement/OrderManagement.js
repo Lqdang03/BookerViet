@@ -160,6 +160,8 @@ const OrderManagement = () => {
         }
         // Trừ giảm giá và điểm sử dụng nếu có
         total -= (order.totalDiscount || 0) + (order.pointUsed || 0);
+        // Cộng thêm phí ship
+        total += (order.shippingInfo && order.shippingInfo.fee ? order.shippingInfo.fee : 0);
         return total;
     };
 
