@@ -112,7 +112,7 @@ const calculateFee = async (req, res) => {
 const confirmOrder = async (req, res) => {
   try {
     const orderId = req.params.id;
-    const order = await Order.findById(orderId);
+    const order = await Order.findById(orderId).populate("items.book", "stock").populate("discountUsed");
     if (!order) {
       return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
     }
@@ -127,12 +127,7 @@ const confirmOrder = async (req, res) => {
 
     let totalValue = 0;
     for (const item of order.items) {
-      const book = await Book.findById(item.book);
-      if (!book) {
-        return res
-          .status(404)
-          .json({ message: `Sách ID ${item.book} không tồn tại!` });
-      }
+      const book = item.book;
       if (book.stock < item.quantity) {
         return res
           .status(400)
@@ -141,6 +136,16 @@ const confirmOrder = async (req, res) => {
       totalValue += item.price * item.quantity;
     }
     totalValue += order?.shippingInfo?.fee;
+
+    if (order.discountUsed) {
+      if (order.discountUsed.type === "percentage") {
+        totalValue -= (totalValue * order.discountUsed.value) / 100;
+      } else if (order.discountUsed.type === "fixed") {
+        totalValue -= order.discountUsed.value;
+      }
+    }
+
+    totalValue -= order.pointUsed;
 
     const response = await axios.post(
       `${GHN_API_URL}/v2/shipping-order/create`,

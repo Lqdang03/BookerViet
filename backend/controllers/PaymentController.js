@@ -6,6 +6,7 @@ const VNP_HASHSECRET = process.env.VNP_HASHSECRET;
 const VNP_URL = process.env.VNP_URL;
 const VNP_RETURNURL = process.env.VNP_RETURNURL;
 const Order = require("../models/Order");
+const Discount = require("../models/Discount");
 const sortObject = (obj) => {
   let sorted = {};
   let str = [];
@@ -26,7 +27,10 @@ const createPayment = async (req, res) => {
   try {
     const { orderId } = req.body;
 
-    const order = await Order.findById(orderId).populate("items.book","title price");
+    const order = await Order.findById(orderId)
+    .populate("items.book","title price")
+    .populate("discountUsed");
+    ;
 
     if (!order) {
       return res.status(404).json({ message: `Order ${orderId} không tồn tại` });
@@ -39,7 +43,16 @@ const createPayment = async (req, res) => {
 
     amount += order?.shippingInfo?.fee;
 
-    amount -= order.totalDiscount + order.pointUsed;
+    if (order.discountUsed) {
+      if (order.discountUsed.type === "percentage") {
+        amount -= (amount * order.discountUsed.value) / 100;
+      }
+      else if(order.discountUsed.type === "fixed"){
+        amount -= order.discountUsed.value
+      }
+    }
+
+    amount -= order.pointUsed;
 
     let ipAddr =
       req.headers["x-forwarded-for"] ||
@@ -87,7 +100,7 @@ const getPaymentReturn = async (req, res) => {
     const orderId = vnp_Params["vnp_OrderInfo"];
     
     // Add await here
-    const order = await Order.findById(orderId);
+    const order = await Order.findById(orderId).populate("discountUsed");
     if(!order){
       return res.status(404).json({ message: `Order ${orderId} không tồn tại` });
     }
@@ -107,6 +120,12 @@ const getPaymentReturn = async (req, res) => {
         // Update order first
         order.paymentStatus = "Completed";
         await order.save();
+
+        // Update usedCount of discount
+        if (order.discountUsed) {
+          const discountId = order.discountUsed._id;
+          await Discount.findByIdAndUpdate(discountId, { $inc: { usedCount: 1 } }, { new: true });
+        }
         
         // Then send response
         return res.status(200).json({ message: "Thanh toán thành công!", status: "success" });
