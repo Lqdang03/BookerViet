@@ -24,10 +24,9 @@ const orderSchema = new mongoose.Schema({
             }
         }
     ],
-    totalDiscount: {
-        type: Number,
-        default: 0,
-        min: 0
+    discountUsed: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Discount'
     },
     pointUsed: {
         type: Number,
@@ -46,7 +45,7 @@ const orderSchema = new mongoose.Schema({
     },
     orderStatus: {
         type: String,
-        enum: ['Pending','Processing', 'Shipped', 'Delivered', 'Cancelled'],
+        enum: ['Pending','Processing', 'Cancelled'],
         default: 'Pending'
     },
     shippingInfo: {
