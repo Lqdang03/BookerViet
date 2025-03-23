@@ -133,12 +133,13 @@ const TrackOrder = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "Completed":
+      case "Processing":
         return "success"
       case "Pending":
-        return "default";
+        return "  default";
       case "Cancelled":
         return "error";
+      case "Processing":
       default:
         return "default";
     }
@@ -146,7 +147,7 @@ const TrackOrder = () => {
 
   const getOrderStatus = (status) => {
     switch (status) {
-      case "Completed":
+      case "Processing":
         return "Đã xác nhận";
       case "Pending":
         return "Chờ xác nhận";
@@ -488,7 +489,7 @@ const TrackOrder = () => {
                           </Grid>
                           <Grid item xs={6} sm={3}>
                             <Typography variant="body2">
-                              <strong>Cân nặng:</strong> {selectedOrder.boxInfo.weight} kg
+                              <strong>Cân nặng:</strong> {selectedOrder.boxInfo.weight} g
                             </Typography>
                           </Grid>
                         </Grid>
