@@ -15,7 +15,7 @@ import {
     Button,
     Alert
 } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { styled } from '@mui/material/styles';
 import ChangePasswordBreadCrumb from "../components/Breadcrumbs/ChangePasswordBreadCrumb";
 
@@ -47,12 +47,21 @@ const ChangePassword = () => {
     const [message, setMessage] = useState("");
     const [alertType, setAlertType] = useState("warning");
     const [user, setUser] = useState(null);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchUserProfile = async () => {
+        const checkAuthentication = async () => {
             try {
+                setIsLoading(true);
                 const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                if (!token) return;
+                
+                if (!token) {
+                    setIsAuthenticated(false);
+                    setIsLoading(false);
+                    return;
+                }
 
                 const config = {
                     headers: { 'Authorization': `Bearer ${token}` }
@@ -61,13 +70,19 @@ const ChangePassword = () => {
                 const response = await axios.get('http://localhost:9999/user/profile', config);
                 if (response.data?.user) {
                     setUser(response.data.user);
+                    setIsAuthenticated(true);
+                } else {
+                    setIsAuthenticated(false);
                 }
             } catch (error) {
                 console.error("Lỗi khi lấy thông tin user:", error);
+                setIsAuthenticated(false);
+            } finally {
+                setIsLoading(false);
             }
         };
 
-        fetchUserProfile();
+        checkAuthentication();
     }, []);
 
     const handleChangePassword = async (e) => {
@@ -114,10 +129,48 @@ const ChangePassword = () => {
         }
     };
 
+    // Login page component
+    const LoginPrompt = () => (
+        <Container maxWidth="sm" sx={{ mt: 8 }}>
+            <Paper elevation={3} sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Typography variant="h5" component="h1" gutterBottom>
+                    Vui lòng đăng nhập để tiếp tục
+                </Typography>
+                <Typography variant="body1" sx={{ mb: 3, textAlign: 'center' }}>
+                    Bạn cần đăng nhập để thay đổi mật khẩu tài khoản của mình.
+                </Typography>
+                <Box sx={{ mt: 2 }}>
+                    <Button 
+                        variant="contained" 
+                        color="primary" 
+                        component={Link} 
+                        to="/login"
+                    >
+                        Đăng nhập
+                    </Button>
+                </Box>
+            </Paper>
+        </Container>
+    );
+
+    // Show loading state
+    if (isLoading) {
+        return (
+            <Container sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
+                <Typography>Đang tải...</Typography>
+            </Container>
+        );
+    }
+
+    // Main content - only shown when authenticated
     return (
         <>
             <ChangePasswordBreadCrumb />
             <Container maxWidth="lg" sx={{ mt: 2, mb: 6 }}>
+
+            {!isAuthenticated ? (
+                <LoginPrompt />
+            ) : (
                 <Grid container spacing={4}>
                     {/* Sidebar */}
                     <Grid item xs={12} md={4} lg={3}>
@@ -189,15 +242,14 @@ const ChangePassword = () => {
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     required
                                 />
-                                <Button sx={{mt: 2}} type="submit" variant="contained" color="primary" width = "200px" >
+                                <Button sx={{mt: 2}} type="submit" variant="contained" color="primary" width="200px">
                                     Đặt Lại Mật Khẩu
-                            </Button>
-                                
+                                </Button>
                             </Box>
-                            
                         </Paper>
                     </Grid>
                 </Grid>
+            )}
             </Container>
         </>
     );
