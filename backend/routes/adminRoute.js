@@ -7,6 +7,7 @@ const {confirmOrder} = require("../controllers/GhnController");
 const adminReviewController = require("../controllers/AdminReviewController");
 const complaintController = require("../controllers/ComplaintController");
 const discountController = require("../controllers/DiscountController");
+const adminDashboardController = require("../controllers/AdminDashBoardController");
 const {changeStatusUser} = require("../controllers/UserController");
 
 const router = express.Router();
@@ -57,5 +58,7 @@ router.get("/users/:id/reviews", checkAuthorize(["admin"]), adminReviewControlle
 router.get("/complaints", checkAuthorize(["admin"]), complaintController.getAllComplaints);
 router.put("/complaints/:id", checkAuthorize(["admin"]), complaintController.updateComplaintStatus);
 
+// ✅ Quản lý DashBoard
+router.get("/dashboard", checkAuthorize(["admin"]), adminDashboardController.getAdminDashboardStats);
 
 module.exports = router;
