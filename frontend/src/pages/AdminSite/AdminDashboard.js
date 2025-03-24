@@ -5,7 +5,7 @@ import { Box, Typography, Paper, Grid, CircularProgress, List, ListItem } from "
 const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null); // State lưu lỗi
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -18,9 +18,7 @@ const AdminDashboard = () => {
         }
 
         const response = await axios.get("http://localhost:9999/admin/dashboard", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
         setStats(response.data);
       } catch (err) {
@@ -33,20 +31,14 @@ const AdminDashboard = () => {
     fetchStats();
   }, []);
 
-  if (loading)
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-        <CircularProgress />
-      </Box>
-    );
+  if (loading) return <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}><CircularProgress /></Box>;
   if (error) return <Typography color="error">Lỗi: {error}</Typography>;
   if (!stats) return <Typography>Lỗi khi tải dữ liệu</Typography>;
 
   return (
     <Box sx={{ p: 3, width: "100%", maxWidth: "calc(100% - 250px)", mx: "auto" }}>
-      <Typography variant="h4" gutterBottom>
-        Admin Dashboard
-      </Typography>
+      <Typography variant="h4" gutterBottom>Admin Dashboard</Typography>
+      
       <Grid container spacing={2}>
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 2 }}>
@@ -63,10 +55,10 @@ const AdminDashboard = () => {
       </Grid>
 
       <Box sx={{ mt: 4 }}>
-        <Typography variant="h6">Đơn hàng theo trạng thái</Typography>
-        {stats.orderStats && stats.orderStats.length > 0 ? (
+        <Typography variant="h6">Thống kê trạng thái đơn hàng</Typography>
+        {stats.orderStatusCount && stats.orderStatusCount.length > 0 ? (
           <List>
-            {stats.orderStats.map((item) => (
+            {stats.orderStatusCount.map((item) => (
               <ListItem key={item._id}>
                 <Typography>{item._id}: {item.count}</Typography>
               </ListItem>
@@ -74,21 +66,6 @@ const AdminDashboard = () => {
           </List>
         ) : (
           <Typography>Không có dữ liệu đơn hàng</Typography>
-        )}
-      </Box>
-
-      <Box sx={{ mt: 4 }}>
-        <Typography variant="h6">Phương thức thanh toán</Typography>
-        {stats.paymentStats && stats.paymentStats.length > 0 ? (
-          <List>
-            {stats.paymentStats.map((item) => (
-              <ListItem key={item._id}>
-                <Typography>{item._id}: {item.count}</Typography>
-              </ListItem>
-            ))}
-          </List>
-        ) : (
-          <Typography>Không có dữ liệu phương thức thanh toán</Typography>
         )}
       </Box>
     </Box>
