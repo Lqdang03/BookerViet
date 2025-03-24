@@ -56,7 +56,9 @@ router.get("/users/:id/reviews", checkAuthorize(["admin"]), adminReviewControlle
 // ✅ Quản lý khiếu nại
 
 router.get("/complaints", checkAuthorize(["admin"]), complaintController.getAllComplaints);
-router.put("/complaints/:id", checkAuthorize(["admin"]), complaintController.updateComplaintStatus);// ✅ Quản lý DashBoard
+router.put("/complaints/:id", checkAuthorize(["admin"]), complaintController.updateComplaintStatus);
+
+// ✅ Quản lý DashBoard
 router.get("/dashboard", checkAuthorize(["admin"]), adminDashboardController.getAdminDashboardStats);
 
 module.exports = router;
