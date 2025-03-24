@@ -113,7 +113,7 @@ const getOrderDetails = async (req, res) => {
     const orderId = req.params.id;
     const user = req.user;
     try {
-        const order = await Order.findById(orderId).populate('items.book', 'title');
+        const order = await Order.findById(orderId).populate('items.book', 'title').populate("discountUsed");
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
         }
