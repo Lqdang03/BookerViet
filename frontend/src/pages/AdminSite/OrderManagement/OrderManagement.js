@@ -179,8 +179,8 @@ const OrderManagement = () => {
 
     const getStatusTranslation = (status) => {
         switch (status) {
-            case 'Pending': return 'Chờ xử lý';
-            case 'Processing': return 'Đang xử lý';
+            case 'Pending': return 'Chờ xác nhận';
+            case 'Processing': return 'Đã xác nhận';
             case 'Shipped': return 'Đã gửi';
             case 'Delivered': return 'Đã giao';
             case 'Cancelled': return 'Đã hủy';
@@ -268,7 +268,7 @@ const OrderManagement = () => {
                                         )}
                                     </TableCell>
                                     <TableCell>
-                                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, maxWidth: 140 }}>
+                                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, maxWidth: 180 }}>
                                             <IconButton
                                                 color="info"
                                                 onClick={() => handleViewOrder(order)}

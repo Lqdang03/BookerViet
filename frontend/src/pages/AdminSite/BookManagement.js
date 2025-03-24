@@ -32,7 +32,7 @@ const BookManagement = () => {
     images: [], categories: []
   });
   const [alert, setAlert] = useState({ open: false, message: "", severity: "info" });
-  
+
   // Validation state
   const [errors, setErrors] = useState({});
 
@@ -101,9 +101,20 @@ const BookManagement = () => {
   // Hiển thị dialog thêm/sửa sách
   const handleOpenBookDialog = (book = null) => {
     setSelectedBook(book);
-    setFormData(
-      book || { title: "", author: "", genre: "", description: "", language: "", translator: "", publisher: "", publishDate: "", price: "", originalPrice: "", stock: "", isActivated: true, images: [], categories: [] }
-    );
+    if (book) {
+      // Transform categories from objects to just their IDs for the Select component
+      const formattedBook = {
+        ...book,
+        categories: book.categories.map(cat => cat._id)
+      };
+      setFormData(formattedBook);
+    } else {
+      setFormData({
+        title: "", author: "", genre: "", description: "", language: "",
+        translator: "", publisher: "", publishDate: "", price: "",
+        originalPrice: "", stock: "", isActivated: true, images: [], categories: []
+      });
+    }
     // Reset errors when opening the dialog
     setErrors({});
     setOpenDialog(true);
@@ -113,7 +124,7 @@ const BookManagement = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    
+
     // Clear error for this field when user types
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: null }));
@@ -133,7 +144,7 @@ const BookManagement = () => {
   // Xử lý chọn danh mục sách
   const handleCategoryChange = (event) => {
     setFormData((prev) => ({ ...prev, categories: event.target.value }));
-    
+
     // Clear category error when user selects categories
     if (errors.categories) {
       setErrors(prev => ({ ...prev, categories: null }));
@@ -150,24 +161,27 @@ const BookManagement = () => {
   const validateForm = () => {
     const newErrors = {};
     const requiredFields = ['title', 'author', 'genre', 'description', 'language', 'publisher', 'publishDate', 'price', 'stock'];
-    
+
     // Check required fields
     requiredFields.forEach(field => {
-      if (!formData[field] || formData[field].trim() === '') {
+      // Check if the field exists and is a string before calling trim()
+      if (!formData[field] || (typeof formData[field] === 'string' && formData[field].trim() === '')) {
+        newErrors[field] = 'Trường này không được để trống';
+      } else if (formData[field] === '') {
         newErrors[field] = 'Trường này không được để trống';
       }
     });
-    
+
     // Check publish date is not in the future
     if (formData.publishDate) {
       const publishDate = new Date(formData.publishDate);
       const today = new Date();
-      
+
       if (publishDate > today) {
         newErrors.publishDate = 'Ngày xuất bản không được là ngày ở tương lai';
       }
     }
-    
+
     // Check price and quantity fields are not negative
     const numericFields = ['price', 'originalPrice', 'stock'];
     numericFields.forEach(field => {
@@ -175,12 +189,12 @@ const BookManagement = () => {
         newErrors[field] = 'Giá trị không được âm';
       }
     });
-    
+
     // Check if categories are selected
     if (!formData.categories || formData.categories.length === 0) {
       newErrors.categories = 'Vui lòng chọn ít nhất một danh mục';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -192,14 +206,14 @@ const BookManagement = () => {
       handleAlert("Vui lòng kiểm tra lại thông tin sách", "error");
       return;
     }
-    
+
     try {
       const token = localStorage.getItem("token") || sessionStorage.getItem("token");
       if (!token) {
         console.error("Không tìm thấy token, vui lòng đăng nhập lại.");
         return;
       }
-      
+
       if (selectedBook) {
         await axios.put(`http://localhost:9999/admin/books/${selectedBook._id}`, formData, {
           headers: { Authorization: `Bearer ${token}` }
@@ -294,7 +308,7 @@ const BookManagement = () => {
               <TableCell><b>Hình ảnh</b></TableCell>
               <TableCell><b>Tiêu đề</b></TableCell>
               <TableCell><b>Tác giả</b></TableCell>
-              <TableCell><b>Thể loại</b></TableCell>
+              <TableCell><b>Danh mục</b></TableCell>
               <TableCell><b>Giá</b></TableCell>
               <TableCell><b>Số lượng</b></TableCell>
               <TableCell><b>Hành động</b></TableCell>
@@ -320,7 +334,7 @@ const BookManagement = () => {
                   </TableCell>
                   <TableCell>{book.title}</TableCell>
                   <TableCell>{book.author}</TableCell>
-                  <TableCell>{book.genre}</TableCell>
+                  <TableCell>{book.categories.map(c => c.name).join(" ")}</TableCell>
                   <TableCell>{formatPrice(book.price)}</TableCell>
                   <TableCell>{book.stock}</TableCell>
                   <TableCell>
@@ -361,172 +375,172 @@ const BookManagement = () => {
         <DialogContent>
           <Grid container spacing={3}>
             <Grid item xs={12} sm={6}>
-              <TextField 
-                fullWidth 
-                label="Tiêu đề" 
-                name="title" 
-                value={formData.title} 
-                onChange={handleChange} 
-                margin="dense" 
-                InputLabelProps={{ shrink: true }} 
+              <TextField
+                fullWidth
+                label="Tiêu đề"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                margin="dense"
+                InputLabelProps={{ shrink: true }}
                 error={!!errors.title}
                 helperText={errors.title}
                 required
               />
-              <TextField 
-                fullWidth 
-                label="Tác giả" 
-                name="author" 
-                value={formData.author} 
-                onChange={handleChange} 
-                margin="dense" 
-                InputLabelProps={{ shrink: true }} 
+              <TextField
+                fullWidth
+                label="Tác giả"
+                name="author"
+                value={formData.author}
+                onChange={handleChange}
+                margin="dense"
+                InputLabelProps={{ shrink: true }}
                 error={!!errors.author}
                 helperText={errors.author}
                 required
               />
-              <TextField 
-                fullWidth 
-                label="Thể loại" 
-                name="genre" 
-                value={formData.genre} 
-                onChange={handleChange} 
-                margin="dense" 
-                InputLabelProps={{ shrink: true }} 
+              <TextField
+                fullWidth
+                label="Thể loại"
+                name="genre"
+                value={formData.genre}
+                onChange={handleChange}
+                margin="dense"
+                InputLabelProps={{ shrink: true }}
                 error={!!errors.genre}
                 helperText={errors.genre}
                 required
               />
-              <TextField 
-                fullWidth 
-                label="Mô tả" 
-                name="description" 
-                value={formData.description} 
-                onChange={handleChange} 
-                multiline 
-                rows={4} 
-                margin="dense" 
-                InputLabelProps={{ shrink: true }} 
+              <TextField
+                fullWidth
+                label="Mô tả"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                multiline
+                rows={4}
+                margin="dense"
+                InputLabelProps={{ shrink: true }}
                 error={!!errors.description}
                 helperText={errors.description}
                 required
               />
-              <TextField 
-                fullWidth 
-                label="Ngôn ngữ" 
-                name="language" 
-                value={formData.language} 
-                onChange={handleChange} 
-                margin="dense" 
-                InputLabelProps={{ shrink: true }} 
+              <TextField
+                fullWidth
+                label="Ngôn ngữ"
+                name="language"
+                value={formData.language}
+                onChange={handleChange}
+                margin="dense"
+                InputLabelProps={{ shrink: true }}
                 error={!!errors.language}
                 helperText={errors.language}
                 required
               />
-              <TextField 
-                fullWidth 
-                label="Người dịch" 
-                name="translator" 
-                value={formData.translator} 
-                onChange={handleChange} 
-                margin="dense" 
+              <TextField
+                fullWidth
+                label="Người dịch"
+                name="translator"
+                value={formData.translator || 'N/A'}
+                onChange={handleChange}
+                margin="dense"
                 required
-                InputLabelProps={{ shrink: true }} 
+                InputLabelProps={{ shrink: true }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField 
-                fullWidth 
-                label="Người xuất bản" 
-                name="publisher" 
-                value={formData.publisher} 
-                onChange={handleChange} 
-                margin="dense" 
-                InputLabelProps={{ shrink: true }} 
+              <TextField
+                fullWidth
+                label="Người xuất bản"
+                name="publisher"
+                value={formData.publisher}
+                onChange={handleChange}
+                margin="dense"
+                InputLabelProps={{ shrink: true }}
                 error={!!errors.publisher}
                 helperText={errors.publisher}
                 required
               />
-              <TextField 
-                fullWidth 
-                label="Ngày Xuất Bản" 
-                name="publishDate" 
-                type="date" 
-                value={formData.publishDate ? new Date(formData.publishDate).toISOString().split("T")[0] : ""} 
-                onChange={handleChange} 
-                margin="dense" 
-                InputLabelProps={{ shrink: true }} 
+              <TextField
+                fullWidth
+                label="Ngày Xuất Bản"
+                name="publishDate"
+                type="date"
+                value={formData.publishDate ? new Date(formData.publishDate).toISOString().split("T")[0] : ""}
+                onChange={handleChange}
+                margin="dense"
+                InputLabelProps={{ shrink: true }}
                 error={!!errors.publishDate}
                 helperText={errors.publishDate}
                 required
               />
-              <TextField 
-                fullWidth 
-                label="Giá" 
-                name="price" 
-                type="number" 
-                value={formData.price} 
-                onChange={handleChange} 
-                margin="dense" 
-                InputLabelProps={{ shrink: true }} 
+              <TextField
+                fullWidth
+                label="Giá"
+                name="price"
+                type="number"
+                value={formData.price}
+                onChange={handleChange}
+                margin="dense"
+                InputLabelProps={{ shrink: true }}
                 error={!!errors.price}
                 helperText={errors.price}
                 required
                 inputProps={{ min: 0 }}
               />
-              <TextField 
-                fullWidth 
-                label="Giá gốc" 
-                name="originalPrice" 
-                type="number" 
-                value={formData.originalPrice} 
-                onChange={handleChange} 
-                margin="dense" 
-                InputLabelProps={{ shrink: true }} 
+              <TextField
+                fullWidth
+                label="Giá gốc"
+                name="originalPrice"
+                type="number"
+                value={formData.originalPrice}
+                onChange={handleChange}
+                margin="dense"
+                InputLabelProps={{ shrink: true }}
                 error={!!errors.originalPrice}
                 helperText={errors.originalPrice}
                 inputProps={{ min: 0 }}
               />
-              <TextField 
-                fullWidth 
-                label="Số lượng" 
-                name="stock" 
-                type="number" 
-                value={formData.stock} 
-                onChange={handleChange} 
-                margin="dense" 
-                InputLabelProps={{ shrink: true }} 
+              <TextField
+                fullWidth
+                label="Số lượng"
+                name="stock"
+                type="number"
+                value={formData.stock}
+                onChange={handleChange}
+                margin="dense"
+                InputLabelProps={{ shrink: true }}
                 error={!!errors.stock}
                 helperText={errors.stock}
                 required
                 inputProps={{ min: 0 }}
               />
-              <TextField 
-                fullWidth 
-                label="URL Ảnh (cách nhau bằng dấu phẩy)" 
-                name="images" 
-                value={formData.images.join(",")} 
-                onChange={handleImageChange} 
-                multiline 
-                rows={3} 
-                margin="dense" 
+              <TextField
+                fullWidth
+                label="URL Ảnh (cách nhau bằng dấu phẩy)"
+                name="images"
+                value={formData.images.join(",")}
+                onChange={handleImageChange}
+                multiline
+                rows={3}
+                margin="dense"
                 required
-                InputLabelProps={{ shrink: true }} 
+                InputLabelProps={{ shrink: true }}
               />
             </Grid>
             <Grid item xs={12}>
-              <FormControl 
-                fullWidth 
-                margin="dense" 
+              <FormControl
+                fullWidth
+                margin="dense"
                 variant="outlined"
                 error={!!errors.categories}
                 required
               >
                 <InputLabel>Danh mục</InputLabel>
-                <Select 
-                  multiple 
-                  value={formData.categories} 
-                  onChange={handleCategoryChange} 
+                <Select
+                  multiple
+                  value={formData.categories}
+                  onChange={handleCategoryChange}
                   label="Danh mục"
                 >
                   {categories.map((cat) => (
