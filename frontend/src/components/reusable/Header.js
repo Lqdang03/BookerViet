@@ -231,8 +231,10 @@ const Header = ({
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userEmail");
+    localStorage.removeItem("userRole");
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("userEmail");
+    sessionStorage.removeItem("userRole");
     updateUserEmail(null);
     if (typeof updateCartCount === "function") {
       updateCartCount(0);
