@@ -36,6 +36,7 @@ import DiscountIcon from "@mui/icons-material/Discount";
 import LoyaltyIcon from "@mui/icons-material/Loyalty";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import InventoryIcon from "@mui/icons-material/Inventory";
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 
 import { Link as RouterLink } from "react-router-dom";
 import TrackOrderBreadCrumb from "../components/Breadcrumbs/TrackOrderBreadCrumb";
@@ -136,10 +137,11 @@ const TrackOrder = () => {
       case "Processing":
         return "success"
       case "Pending":
-        return "  default";
+        return "default";
       case "Cancelled":
         return "error";
-      case "Processing":
+      case "Completed":
+        return "success";
       default:
         return "default";
     }
@@ -153,6 +155,8 @@ const TrackOrder = () => {
         return "Chờ xác nhận";
       case "Cancelled":
         return "Đã hủy";
+      case "Completed":
+        return "Hoàn thành";
       default:
         return status;
     }
@@ -164,12 +168,18 @@ const TrackOrder = () => {
 
   const calculateTotal = (order) => {
     if (!order || !order.items) return 0;
-
-    const subtotal = order.items.reduce((total, item) => total + (item.price * item.quantity), 0);
-    const discount = order.totalDiscount || 0;
-    const pointsUsed = order.pointUsed || 0;
-    const shippingFee = order.shippingInfo?.fee || 0;
-
+  
+    // Ensure all values are numbers with default value of 0 if undefined
+    const subtotal = order.items.reduce((total, item) => {
+      const price = Number(item.price) || 0;
+      const quantity = Number(item.quantity) || 0;
+      return total + (price * quantity);
+    }, 0);
+    
+    const discount = getValueDiscount() || 0;
+    const pointsUsed = Number(order.pointUsed) || 0;
+    const shippingFee = order.shippingInfo && Number(order.shippingInfo.fee) || 0;
+  
     return subtotal + shippingFee - discount - pointsUsed;
   };
 
@@ -177,10 +187,54 @@ const TrackOrder = () => {
     ? orders
     : orders.filter(order => order.orderStatus === statusFilter);
 
-  const truncateOrderId = (orderId) => {
-    if (!orderId) return '';
-    return orderId.length > 10 ? `${orderId.substring(0, 10)}...` : orderId;
+  // Function to display discount information
+  const getDiscountDetails = (discount) => {
+    if (!discount) return null;
+
+    let discountDesc = "";
+    if (discount.type === 'PERCENTAGE' || discount.type === 'percentage') {
+      discountDesc = `Giảm ${discount.value}%`;
+      if (discount.maxDiscount) {
+        discountDesc += ` (tối đa ${discount.maxDiscount.toLocaleString()}đ)`;
+      }
+    } else {
+      discountDesc = `Giảm ${discount.value.toLocaleString()}đ`;
+    }
+
+    return (
+      <Box sx={{ mt: 1 }}>
+        <Typography variant="body2" sx={{ color: 'primary.main', fontWeight: 'medium' }}>
+          {discount.code}
+        </Typography>
+        <Typography variant="body2">{discountDesc}</Typography>
+        {discount.description && (
+          <Typography variant="body2" color="text.secondary">
+            {discount.description}
+          </Typography>
+        )}
+      </Box>
+    );
   };
+
+  const getValueDiscount = () => {
+    const discount = selectedOrder?.discountUsed;
+    if(!discount) return null;
+    let calculatedDiscountAmount = 0;
+    if (discount.type === 'PERCENTAGE' || discount.type === 'percentage') {
+      // Calculate percentage discount
+      const subtotal = selectedOrder.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+      calculatedDiscountAmount = subtotal * (discount.value / 100);
+
+      // Cap at maxDiscount if defined
+      if (discount.maxDiscount && calculatedDiscountAmount > discount.maxDiscount) {
+        calculatedDiscountAmount = discount.maxDiscount;
+      }
+    } else {
+      // Fixed amount discount
+      calculatedDiscountAmount = discount.value;
+    }
+    return calculatedDiscountAmount;
+  }
 
   // Login prompt component
   const LoginPrompt = () => (
@@ -192,11 +246,11 @@ const TrackOrder = () => {
         <Typography variant="body1" sx={{ mb: 3, textAlign: 'center' }}>
           Bạn cần đăng nhập để theo dõi đơn hàng của mình.
         </Typography>
-        <Box sx={{mb: 2}}>
-          <Button 
-            variant="contained" 
-            color="primary" 
-            component={RouterLink} 
+        <Box sx={{ mb: 2 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            component={RouterLink}
             to="/login"
           >
             Đăng nhập
@@ -240,7 +294,7 @@ const TrackOrder = () => {
                         displayEmpty
                       >
                         <MenuItem value="all">Tất cả đơn hàng</MenuItem>
-                        <MenuItem value="Completed">Đã xác nhận</MenuItem>
+                        <MenuItem value="Processing">Đã xác nhận</MenuItem>
                         <MenuItem value="Pending">Chờ xác nhận</MenuItem>
                         <MenuItem value="Cancelled">Đã hủy</MenuItem>
                       </Select>
@@ -276,7 +330,7 @@ const TrackOrder = () => {
                   <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
                     <TableRow>
                       <TableCell sx={{ fontWeight: "bold" }}>STT</TableCell>
-                      <TableCell sx={{ fontWeight: "bold" }}>Mã đơn hàng</TableCell>
+                      <TableCell sx={{ fontWeight: "bold" }}>Mã vận đơn</TableCell>
                       <TableCell sx={{ fontWeight: "bold" }}>Ngày đặt</TableCell>
                       <TableCell sx={{ fontWeight: "bold" }}>Trạng thái</TableCell>
                       <TableCell sx={{ fontWeight: "bold" }}>Phương thức thanh toán</TableCell>
@@ -292,10 +346,11 @@ const TrackOrder = () => {
                       >
                         <TableCell>{index + 1}</TableCell>
                         <TableCell>
-                          <Tooltip title={order._id} placement="top">
-                            <span>{truncateOrderId(order._id)}</span>
-                          </Tooltip>
+
+                          <span>{order.trackingNumber ? order.trackingNumber : "_"}</span>
+
                         </TableCell>
+
                         <TableCell>{formatDate(order.createdAt)}</TableCell>
                         <TableCell>
                           <Chip
@@ -338,7 +393,7 @@ const TrackOrder = () => {
                   <DialogTitle sx={{ backgroundColor: "#f5f5f5", borderBottom: "1px solid #e0e0e0" }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <Typography variant="h6">
-                        Chi tiết đơn hàng #{selectedOrder._id}
+                        Chi tiết đơn hàng 
                       </Typography>
                       <Chip
                         label={getOrderStatus(selectedOrder.orderStatus)}
@@ -463,6 +518,7 @@ const TrackOrder = () => {
                           </Typography>
                         </Box>
                       </Box>
+
                     )}
 
                     {/* Package Information */}
@@ -496,6 +552,17 @@ const TrackOrder = () => {
                       </Box>
                     )}
 
+                    {/* Discount Code Information */}
+                    {selectedOrder.voucher && (
+                      <Box sx={{ mb: 3, p: 2, backgroundColor: "rgba(33, 150, 243, 0.08)", borderRadius: 1, border: "1px dashed #2196f3" }}>
+                        <Typography variant="subtitle2" gutterBottom sx={{ color: "#187bcd", display: "flex", alignItems: "center" }}>
+                          <LocalOfferIcon fontSize="small" sx={{ mr: 1 }} />
+                          Mã giảm giá đã áp dụng
+                        </Typography>
+                        {getDiscountDetails(selectedOrder.voucher)}
+                      </Box>
+                    )}
+
                     {/* Order Summary */}
                     <Box sx={{ p: 2, backgroundColor: "#f9f9f9", borderRadius: 1, border: "1px solid #e0e0e0" }}>
                       <Typography variant="subtitle2" gutterBottom sx={{ color: "#187bcd" }}>
@@ -518,30 +585,16 @@ const TrackOrder = () => {
                         </Box>
                       )}
 
-                      {selectedOrder.totalDiscount > 0 && (
+                      {selectedOrder.discountUsed  && (
                         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                           <Box sx={{ display: "flex", alignItems: "center" }}>
                             <DiscountIcon fontSize="small" color="error" sx={{ mr: 0.5 }} />
                             <Typography variant="body2">
-                              Mã giảm giá:
+                              Mã giảm giá: {selectedOrder?.discountUsed.code}
                             </Typography>
                           </Box>
                           <Typography variant="body2" color="error">
-                            -{formatPrice(selectedOrder.totalDiscount)}
-                          </Typography>
-                        </Box>
-                      )}
-
-                      {selectedOrder.pointUsed > 0 && (
-                        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-                          <Box sx={{ display: "flex", alignItems: "center" }}>
-                            <LoyaltyIcon fontSize="small" color="secondary" sx={{ mr: 0.5 }} />
-                            <Typography variant="body2">
-                              Sử dụng điểm:
-                            </Typography>
-                          </Box>
-                          <Typography variant="body2" color="secondary">
-                            -{formatPrice(selectedOrder.pointUsed)}
+                            -{formatPrice(getValueDiscount())}
                           </Typography>
                         </Box>
                       )}
