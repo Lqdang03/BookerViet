@@ -168,18 +168,18 @@ const TrackOrder = () => {
 
   const calculateTotal = (order) => {
     if (!order || !order.items) return 0;
-  
+
     // Ensure all values are numbers with default value of 0 if undefined
     const subtotal = order.items.reduce((total, item) => {
       const price = Number(item.price) || 0;
       const quantity = Number(item.quantity) || 0;
       return total + (price * quantity);
     }, 0);
-    
+
     const discount = getValueDiscount() || 0;
     const pointsUsed = Number(order.pointUsed) || 0;
     const shippingFee = order.shippingInfo && Number(order.shippingInfo.fee) || 0;
-  
+
     return subtotal + shippingFee - discount - pointsUsed;
   };
 
@@ -218,7 +218,7 @@ const TrackOrder = () => {
 
   const getValueDiscount = () => {
     const discount = selectedOrder?.discountUsed;
-    if(!discount) return null;
+    if (!discount) return null;
     let calculatedDiscountAmount = 0;
     if (discount.type === 'PERCENTAGE' || discount.type === 'percentage') {
       // Calculate percentage discount
@@ -346,10 +346,20 @@ const TrackOrder = () => {
                       >
                         <TableCell>{index + 1}</TableCell>
                         <TableCell>
-
-                          <span>{order.trackingNumber ? order.trackingNumber : "_"}</span>
-
+                          {order.trackingNumber ? (
+                            <a
+                              href={`https://donhang.ghn.vn/?order_code=${order.trackingNumber}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ color: "#007bff", textDecoration: "none" }}
+                            >
+                              {order.trackingNumber}
+                            </a>
+                          ) : (
+                            "_"
+                          )}
                         </TableCell>
+
 
                         <TableCell>{formatDate(order.createdAt)}</TableCell>
                         <TableCell>
@@ -393,7 +403,7 @@ const TrackOrder = () => {
                   <DialogTitle sx={{ backgroundColor: "#f5f5f5", borderBottom: "1px solid #e0e0e0" }}>
                     <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <Typography variant="h6">
-                        Chi tiết đơn hàng 
+                        Chi tiết đơn hàng
                       </Typography>
                       <Chip
                         label={getOrderStatus(selectedOrder.orderStatus)}
@@ -514,11 +524,18 @@ const TrackOrder = () => {
                         <Box sx={{ display: "flex", alignItems: "center" }}>
                           <LocalShippingIcon fontSize="small" sx={{ mr: 1, color: "#555" }} />
                           <Typography variant="body2">
-                            <strong>Mã vận đơn:</strong> {selectedOrder.trackingNumber}
+                            <strong>Mã vận đơn:</strong> {" "}
+                            <a
+                              href={`https://donhang.ghn.vn/?order_code=${selectedOrder.trackingNumber}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ color: "#007bff", textDecoration: "none" }}
+                            >
+                              {selectedOrder.trackingNumber}
+                            </a>
                           </Typography>
                         </Box>
                       </Box>
-
                     )}
 
                     {/* Package Information */}
@@ -585,7 +602,7 @@ const TrackOrder = () => {
                         </Box>
                       )}
 
-                      {selectedOrder.discountUsed  && (
+                      {selectedOrder.discountUsed && (
                         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                           <Box sx={{ display: "flex", alignItems: "center" }}>
                             <DiscountIcon fontSize="small" color="error" sx={{ mr: 0.5 }} />
