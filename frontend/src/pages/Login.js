@@ -1,19 +1,42 @@
-import { Button, TextField, Divider, Typography, Checkbox, FormControlLabel } from "@mui/material";
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import Footer from "../components/reusable/Footer";
-import Header from "../components/reusable/Header";
+import { Button, TextField, Divider, Typography, Checkbox, FormControlLabel, Snackbar, Alert } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import axios from 'axios';
 
-// import axios from 'axios';
-
-function Login() {
-  // const navigate = useNavigate();
+function Login({ onLoginSuccess }) {
+  const navigate = useNavigate();
+  const location = useLocation(); 
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     rememberMe: false
   });
+  const [alert, setAlert] = useState({ open: false, message: "", severity: "info" });
 
+  // Handle alert display
+  const handleAlert = (message, severity = "info") => {
+    setAlert({ open: true, message, severity });
+  };
+
+  // Close alert
+  const handleCloseAlert = () => {
+    setAlert({ ...alert, open: false });
+  };
+
+  // Handle pre-filled credentials if available
+  useEffect(() => {
+    if (location.state?.credentials) {
+      const { email, password } = location.state.credentials;
+      setFormData(prev => ({
+        ...prev,
+        email,
+        password
+      }));
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location.state, location.pathname, navigate]);
+  
+  // Handle form input changes
   const handleChange = (e) => {
     const { name, value, checked } = e.target;
     setFormData(prev => ({
@@ -22,67 +45,64 @@ function Login() {
     }));
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
-    // e.preventDefault();
-    // try {
-    //   const response = await axios.post('/api/login', formData);
-    //   // Handle successful login
-    //   navigate('/dashboard');
-    // } catch (error) {
-    //   console.error('Login failed:', error);
-    // }
-  };
-
-  const handleGoogleLogin = () => {
-    // Implement Google login logic
-    console.log('Google login clicked');
-  };
-
-  // Styles for social login buttons
-  const facebookButtonStyle = {
-    flex: 1,
-    borderColor: '#1877F2',
-    color: '#1877F2',
-    '&:hover': {
-      backgroundColor: '#1877F2',
-      borderColor: '#1877F2',
-      color: 'white',
-    }
-  };
-
-  const googleButtonStyle = {
-    flex: 1,
-    borderColor: '#DB4437',
-    color: '#DB4437',
-    '&:hover': {
-      backgroundColor: '#DB4437',
-      borderColor: '#DB4437',
-      color: 'white',
+    e.preventDefault();
+    try {
+      const response = await axios.post("http://localhost:9999/auth/login", {
+        email: formData.email,
+        password: formData.password,
+      });
+  
+      const token = response.data.token;
+      const userRole = response.data.role; // Assuming the API returns user role
+  
+      // Handle storage based on remember me setting
+      const storageMethod = formData.rememberMe ? localStorage : sessionStorage;
+      
+      storageMethod.setItem("token", token);
+      storageMethod.setItem("userEmail", formData.email);
+      storageMethod.setItem("userRole", userRole);
+      
+      // Call the onLoginSuccess prop with the email and role
+      if (onLoginSuccess) {
+        onLoginSuccess(formData.email, userRole);
+      }
+      
+      handleAlert("Đăng nhập thành công!", "success");
+      
+      // Clear form data
+      setFormData({ email: "", password: "", rememberMe: false });
+      
+      // Direct navigation based on role - this is key!
+      console.log("User role:", userRole);
+      setTimeout(() => {
+        if (userRole === "admin") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/");
+        }
+      }, 1000); // Short delay to show success message
+    } catch (error) {
+      console.error("Login error:", error);
+      handleAlert("Đăng nhập thất bại. Vui lòng kiểm tra lại email và mật khẩu.", "error");
     }
   };
 
   return (
     <div>
-      <Header />
       <div className="login-container" style={{
         maxWidth: '400px',
-        margin: 'auto', // Căn giữa màn hình
+        margin: '40px auto',
         padding: '20px',
         boxShadow: '0 0 10px rgba(0,0,0,0.1)',
         borderRadius: '8px'
       }}>
-
         <h1 style={{ textAlign: 'center', marginBottom: '10px' }}>ĐĂNG NHẬP</h1>
 
         <div style={{ textAlign: 'center', marginTop: '15px', marginBottom: '15px' }}>
           Nếu bạn chưa có tài khoản,&nbsp;
-          <Link
-            to="/account/register"
-            style={{
-              color: '#1976d2',
-              textDecoration: 'none'
-            }}
-          >
+          <Link to="/account/register" style={{ color: '#1976d2', textDecoration: 'none' }}>
             đăng ký tại đây
           </Link>
         </div>
@@ -113,7 +133,11 @@ function Login() {
 
           <FormControlLabel
             control={
-              <Checkbox onChange={handleChange} name="remember me" />
+              <Checkbox 
+                checked={formData.rememberMe}
+                onChange={handleChange}
+                name="rememberMe"
+              />
             }
             label="Nhớ đến tôi"
           />
@@ -126,23 +150,22 @@ function Login() {
           >
             Đăng Nhập
           </Button>
+
           <div style={{ textAlign: 'center', marginTop: '5px' }}>
             <Link
               to="/account/forgotpassword"
-              sx={{
-                display: 'block',
-                marginBottom: '5px',
+              style={{
                 color: 'black',
                 textDecoration: 'none',
                 '&:hover': {
-                  color: 'primary.main',
-                  textDecoration: 'none'
+                  color: '#1976d2'
                 }
               }}
             >
               Quên mật khẩu
             </Link>
           </div>
+
           <Divider sx={{ mb: 2 }}>
             <Typography variant="body2" color="text.secondary">
               Hoặc đăng nhập bằng
@@ -152,8 +175,11 @@ function Login() {
           <div style={{ display: 'flex', gap: '10px' }}>
             <Button
               variant="outlined"
-              onClick={handleGoogleLogin}
-              sx={facebookButtonStyle}
+              fullWidth
+              style={{
+                borderColor: '#1877F2',
+                color: '#1877F2'
+              }}
             >
               <img
                 src="https://www.facebook.com/favicon.ico"
@@ -164,8 +190,11 @@ function Login() {
             </Button>
             <Button
               variant="outlined"
-              onClick={handleGoogleLogin}
-              sx={googleButtonStyle}
+              fullWidth
+              style={{
+                borderColor: '#DB4437',
+                color: '#DB4437'
+              }}
             >
               <img
                 src="https://www.google.com/favicon.ico"
@@ -177,7 +206,17 @@ function Login() {
           </div>
         </form>
       </div>
-      <Footer />
+
+      <Snackbar 
+        open={alert.open} 
+        autoHideDuration={6000} 
+        onClose={handleCloseAlert}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert onClose={handleCloseAlert} severity={alert.severity}>
+          {alert.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 }

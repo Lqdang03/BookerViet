@@ -1,10 +1,21 @@
 // Load environment variables from .env file
 require("dotenv").config();
 const express = require("express");
-const mongoose = require("mongoose");
 const cors = require("cors");
 const authRoutes = require("./routes/authRoute");
+const userRoutes = require("./routes/userRoute");
+const cartRoutes = require("./routes/cartRoute");
+const bookRoutes = require("./routes/bookRoute");
+const adminRoutes = require("./routes/adminRoute");
+const categoryRoutes = require("./routes/categoryRoute");
+const orderRoutes = require("./routes/orderRoute");
+const ghnRoutes = require("./routes/ghnRoute");
+const paymentRoutes = require("./routes/paymentRoute");           
 const { checkAuthorize } = require("./middleware/authMiddleware");
+const reviewRoutes = require("./routes/reviewRoute");
+const discountRoutes = require("./routes/discountRoute");
+
+const DB = require("./config/db");
 
 const app = express();
 const port = process.env.PORT || 9999;
@@ -13,14 +24,20 @@ const port = process.env.PORT || 9999;
 app.use(cors());
 app.use(express.json());
 
-// Database connection
-mongoose
-  .connect(process.env.DB_CONNECTION, { dbName: process.env.DB_NAME })
-  .then(() => console.log("Connected to the database"))
-  .catch((err) => console.error("Could not connect to the database", err));
-
 // Routes
 app.use("/auth", authRoutes);
+app.use("/user", userRoutes);
+app.use("/cart", cartRoutes);
+app.use("/admin", adminRoutes);
+app.use("/book", bookRoutes);
+app.use("/category", categoryRoutes);
+app.use("/order", orderRoutes);
+app.use("/reviews", reviewRoutes);  
+app.use("/ghn", ghnRoutes);
+app.use("/payment", paymentRoutes);
+app.use("/discount", discountRoutes);
+
+// Test phân quyền
 app.get("/open", (req, res) => {
     res.status(200).json({ message: "Đây là API công khai." });
 });
@@ -34,4 +51,5 @@ app.get("/user-or-admin", checkAuthorize(["user", "admin"]), (req, res) => {
 // Start server
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
+  DB.connectDB();
 });

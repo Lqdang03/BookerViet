@@ -69,6 +69,9 @@ const register = async (req, res) => {
     if (!otpStore[email] || !otpStore[email]["register"]?.isVerified)
       return res.status(400).json({ message: "Chưa xác thực OTP!" });
 
+    if(password.length < 6)
+      return res.status(400).json({ message: "Mật khẩu phải có ít nhất 6 ký tự!" });
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -105,7 +108,7 @@ const login = async (req, res) => {
         expiresIn: process.env.JWT_EXPIRES_IN,
       }
     );
-    res.status(200).json({ token });
+    res.status(200).json({ token, role: user.role });
   } catch (error) {
     res.status(500).json({ message: "Lỗi hệ thống!" });
   }
