@@ -151,6 +151,7 @@ const OrderManagement = () => {
 
     const calculateTotalAmount = (order) => {
         let total = 0;
+
         if (order.items && order.items.length > 0) {
             order.items.forEach(item => {
                 if (item.book && item.book.price) {
@@ -158,11 +159,23 @@ const OrderManagement = () => {
                 }
             });
         }
-        // Trừ giảm giá và điểm sử dụng nếu có
-        total -= (order.totalDiscount || 0) + (order.pointUsed || 0);
+
+        // Áp dụng giảm giá nếu có
+        if (order.discountUsed) {
+            if (order.discountUsed.type === 'fixed') {
+                total -= order.discountUsed.value; // Giảm giá cố định
+            } else if (order.discountUsed.type === 'percentage') {
+                total -= (total * order.discountUsed.value) / 100; // Giảm theo phần trăm
+            }
+        }
+
+        // Trừ điểm sử dụng nếu có
+        total -= order.pointUsed || 0;
+
         // Cộng thêm phí ship
         total += (order.shippingInfo && order.shippingInfo.fee ? order.shippingInfo.fee : 0);
-        return total;
+
+        return total > 0 ? total : 0; // Đảm bảo tổng không âm
     };
 
     const getStatusColor = (status) => {
@@ -268,41 +281,45 @@ const OrderManagement = () => {
                                         )}
                                     </TableCell>
                                     <TableCell>
-                                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, maxWidth: 180 }}>
-                                            <IconButton
-                                                color="info"
-                                                onClick={() => handleViewOrder(order)}
-                                                title="Xem chi tiết"
-                                            >
+                                        <Box
+                                            sx={{
+                                                display: 'flex',
+                                                flexWrap: 'wrap',
+                                                gap: 1,
+                                                maxWidth: 180,
+                                                justifyContent: 'space-between',
+                                            }}
+                                        >
+                                            <IconButton color="info" onClick={() => handleViewOrder(order)} title="Xem chi tiết">
                                                 <Visibility />
                                             </IconButton>
 
                                             {order.orderStatus === 'Pending' && (
                                                 <>
-                                                    <IconButton
-                                                        color="primary"
-                                                        onClick={() => handleConfirmOrder(order._id)}
-                                                        title="Xác nhận đơn hàng"
-                                                        disabled={!order.boxInfo}
-                                                    >
-                                                        <Check />
-                                                    </IconButton>
+                                                    <Box sx={{ display: 'flex', gap: 1 }}>
+                                                        <IconButton
+                                                            color="primary"
+                                                            onClick={() => handleConfirmOrder(order._id)}
+                                                            title="Xác nhận đơn hàng"
+                                                            disabled={!order.boxInfo}
+                                                        >
+                                                            <Check />
+                                                        </IconButton>
 
-                                                    <IconButton
-                                                        color="secondary"
-                                                        onClick={() => handleEditBox(order)}
-                                                        title="Chỉnh sửa đóng gói"
-                                                    >
-                                                        <Edit />
-                                                    </IconButton>
+                                                        <IconButton
+                                                            color="secondary"
+                                                            onClick={() => handleEditBox(order)}
+                                                            title="Chỉnh sửa đóng gói"
+                                                        >
+                                                            <Edit />
+                                                        </IconButton>
+                                                    </Box>
 
-                                                    <IconButton
-                                                        color="error"
-                                                        onClick={() => handleDeleteOrder(order._id)}
-                                                        title="Xóa đơn hàng"
-                                                    >
-                                                        <Delete />
-                                                    </IconButton>
+                                                    <Box sx={{ display: 'flex', gap: 1 }}>
+                                                        <IconButton color="error" onClick={() => handleDeleteOrder(order._id)} title="Xóa đơn hàng">
+                                                            <Delete />
+                                                        </IconButton>
+                                                    </Box>
                                                 </>
                                             )}
                                         </Box>

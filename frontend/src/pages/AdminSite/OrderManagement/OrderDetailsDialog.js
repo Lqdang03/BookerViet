@@ -19,12 +19,47 @@ const formatDate = (dateString) => {
 const OrderDetailsDialog = ({ open, order, onClose }) => {
   if (!order) return null;
 
+  const calculateSubtotal = () => {
+    return order.items.reduce((acc, item) => acc + (item.book.price * item.quantity), 0);
+  };
+
   const calculateTotal = () => {
-    const subtotal = order.items.reduce((acc, item) => acc + (item.book.price * item.quantity), 0);
-    const discount = (order.totalDiscount || 0) + (order.pointUsed || 0);
-    const shippingFee = order.shippingInfo.fee || 0;
+    const subtotal = calculateSubtotal();
+    let discount = 0;
     
+    // Tính giảm giá từ discountUsed
+    if (order.discountUsed) {
+      if (order.discountUsed.type === 'fixed') {
+        discount += order.discountUsed.value;
+      } else if (order.discountUsed.type === 'percentage') {
+        discount += (subtotal * order.discountUsed.value) / 100;
+      }
+    }
+    
+    // Thêm giảm giá từ totalDiscount nếu có
+    if (order.totalDiscount) {
+      discount += order.totalDiscount;
+    }
+    
+    // Thêm giảm giá từ pointUsed nếu có
+    if (order.pointUsed) {
+      discount += order.pointUsed;
+    }
+    
+    const shippingFee = order.shippingInfo.fee || 0;
+
     return subtotal - discount + shippingFee;
+  };
+
+  const getDiscountAmount = () => {
+    if (!order.discountUsed) return 0;
+    
+    if (order.discountUsed.type === 'fixed') {
+      return order.discountUsed.value;
+    } else if (order.discountUsed.type === 'percentage') {
+      return (calculateSubtotal() * order.discountUsed.value) / 100;
+    }
+    return 0;
   };
 
   return (
@@ -57,8 +92,8 @@ const OrderDetailsDialog = ({ open, order, onClose }) => {
               <strong>Phương thức:</strong> {order.paymentMethod === 'COD' ? 'COD' : 'Online'}
             </Typography>
             <Typography>
-              <strong>Trạng thái:</strong> 
-              <Chip 
+              <strong>Trạng thái:</strong>
+              <Chip
                 label={order.paymentStatus === 'Pending' ? 'Chưa thanh toán' : 'Đã thanh toán'}
                 color={order.paymentStatus === 'Pending' ? 'warning' : 'success'}
                 size="small"
@@ -102,21 +137,37 @@ const OrderDetailsDialog = ({ open, order, onClose }) => {
                       <TableCell>{(item.book?.price * item.quantity).toLocaleString('vi-VN')} VNĐ</TableCell>
                     </TableRow>
                   ))}
-                  
+
+                  {/* Subtotal - Tổng sản phẩm */}
+                  <TableRow>
+                    <TableCell colSpan={3} align="right"><strong>Tổng tiền sản phẩm:</strong></TableCell>
+                    <TableCell>{calculateSubtotal().toLocaleString('vi-VN')} VNĐ</TableCell>
+                  </TableRow>
+
                   {/* Hiển thị thông tin phí ship */}
                   <TableRow>
                     <TableCell colSpan={3} align="right"><strong>Phí vận chuyển:</strong></TableCell>
                     <TableCell>{(order.shippingInfo.fee || 0).toLocaleString('vi-VN')} VNĐ</TableCell>
                   </TableRow>
-                  
+
                   {/* Hiển thị thông tin giảm giá nếu có */}
-                  {(order.totalDiscount > 0 || order.pointUsed > 0) && (
+                  {order.discountUsed && order.discountUsed.value > 0 && (
                     <TableRow>
-                      <TableCell colSpan={3} align="right"><strong>Giảm giá:</strong></TableCell>
-                      <TableCell>-{((order.totalDiscount || 0) + (order.pointUsed || 0)).toLocaleString('vi-VN')} VNĐ</TableCell>
+                      <TableCell colSpan={3} align="right">
+                        <strong>Giảm giá {order.discountUsed.type === 'percentage' ? `(${order.discountUsed.value}%)` : ''}:</strong>
+                      </TableCell>
+                      <TableCell>-{getDiscountAmount().toLocaleString('vi-VN')} VNĐ</TableCell>
                     </TableRow>
                   )}
-                  
+
+                  {/* Điểm sử dụng nếu có */}
+                  {order.pointUsed > 0 && (
+                    <TableRow>
+                      <TableCell colSpan={3} align="right"><strong>Điểm sử dụng:</strong></TableCell>
+                      <TableCell>-{order.pointUsed.toLocaleString('vi-VN')} VNĐ</TableCell>
+                    </TableRow>
+                  )}
+
                   {/* Tổng tiền */}
                   <TableRow>
                     <TableCell colSpan={3} align="right"><strong>Tổng cộng:</strong></TableCell>
