@@ -3,13 +3,14 @@ import {
     Container, Typography, Button, Table, TableBody, TableCell, TableContainer,
     TableHead, TableRow, Paper, IconButton, Dialog, DialogTitle, DialogContent,
     DialogActions, TextField, Grid, MenuItem, Select, InputLabel, FormControl,
-    Box, TablePagination, FormHelperText
+    Box, TablePagination, FormHelperText, Card, CardContent
 } from "@mui/material";
-import { Delete, Edit } from "@mui/icons-material";
+import { Delete, Edit, Search, Refresh } from "@mui/icons-material";
 import axios from "axios";
 
 const DiscountManagement = () => {
     const [discounts, setDiscounts] = useState([]);
+    const [filteredDiscounts, setFilteredDiscounts] = useState([]);
     const [open, setOpen] = useState(false);
     const [currentDiscount, setCurrentDiscount] = useState({
         code: "", type: "percentage", value: "", minPurchase: "",
@@ -19,10 +20,19 @@ const DiscountManagement = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
+    
+    // Filter states
+    const [filterCode, setFilterCode] = useState("");
+    const [filterType, setFilterType] = useState("all");
+    const [filterStatus, setFilterStatus] = useState("all");
 
     useEffect(() => {
         fetchDiscounts();
     }, []);
+
+    useEffect(() => {
+        applyFilters();
+    }, [discounts, filterCode, filterType, filterStatus]);
 
     const fetchDiscounts = async () => {
         try {
@@ -32,6 +42,7 @@ const DiscountManagement = () => {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setDiscounts(response.data);
+            setFilteredDiscounts(response.data);
         } catch (error) {
             console.error("Error fetching discounts", error);
         }
@@ -161,58 +172,218 @@ const DiscountManagement = () => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
     };
+
+    // Filter handlers
+    const handleFilterCodeChange = (e) => {
+        setFilterCode(e.target.value);
+        setPage(0); // Reset to first page when filtering
+    };
+
+    const handleFilterTypeChange = (e) => {
+        setFilterType(e.target.value);
+        setPage(0); // Reset to first page when filtering
+    };
+
+    const handleFilterStatusChange = (e) => {
+        setFilterStatus(e.target.value);
+        setPage(0); // Reset to first page when filtering
+    };
+
+    const resetFilters = () => {
+        setFilterCode("");
+        setFilterType("all");
+        setFilterStatus("all");
+        setPage(0);
+    };
+
+    // Apply filters to discounts
+    const applyFilters = () => {
+        let result = [...discounts];
+        const today = new Date();
+
+        // Filter by code
+        if (filterCode.trim() !== "") {
+            result = result.filter(discount => 
+                discount.code.toLowerCase().includes(filterCode.toLowerCase())
+            );
+        }
+
+        // Filter by type
+        if (filterType !== "all") {
+            result = result.filter(discount => discount.type === filterType);
+        }
+
+        // Filter by status
+        if (filterStatus !== "all") {
+            if (filterStatus === "active") {
+                result = result.filter(discount => {
+                    const startDate = new Date(discount.startDate);
+                    const endDate = new Date(discount.endDate);
+                    return startDate <= today && endDate >= today && discount.usedCount < discount.usageLimit;
+                });
+            } else if (filterStatus === "expired") {
+                result = result.filter(discount => {
+                    const endDate = new Date(discount.endDate);
+                    return endDate < today;
+                });
+            } else if (filterStatus === "upcoming") {
+                result = result.filter(discount => {
+                    const startDate = new Date(discount.startDate);
+                    return startDate > today;
+                });
+            } else if (filterStatus === "depleted") {
+                result = result.filter(discount => 
+                    discount.usedCount >= discount.usageLimit
+                );
+            }
+        }
+
+        setFilteredDiscounts(result);
+    };
+
+    // Determine discount status for display
+    const getDiscountStatus = (discount) => {
+        const today = new Date();
+        const startDate = new Date(discount.startDate);
+        const endDate = new Date(discount.endDate);
+
+        if (discount.usedCount >= discount.usageLimit) {
+            return "Đã hết lượt dùng";
+        } else if (startDate > today) {
+            return "Sắp có hiệu lực";
+        } else if (endDate < today) {
+            return "Đã hết hạn";
+        } else {
+            return "Đang hoạt động";
+        }
+    };
+
     return (
         <Box sx={{ padding: 1, width: "100%", maxWidth: "calc(100% - 250px)", margin: "auto" }}>
             <Typography variant="h4" gutterBottom>Quản lý mã giảm giá</Typography>
-            <Box style={{ display: "flex", justifyContent: "flex-end" }}>
-                <Button variant="contained" color="primary" onClick={() => handleOpen()}>tạo mã giảm giá</Button>
-            </Box>
-            <TableContainer component={Paper} sx={{ marginTop: 2 }}>
+            
+            {/* Filter Section */}
+            <Card sx={{ mb: 2 }}>
+                <CardContent>
+                    <Typography variant="h6" gutterBottom>Bộ lọc</Typography>
+                    <Grid container spacing={2} alignItems="center">
+                        <Grid item xs={12} sm={3}>
+                            <TextField
+                                label="Mã giảm giá"
+                                value={filterCode}
+                                onChange={handleFilterCodeChange}
+                                fullWidth
+                                size="small"
+                                variant="outlined"
+                            />
+                        </Grid>
+                        <Grid item xs={12} sm={3}>
+                            <FormControl fullWidth size="small">
+                                <InputLabel>Loại</InputLabel>
+                                <Select
+                                    value={filterType}
+                                    onChange={handleFilterTypeChange}
+                                    label="Loại"
+                                >
+                                    <MenuItem value="all">Tất cả</MenuItem>
+                                    <MenuItem value="percentage">Phần trăm</MenuItem>
+                                    <MenuItem value="fixed">Cố định</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12} sm={3}>
+                            <FormControl fullWidth size="small">
+                                <InputLabel>Trạng thái</InputLabel>
+                                <Select
+                                    value={filterStatus}
+                                    onChange={handleFilterStatusChange}
+                                    label="Trạng thái"
+                                >
+                                    <MenuItem value="all">Tất cả</MenuItem>
+                                    <MenuItem value="active">Đang hoạt động</MenuItem>
+                                    <MenuItem value="upcoming">Sắp có hiệu lực</MenuItem>
+                                    <MenuItem value="expired">Đã hết hạn</MenuItem>
+                                    <MenuItem value="depleted">Đã hết lượt dùng</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12} sm={3} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                            <Button 
+                                variant="outlined" 
+                                startIcon={<Refresh />} 
+                                onClick={resetFilters}
+                                sx={{ mr: 1 }}
+                            >
+                                Đặt lại
+                            </Button>
+                            <Button 
+                                variant="contained" 
+                                color="primary" 
+                                onClick={() => handleOpen()}
+                            >
+                                Tạo mã giảm giá
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </CardContent>
+            </Card>
+
+            <TableContainer component={Paper}>
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>mã</TableCell>
-                            <TableCell>Loại</TableCell>
+                            <TableCell>Mã</TableCell>
                             <TableCell>Giá trị</TableCell>
                             <TableCell>Giá trị tối thiểu áp dụng</TableCell>
-                            <TableCell>Số lượng mã giới hạn</TableCell>
-                            <TableCell>Số lượng mã đã dùng </TableCell>
+                            <TableCell>Số mã đã dùng</TableCell>
                             <TableCell>Ngày bắt đầu</TableCell>
                             <TableCell>Ngày kết thúc</TableCell>
+                            <TableCell>Trạng thái</TableCell>
                             <TableCell>Hành động</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {discounts
-                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                            .map((discount) => (
-                                <TableRow key={discount._id}>
-                                    <TableCell>{discount.code}</TableCell>
-                                    <TableCell>{discount.type}</TableCell>
-                                    <TableCell>{formatPrice(discount.value)}</TableCell>
-                                    <TableCell>{formatPrice(discount.minPurchase)}</TableCell>
-                                    <TableCell>{discount.usageLimit}</TableCell>
-                                    <TableCell>{discount.usedCount}</TableCell>
-                                    <TableCell>{new Date(discount.startDate).toLocaleDateString("vi-VN")}</TableCell>
-                                    <TableCell>{new Date(discount.endDate).toLocaleDateString("vi-VN")}</TableCell>
-                                    <TableCell>
-                                        <IconButton color="primary" onClick={() => handleOpen(discount)}><Edit /></IconButton>
-                                        <IconButton color="error" onClick={() => handleDelete(discount._id)}><Delete /></IconButton>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                        {filteredDiscounts.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={9} align="center">Không tìm thấy mã giảm giá nào</TableCell>
+                            </TableRow>
+                        ) : (
+                            filteredDiscounts
+                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                .map((discount) => (
+                                    <TableRow key={discount._id}>
+                                        <TableCell>{discount.code}</TableCell>
+                                        {discount.type === "percentage" && (
+                                            <TableCell>{discount.value} %</TableCell>
+                                        )}
+                                        {discount.type === "fixed" && (
+                                            <TableCell>{formatPrice(discount.value)}</TableCell>
+                                        )}
+                                        <TableCell>{formatPrice(discount.minPurchase)}</TableCell>
+                                        <TableCell>{discount.usedCount} / {discount.usageLimit}</TableCell>
+                                        <TableCell>{new Date(discount.startDate).toLocaleDateString("vi-VN")}</TableCell>
+                                        <TableCell>{new Date(discount.endDate).toLocaleDateString("vi-VN")}</TableCell>
+                                        <TableCell>{getDiscountStatus(discount)}</TableCell>
+                                        <TableCell>
+                                            <IconButton color="primary" onClick={() => handleOpen(discount)}><Edit /></IconButton>
+                                            <IconButton color="error" onClick={() => handleDelete(discount._id)}><Delete /></IconButton>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                        )}
                     </TableBody>
                 </Table>
                 <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
                     component="div"
-                    count={discounts.length}
+                    count={filteredDiscounts.length}
                     rowsPerPage={rowsPerPage}
                     page={page}
                     onPageChange={handleChangePage}
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 />
             </TableContainer>
+            
             <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
                 <DialogTitle>{isEditing ? "Chỉnh sửa mã giảm giá" : "Tạo mã giảm giá"}</DialogTitle>
                 <DialogContent>
