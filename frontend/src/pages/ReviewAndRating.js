@@ -229,14 +229,25 @@ const ReviewAndRating = ({
 
       {/* Nút mở form đánh giá nếu user chưa đánh giá */}
       {!showReviewForm && !hasReviewed && (
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => setShowReviewForm(true)}
-          sx={{ mt: 3, width: "100%", borderRadius: 2 }}
-        >
-          Đánh giá sản phẩm
-        </Button>
+       <Box sx={{ position: "relative" }}>
+       {/* Button và các phần tử khác */}
+       <Button
+         variant="contained"
+         color="primary"
+         onClick={() => setShowReviewForm(true)}
+         sx={{
+           mt: 3,
+           width: "auto",
+           borderRadius: 2,
+           paddingX: 3,
+           position: "absolute",
+           right: 0,
+         }}
+       >
+         Đánh giá sản phẩm
+       </Button>
+     </Box>
+     
       )}
 
       {/* Form gửi đánh giá */}

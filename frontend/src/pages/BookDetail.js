@@ -878,8 +878,8 @@ const BookDetail = ({ updateWishlistCount, updateCartData }) => {
         </Box>
 
         {/* Related Products Section */}
-        <Box sx={{ mb: 1, bgcolor: "white", p: 3, borderRadius: 1, boxShadow: 1 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box sx={{ mb: 1, bgcolor: "white", p: 3, borderRadius: 1, boxShadow: 1 , marginTop: 7}}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', }}>
             <Typography
               variant="h5"
               gutterBottom
