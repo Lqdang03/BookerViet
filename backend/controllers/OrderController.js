@@ -1,6 +1,7 @@
 const Order = require('../models/Order');
 const Book = require('../models/Book');
 const Cart = require('../models/Cart');
+const Discount = require('../models/Discount');
 const createOrder = async (req, res) => {
     try {
 
@@ -12,7 +13,10 @@ const createOrder = async (req, res) => {
 
         const items = [];
 
-        const { shippingInfo, paymentMethod, totalDiscount, pointUsed } = req.body;
+        const { shippingInfo, paymentMethod, discountUsed, pointUsed } = req.body;
+
+        const discount = await Discount.findById(discountUsed);
+
         const userId = req.user.id; // Lấy user từ token
 
         // Tính tổng giá trị đơn hàng
@@ -33,9 +37,16 @@ const createOrder = async (req, res) => {
                 price: book.price
             });
         }
-
         // Áp dụng giảm giá
-        totalAmount -= totalDiscount + pointUsed;
+        if(discount){
+            if(discount.type === 'fixed'){
+                totalAmount -= discount.value;
+            }
+            else if(discount.type === 'percentage')
+                totalAmount -= (totalAmount * discount.value) / 100;
+        }
+
+        totalAmount -= pointUsed;
 
         if(paymentMethod === 'COD' && totalAmount > 500000){
             res.status(400).json({message: 'Đơn vượt quá giá trị cho phép'});
@@ -46,12 +57,11 @@ const createOrder = async (req, res) => {
             items,
             shippingInfo,
             paymentMethod,
-            totalDiscount,
+            discountUsed,
             pointUsed,
             paymentStatus: paymentMethod === 'COD' ? 'Completed' : 'Pending',
             orderStatus: 'Pending',
         });
-
         
         const savedOrder = await newOrder.save();
         await Cart.findOneAndUpdate(
@@ -59,6 +69,14 @@ const createOrder = async (req, res) => {
             { $set: { cartItems: [] } }, // Xóa toàn bộ cartItems nhưng giữ cart
             { new: true }
         );
+        if(savedOrder){
+            if(paymentMethod === 'COD'){
+                if(discount){
+                    discount.usedCount = discount.usedCount + 1;
+                    await discount.save();
+                }
+            }
+        }
         res.status(201).json({ data: savedOrder, totalAmount});
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -99,10 +117,6 @@ const getOrderDetails = async (req, res) => {
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
         }
-        console.log('INFO order');
-        console.log(order);
-        console.log('INFO user');
-        console.log(user);
 
         if (order.user.toString() !== user._id.toString() && user.role !== 'admin') {
             return res.status(403).json({ message: 'Forbidden' });

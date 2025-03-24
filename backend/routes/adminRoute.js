@@ -2,11 +2,11 @@ const express = require("express");
 const { checkAuthorize } = require("../middleware/authMiddleware");
 const adminController = require("../controllers/AdminController");
 const adminBookController = require("../controllers/AdminBookController");
-const adminDiscountController = require("../controllers/AdminDiscountController");
 const {updateBoxInfo} = require("../controllers/OrderController");
 const {confirmOrder} = require("../controllers/GhnController");
 const adminReviewController = require("../controllers/AdminReviewController");
 const complaintController = require("../controllers/ComplaintController");
+const discountController = require("../controllers/DiscountController");
 const adminDashboardController = require("../controllers/AdminDashBoardController");
 
 const router = express.Router();
@@ -41,11 +41,11 @@ router.put("/categories/:id", checkAuthorize(["admin"]), adminBookController.upd
 router.delete("/categories/:id", checkAuthorize(["admin"]), adminBookController.deleteCategory);
 
 // ✅ Quản lý mã giảm giá
-router.get("/discounts", checkAuthorize(["admin"]), adminDiscountController.getAllDiscounts);
-router.get("/discounts/:id", checkAuthorize(["admin"]), adminDiscountController.getDiscountById);
-router.post("/discounts", checkAuthorize(["admin"]), adminDiscountController.createDiscount);
-router.put("/discounts/:id", checkAuthorize(["admin"]), adminDiscountController.updateDiscount);
-router.delete("/discounts/:id", checkAuthorize(["admin"]), adminDiscountController.deleteDiscount);
+router.get("/discounts", checkAuthorize(["admin"]), discountController.getAllDiscounts);
+router.get("/discounts/:id", checkAuthorize(["admin"]), discountController.getDiscountById);
+router.post("/discounts", checkAuthorize(["admin"]), discountController.createDiscount);
+router.put("/discounts/:id", checkAuthorize(["admin"]), discountController.updatedDiscount);
+router.put("/discounts/:id/change-status", checkAuthorize(["admin"]), discountController.changeStatusDiscount);
 
 // ✅ Quản lý đánh giá và xếp hạng
 router.get("/reviews", checkAuthorize(["admin"]), adminReviewController.getAllReviews);

@@ -3,7 +3,8 @@ import {
     Typography, Button, Table, TableBody, TableCell, TableContainer,
     TableHead, TableRow, Paper, IconButton, Dialog, DialogTitle, DialogContent,
     DialogActions, TextField, Grid, MenuItem, Select, InputLabel, FormControl,
-    Box, Chip
+    Box, Chip,
+    TablePagination
 } from "@mui/material";
 import { Edit } from "@mui/icons-material";
 import axios from "axios";
@@ -13,11 +14,13 @@ const ReportManagement = () => {
     const [filteredComplaints, setFilteredComplaints] = useState([]);
     const [open, setOpen] = useState(false);
     const [currentComplaint, setCurrentComplaint] = useState({ status: "" });
-    
+
     // Filter states
     const [customerFilter, setCustomerFilter] = useState("");
     const [typeFilter, setTypeFilter] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
 
     useEffect(() => {
         fetchComplaints();
@@ -43,25 +46,25 @@ const ReportManagement = () => {
 
     const filterComplaints = () => {
         let result = [...complaints];
-        
+
         if (customerFilter) {
-            result = result.filter(complaint => 
+            result = result.filter(complaint =>
                 complaint.user.email.toLowerCase().includes(customerFilter.toLowerCase())
             );
         }
-        
+
         if (typeFilter) {
-            result = result.filter(complaint => 
+            result = result.filter(complaint =>
                 complaint.type === typeFilter
             );
         }
-        
+
         if (statusFilter) {
-            result = result.filter(complaint => 
+            result = result.filter(complaint =>
                 complaint.status === statusFilter
             );
         }
-        
+
         setFilteredComplaints(result);
     };
 
@@ -82,15 +85,15 @@ const ReportManagement = () => {
         try {
             const token = localStorage.getItem("token") || sessionStorage.getItem("token");
             if (!token) return;
-            
+
             await axios.put(
-                `http://localhost:9999/admin/complaints/${currentComplaint._id}`, 
-                { status: currentComplaint.status }, 
+                `http://localhost:9999/admin/complaints/${currentComplaint._id}`,
+                { status: currentComplaint.status },
                 {
                     headers: { Authorization: `Bearer ${token}` }
                 }
             );
-            
+
             fetchComplaints();
             handleClose();
         } catch (error) {
@@ -119,10 +122,19 @@ const ReportManagement = () => {
         setStatusFilter("");
     };
 
+    //Thực hiện phân trang
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
     return (
-        <Box sx={{padding: 1, width: "100%", maxWidth: "calc(100% - 250px)", margin: "auto"}}>
+        <Box sx={{ padding: 1, width: "100%", maxWidth: "calc(100% - 250px)", margin: "auto" }}>
             <Typography variant="h4" gutterBottom>Quản lý báo cáo khiếu nại</Typography>
-            
+
             {/* Filter section */}
             <Box sx={{ mb: 3, p: 2, bgcolor: "#f5f5f5", borderRadius: 1 }}>
                 <Typography variant="h6" gutterBottom>Bộ lọc</Typography>
@@ -139,8 +151,8 @@ const ReportManagement = () => {
                     <Grid item xs={12} md={3}>
                         <FormControl fullWidth size="small">
                             <InputLabel>Loại báo cáo</InputLabel>
-                            <Select 
-                                value={typeFilter} 
+                            <Select
+                                value={typeFilter}
                                 onChange={(e) => setTypeFilter(e.target.value)}
                                 label="Loại báo cáo"
                             >
@@ -154,8 +166,8 @@ const ReportManagement = () => {
                     <Grid item xs={12} md={3}>
                         <FormControl fullWidth size="small">
                             <InputLabel>Trạng thái</InputLabel>
-                            <Select 
-                                value={statusFilter} 
+                            <Select
+                                value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
                                 label="Trạng thái"
                             >
@@ -174,7 +186,7 @@ const ReportManagement = () => {
                     </Grid>
                 </Grid>
             </Box>
-            
+
             <TableContainer component={Paper} sx={{ marginTop: 2 }}>
                 <Table>
                     <TableHead>
@@ -188,32 +200,43 @@ const ReportManagement = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {filteredComplaints.map((complaint) => (
-                            <TableRow key={complaint._id}>
-                                <TableCell>{complaint.user.email}</TableCell>
-                                <TableCell>{complaint.type}</TableCell>
-                                <TableCell>{complaint.description}</TableCell>
-                                <TableCell>
-                                    <Chip 
-                                        label={complaint.status} 
-                                        color={getStatusColor(complaint.status)} 
-                                        size="small"
-                                    />
-                                </TableCell>
-                                <TableCell>
-                                    {new Date(complaint.createdAt).toLocaleDateString("vi-VN")}
-                                </TableCell>
-                                <TableCell>
-                                    <IconButton color="primary" onClick={() => handleOpenEditDialog(complaint)}>
-                                        <Edit />
-                                    </IconButton>
-                                </TableCell>
-                            </TableRow>
-                        ))}
+                        {filteredComplaints
+                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                            .map((complaint) => (
+                                <TableRow key={complaint._id}>
+                                    <TableCell>{complaint.user.email}</TableCell>
+                                    <TableCell>{complaint.type}</TableCell>
+                                    <TableCell>{complaint.description}</TableCell>
+                                    <TableCell>
+                                        <Chip
+                                            label={complaint.status}
+                                            color={getStatusColor(complaint.status)}
+                                            size="small"
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        {new Date(complaint.createdAt).toLocaleDateString("vi-VN")}
+                                    </TableCell>
+                                    <TableCell>
+                                        <IconButton color="primary" onClick={() => handleOpenEditDialog(complaint)}>
+                                            <Edit />
+                                        </IconButton>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
                     </TableBody>
                 </Table>
+                <TablePagination
+                    rowsPerPageOptions={[5, 10, 25]}
+                    component="div"
+                    count={filteredComplaints.length}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                />
             </TableContainer>
-            
+
             {/* Status Update Dialog */}
             <Dialog open={open} onClose={handleClose}>
                 <DialogTitle>Cập nhật trạng thái báo cáo</DialogTitle>
