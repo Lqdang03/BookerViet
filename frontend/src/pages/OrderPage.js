@@ -17,13 +17,24 @@ import {
   Divider,
   CircularProgress,
   Alert,
-  Snackbar
+  Snackbar,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemSecondaryAction,
+  Collapse,
+  IconButton,
+  Card,
+  CardContent
 } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import axios from "axios";
 import CheckoutBreadCrumb from "../components/Breadcrumbs/CheckoutBreadCrumb";
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 
 function OrderPage() {
   const navigate = useNavigate();
@@ -35,6 +46,8 @@ function OrderPage() {
   const [discountCode, setDiscountCode] = useState("");
   const [applyingDiscount, setApplyingDiscount] = useState(false);
   const [appliedDiscount, setAppliedDiscount] = useState(null);
+  const [availableDiscounts, setAvailableDiscounts] = useState([]);
+  const [loadingDiscounts, setLoadingDiscounts] = useState(false);
   const [pointsToUse, setPointsToUse] = useState(0);
   const [availablePoints, setAvailablePoints] = useState(0);
   const [shippingAddress, setShippingAddress] = useState({
@@ -54,6 +67,7 @@ function OrderPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [showDiscountList, setShowDiscountList] = useState(false);
 
   // Check authentication status
   const checkAuthentication = useCallback(async () => {
@@ -267,6 +281,32 @@ function OrderPage() {
     }
   }, [cartItems, shippingAddress.district, shippingAddress.ward]);
 
+  // Fetch suitable discounts based on cart amount
+  const fetchSuitableDiscounts = useCallback(async () => {
+    try {
+      setLoadingDiscounts(true);
+
+      // Calculate the subtotal
+      const subtotal = cartItems.reduce((total, item) => total + (item.book.price * item.quantity), 0);
+
+      // Call the new discount endpoint
+      const response = await axios.get("http://localhost:9999/discount/suitable", {
+        params: { amount: subtotal }
+      });
+
+      if (response.data && response.data.discounts) {
+        setAvailableDiscounts(response.data.discounts);
+      } else {
+        setAvailableDiscounts([]);
+      }
+    } catch (error) {
+      console.error("Error fetching suitable discounts:", error.response?.data || error.message);
+      setAvailableDiscounts([]);
+    } finally {
+      setLoadingDiscounts(false);
+    }
+  }, [cartItems]);
+
   useEffect(() => {
     const init = async () => {
       const isAuth = await checkAuthentication();
@@ -278,6 +318,13 @@ function OrderPage() {
 
     init();
   }, [checkAuthentication, fetchCart, fetchProvinces]);
+
+  // Fetch suitable discounts whenever cart items change
+  useEffect(() => {
+    if (cartItems.length > 0) {
+      fetchSuitableDiscounts();
+    }
+  }, [cartItems, fetchSuitableDiscounts]);
 
   // Recalculate shipping fee when address changes
   useEffect(() => {
@@ -309,8 +356,51 @@ function OrderPage() {
     setDiscountCode(e.target.value);
   };
 
-  // Apply discount code
-  const handleApplyDiscount = async () => {
+  // Toggle discount list visibility
+  const handleToggleDiscountList = () => {
+    setShowDiscountList(!showDiscountList);
+  };
+
+  // Apply a discount from the list
+  const handleApplyDiscount = (discount) => {
+    if (!discount) return;
+
+    // Calculate discount amount based on discount type
+    let calculatedDiscountAmount = 0;
+
+    if (discount.type === 'PERCENTAGE' || discount.type === 'percentage') {
+      // Calculate percentage discount
+      const subtotal = cartItems.reduce((total, item) => total + (item.book.price * item.quantity), 0);
+      calculatedDiscountAmount = subtotal * (discount.value / 100);
+
+      // Cap at maxDiscount if defined
+      if (discount.maxDiscount && calculatedDiscountAmount > discount.maxDiscount) {
+        calculatedDiscountAmount = discount.maxDiscount;
+      }
+    } else {
+      // Fixed amount discount
+      calculatedDiscountAmount = discount.value;
+    }
+
+    setDiscountAmount(calculatedDiscountAmount);
+    setAppliedDiscount({
+      code: discount.code,
+      amount: calculatedDiscountAmount,
+      _id: discount._id,
+      description: discount.description || ""
+    });
+
+    setAlert({
+      open: true,
+      message: "Áp dụng mã giảm giá thành công",
+      severity: "success"
+    });
+
+    setShowDiscountList(false);
+  };
+
+  // Apply discount by code
+  const handleApplyDiscountByCode = async () => {
     if (!discountCode.trim()) {
       setAlert({
         open: true,
@@ -322,51 +412,26 @@ function OrderPage() {
 
     try {
       setApplyingDiscount(true);
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
-      // Calculate the subtotal for validation
-      const subtotal = cartItems.reduce(
-        (acc, item) => acc + item.book.price * item.quantity,
-        0
+      // Find if the discount exists in available discounts
+      const foundDiscount = availableDiscounts.find(
+        discount => discount.code.toLowerCase() === discountCode.toLowerCase()
       );
 
-      // Call API to validate and get discount amount
-      const response = await axios.post(
-        "http://localhost:9999/discounts/apply",
-        {
-          code: discountCode,
-          subtotal: subtotal
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
-
-      // If successful, update the discount amount
-      if (response.data.valid) {
-        setDiscountAmount(response.data.discountAmount);
-        setAppliedDiscount({
-          code: discountCode,
-          amount: response.data.discountAmount,
-          description: response.data.description || ""
-        });
-        setAlert({
-          open: true,
-          message: "Áp dụng mã giảm giá thành công",
-          severity: "success"
-        });
+      if (foundDiscount) {
+        handleApplyDiscount(foundDiscount);
       } else {
         setAlert({
           open: true,
-          message: response.data.message || "Mã giảm giá không hợp lệ",
+          message: "Mã giảm giá không hợp lệ hoặc không áp dụng được cho đơn hàng này",
           severity: "error"
         });
       }
     } catch (error) {
-      console.error("Error applying discount:", error.response?.data || error.message);
+      console.error("Error applying discount:", error);
       setAlert({
         open: true,
-        message: error.response?.data?.message || "Có lỗi xảy ra khi áp dụng mã giảm giá",
+        message: "Có lỗi xảy ra khi áp dụng mã giảm giá",
         severity: "error"
       });
     } finally {
@@ -403,7 +468,7 @@ function OrderPage() {
   );
 
   // Calculate total amount
-  const totalAmount = subtotal + shippingFee - discountAmount - pointsToUse;
+  const totalAmount = (subtotal || 0) + (shippingFee || 0) - (discountAmount || 0) - (pointsToUse || 0);
 
   // Submit order
   const handlePlaceOrder = async () => {
@@ -448,7 +513,6 @@ function OrderPage() {
           provinceId: shippingAddress.province,
           districtId: shippingAddress.district,
           wardCode: shippingAddress.ward,
-          // Add province/district/ward names
           provineName: selectedProvince?.name || "",
           districtName: selectedDistrict?.name || "",
           wardName: selectedWard?.name || "",
@@ -456,7 +520,8 @@ function OrderPage() {
           fee: shippingFee
         },
         paymentMethod: paymentMethod,
-        totalDiscount: discountAmount,
+        // Remove totalDiscount and use discountUsed instead
+        discountUsed: appliedDiscount?._id || null, // Use the _id from the discount object
         pointUsed: pointsToUse,
         notes: shippingAddress.notes || ""
       };
@@ -551,6 +616,81 @@ function OrderPage() {
   // Handle alert close
   const handleCloseAlert = () => {
     setAlert({ ...alert, open: false });
+  };
+
+  // Discount list component
+  const DiscountsList = () => {
+    if (availableDiscounts.length === 0) {
+      return (
+        <Typography variant="body2" color="text.secondary" sx={{ p: 2, textAlign: 'center' }}>
+          Không có mã giảm giá nào phù hợp với đơn hàng
+        </Typography>
+      );
+    }
+
+    return (
+      <List sx={{ width: '100%', mt: 1, maxHeight: 250, overflow: 'auto', borderRadius: 1, border: '1px solid #e0e0e0' }}>
+        {availableDiscounts.map((discount) => {
+          // Format the discount description
+          let discountDesc = "";
+          if (discount.type === 'PERCENTAGE' || discount.type === 'percentage') {
+            discountDesc = `Giảm ${discount.value}%`;
+            if (discount.maxDiscount) {
+              discountDesc += ` (tối đa ${discount.maxDiscount.toLocaleString()}₫)`;
+            }
+          } else {
+            discountDesc = `Giảm ${discount.value.toLocaleString()}₫`;
+          }
+
+          return (
+            <ListItem
+              key={discount._id}
+              divider
+              button
+              onClick={() => handleApplyDiscount(discount)}
+              sx={{
+                '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)' },
+                borderLeft: '4px solid #2196f3'
+              }}
+            >
+              <Box sx={{ width: '100%' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: '#2196f3' }}>
+                    {discount.code}
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleApplyDiscount(discount);
+                    }}
+                  >
+                    Áp dụng
+                  </Button>
+                </Box>
+                <Typography variant="body2">{discountDesc}</Typography>
+                {discount.description && (
+                  <Typography variant="body2" color="text.secondary">
+                    {discount.description}
+                  </Typography>
+                )}
+                {discount.minOrderValue > 0 && (
+                  <Typography variant="body2" color="text.secondary">
+                    Đơn tối thiểu: {discount.minOrderValue.toLocaleString()}₫
+                  </Typography>
+                )}
+                {discount.expiryDate && (
+                  <Typography variant="caption" color="text.secondary">
+                    HSD: {new Date(discount.expiryDate).toLocaleDateString('vi-VN')}
+                  </Typography>
+                )}
+              </Box>
+            </ListItem>
+          );
+        })}
+      </List>
+    );
   };
 
   // Login page component
@@ -771,31 +911,6 @@ function OrderPage() {
                       </RadioGroup>
                     </FormControl>
                   </Paper>
-
-                  {/* Points and Discounts - only show if available */}
-                  {availablePoints > 0 && (
-                    <Paper sx={{ p: 3, mt: 3 }}>
-                      <Typography variant="h6" gutterBottom>
-                        Điểm thưởng và giảm giá
-                      </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <TextField
-                          label="Sử dụng điểm thưởng"
-                          type="number"
-                          value={pointsToUse}
-                          onChange={handlePointsChange}
-                          InputProps={{
-                            inputProps: { min: 0, max: availablePoints }
-                          }}
-                          helperText={`Bạn có ${availablePoints} điểm thưởng`}
-                          sx={{ width: 200 }}
-                        />
-                        <Typography variant="body2">
-                          (1 điểm = 1.000đ)
-                        </Typography>
-                      </Box>
-                    </Paper>
-                  )}
                 </Grid>
 
                 {/* Order Summary */}
@@ -831,55 +946,146 @@ function OrderPage() {
                     </Box>
 
                     {/* Discount Code Input */}
-                    <Box sx={{ mb: 2 }}>
-                      {!appliedDiscount ? (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <TextField
-                            fullWidth
-                            size="small"
-                            placeholder="Nhập mã giảm giá"
-                            value={discountCode}
-                            onChange={handleDiscountCodeChange}
-                            sx={{ flex: 1 }}
-                          />
-                          <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={handleApplyDiscount}
-                            disabled={applyingDiscount || !discountCode.trim()}
-                            sx={{ minWidth: '100px', height: '40px' }}
-                          >
-                            {applyingDiscount ? <CircularProgress size={20} /> : 'Áp dụng'}
-                          </Button>
+                    <Box sx={{ mb: 3 }}>
+                      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+                        <LocalOfferIcon sx={{ mr: 1, fontSize: "medium" }} />
+                        Mã giảm giá
+                      </Typography>
+
+                      {appliedDiscount ? (
+                        // Applied discount view - clean and informative
+                        <Box sx={{
+                          mt: 2,
+                          p: 2,
+                          bgcolor: 'rgba(33, 150, 243, 0.08)',
+                          borderRadius: 1,
+                          border: '1px dashed #2196f3'
+                        }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Box>
+                              <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#2196f3', display: 'flex', alignItems: 'center' }}>
+                                <LocalOfferIcon sx={{ mr: 1, fontSize: 18 }} />
+                                {appliedDiscount.code}
+                              </Typography>
+                              <Typography variant="body2" sx={{ color: 'success.main', fontWeight: 'medium', mt: 0.5 }}>
+                                Giảm: {appliedDiscount.amount.toLocaleString()}₫
+                              </Typography>
+                              {appliedDiscount.description && (
+                                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                  {appliedDiscount.description}
+                                </Typography>
+                              )}
+                            </Box>
+                            <Button
+                              variant="outlined"
+                              color="error"
+                              size="small"
+                              onClick={handleRemoveDiscount}
+                              sx={{ minWidth: 80 }}
+                            >
+                              Xóa
+                            </Button>
+                          </Box>
                         </Box>
                       ) : (
-                        <Box sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          border: '1px dashed #4caf50',
-                          borderRadius: '4px',
-                          p: 1,
-                          backgroundColor: 'rgba(76, 175, 80, 0.1)'
-                        }}>
-                          <Box>
-                            <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#4caf50' }}>
-                              Mã {appliedDiscount.code}
-                            </Typography>
-                            <Typography variant="body2">
-                              {appliedDiscount.description || `Giảm ${appliedDiscount.amount.toLocaleString()}₫`}
-                            </Typography>
+                        // Not applied discount view - input and available discounts
+                        <>
+                          <Box sx={{ mt: 2 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                              <TextField
+                                fullWidth
+                                label="Nhập mã giảm giá"
+                                variant="outlined"
+                                value={discountCode}
+                                onChange={handleDiscountCodeChange}
+                                size="small"
+                                placeholder="Nhập mã giảm giá tại đây"
+
+                              />
+                              <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={handleApplyDiscountByCode}
+                                disabled={applyingDiscount || !discountCode.trim()}
+                                sx={{
+                                  height: 40,
+                                  fontSize: '0.75rem',
+                                  paddingTop: 2,  // or you can use '12px'
+                                  paddingBottom: 2  // or you can use '12px'
+                                }}
+                              >
+                                {applyingDiscount ? <CircularProgress size={10} /> : "Áp dụng"}
+                              </Button>
+                            </Box>
                           </Box>
-                          <Button
-                            color="error"
-                            size="small"
-                            onClick={handleRemoveDiscount}
-                          >
-                            Xóa
-                          </Button>
-                        </Box>
+
+                          {/* Available discounts toggle button */}
+                          <Box sx={{ mt: 2 }}>
+                            <Button
+                              variant="text"
+                              color="primary"
+                              onClick={handleToggleDiscountList}
+                              endIcon={showDiscountList ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                              sx={{ textTransform: 'none', p: 0 }}
+                            >
+                              {showDiscountList ? "Ẩn mã giảm giá" : "Xem mã giảm giá có thể áp dụng"}
+                              {loadingDiscounts && <CircularProgress size={16} sx={{ ml: 1 }} />}
+                              {!loadingDiscounts && availableDiscounts.length > 0 && (
+                                <Typography component="span" variant="body2" sx={{ ml: 1, color: 'primary.main', fontWeight: 'bold' }}>
+                                  ({availableDiscounts.length})
+                                </Typography>
+                              )}
+                            </Button>
+                          </Box>
+
+                          {/* List of available discounts */}
+                          <Collapse in={showDiscountList} sx={{ mt: 1 }}>
+                            {loadingDiscounts ? (
+                              <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                                <CircularProgress size={24} />
+                              </Box>
+                            ) : (
+                              <DiscountsList />
+                            )}
+                          </Collapse>
+                        </>
                       )}
                     </Box>
+
+                    {/* Points Section */}
+                    {availablePoints > 0 && (
+                      <Paper sx={{ p: 3, mb: 3 }}>
+                        <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Box component="span" sx={{ mr: 1, display: 'flex' }}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />
+                            </svg>
+                          </Box>
+                          Điểm thưởng
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2, mt: 1 }}>
+                          <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
+                            Điểm hiện có: <Typography component="span" sx={{ ml: 1, fontWeight: 'bold', color: 'primary.main' }}>{availablePoints.toLocaleString()}</Typography>
+                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: '200px' }}>
+                            <TextField
+                              type="number"
+                              label="Số điểm muốn sử dụng"
+                              size="small"
+                              value={pointsToUse}
+                              onChange={handlePointsChange}
+                              fullWidth
+                              inputProps={{ min: 0, max: availablePoints }}
+                            />
+                          </Box>
+                        </Box>
+                        {pointsToUse > 0 && (
+                          <Typography variant="body2" sx={{ mt: 1, color: 'success.main' }}>
+                            Bạn sẽ tiết kiệm được {pointsToUse.toLocaleString()}₫ với {pointsToUse} điểm
+                          </Typography>
+                        )}
+                      </Paper>
+                    )}
 
                     <Divider sx={{ my: 2 }} />
 
@@ -915,7 +1121,9 @@ function OrderPage() {
 
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
                       <Typography variant="h6">Tổng cộng</Typography>
-                      <Typography variant="h6" color="error">{totalAmount.toLocaleString()}₫</Typography>
+                      <Typography variant="h6" color="error">
+                        {(totalAmount || 0).toLocaleString()}₫
+                      </Typography>
                     </Box>
 
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
