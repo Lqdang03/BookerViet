@@ -45,19 +45,6 @@ exports.deleteUser = async (req, res) => {
 };
 
 
-exports.getUserOrders = async (req, res) => {
-    try {
-        const user = await User.findById(req.params.id).select("name email point");
-        if (!user) return res.status(404).json({ message: "User không tồn tại" });
-
-        const orders = await Order.find({ user: req.params.id }).populate("items.book", "title price");
-        res.status(200).json({ user, orders });
-    } catch (error) {
-        res.status(500).json({ message: "Lỗi lấy lịch sử đơn hàng", error });
-    }
-};
-
-
 exports.getAllOrders = async (req, res) => {
     try {
         const orders = await Order.find().populate("user", "name email").populate("items.book", "title price").populate("discountUsed");

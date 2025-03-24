@@ -7,6 +7,7 @@ const {confirmOrder} = require("../controllers/GhnController");
 const adminReviewController = require("../controllers/AdminReviewController");
 const complaintController = require("../controllers/ComplaintController");
 const discountController = require("../controllers/DiscountController");
+const {changeStatusUser} = require("../controllers/UserController");
 
 const router = express.Router();
 
@@ -14,12 +15,11 @@ const router = express.Router();
 router.get("/users", checkAuthorize(["admin"]), adminController.getAllUsers);
 router.get("/users/:id", checkAuthorize(["admin"]), adminController.getUserById);
 router.put("/users/:id", checkAuthorize(["admin"]), adminController.updateUser);
-router.delete("/users/:id", checkAuthorize(["admin"]), adminController.deleteUser);
-router.get("/users/:id/orders", checkAuthorize(["admin"]), adminController.getUserOrders);
+router.put("/users/:id/change-status", checkAuthorize(["admin"]), changeStatusUser);
 
 // ✅ Quản lý đơn hàng
 router.get("/orders", checkAuthorize(["admin"]), adminController.getAllOrders);
-router.put("/orders/:id", checkAuthorize(["admin"]), adminController.updateOrderStatus);
+router.put("/orders/:id/change-status", checkAuthorize(["admin"]), adminController.updateOrderStatus);
 router.post("/orders/update-box-info/:id", checkAuthorize(["admin"]), updateBoxInfo);
 router.post("/orders/confirm/:id", checkAuthorize(["admin"]), confirmOrder);
 
