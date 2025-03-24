@@ -13,6 +13,14 @@ const EditBoxDialog = ({ open, order, onClose, onSave }) => {
     height: ""
   });
 
+  // Initialize validation errors state
+  const [errors, setErrors] = useState({
+    weight: false,
+    length: false,
+    width: false,
+    height: false
+  });
+
   // Update state when order changes or dialog opens
   useEffect(() => {
     if (order && open) {
@@ -22,19 +30,88 @@ const EditBoxDialog = ({ open, order, onClose, onSave }) => {
         width: order.boxInfo?.width || "",
         height: order.boxInfo?.height || ""
       });
+      setErrors({
+        weight: false,
+        length: false,
+        width: false,
+        height: false
+      });
     }
   }, [order, open]);
 
+  const validateField = (name, value) => {
+    // Check if empty
+    if (value === "") return "Không được để trống";
+    
+    // Convert to number
+    const numValue = Number(value);
+    
+    // Check if it's a valid number
+    if (isNaN(numValue)) return "Phải là số";
+    
+    // Check if it's less than 0
+    if (numValue < 0) return "Không được nhỏ hơn 0";
+    
+    // Check if it's an integer
+    if (!Number.isInteger(numValue)) return "Phải là số nguyên";
+    
+    return "";
+  };
+
   const handleChange = (e) => {
+    const { name, value } = e.target;
+    
     setBoxInfo({
       ...boxInfo,
-      [e.target.name]: e.target.value
+      [name]: value
+    });
+    
+    const errorMessage = validateField(name, value);
+    setErrors({
+      ...errors,
+      [name]: errorMessage
     });
   };
 
   const handleSubmit = () => {
-    onSave(boxInfo);
+    // Validate all fields before submitting
+    const newErrors = {
+      weight: validateField("weight", boxInfo.weight),
+      length: validateField("length", boxInfo.length),
+      width: validateField("width", boxInfo.width),
+      height: validateField("height", boxInfo.height)
+    };
+    
+    setErrors(newErrors);
+    
+    // Check if there are any errors
+    if (Object.values(newErrors).some(error => error !== "")) {
+      return;
+    }
+    
+    // Convert all values to integers before saving
+    const validatedBoxInfo = {
+      weight: parseInt(boxInfo.weight, 10),
+      length: parseInt(boxInfo.length, 10),
+      width: parseInt(boxInfo.width, 10),
+      height: parseInt(boxInfo.height, 10)
+    };
+    
+    onSave(validatedBoxInfo);
     onClose();
+  };
+
+  const isFormValid = () => {
+    return (
+      boxInfo.weight !== "" && 
+      boxInfo.length !== "" && 
+      boxInfo.width !== "" && 
+      boxInfo.height !== "" &&
+      !errors.weight &&
+      !errors.length && 
+      !errors.width && 
+      !errors.height
+    );
   };
 
   return (
@@ -50,7 +127,10 @@ const EditBoxDialog = ({ open, order, onClose, onSave }) => {
               fullWidth
               value={boxInfo.weight}
               onChange={handleChange}
-              inputProps={{ min: 0 }}
+              error={!!errors.weight}
+              helperText={errors.weight}
+              onBlur={handleChange}
+              inputProps={{ min: 0, step: 1 }}
             />
           </Grid>
           <Grid item xs={6}>
@@ -61,7 +141,10 @@ const EditBoxDialog = ({ open, order, onClose, onSave }) => {
               fullWidth
               value={boxInfo.length}
               onChange={handleChange}
-              inputProps={{ min: 0 }}
+              error={!!errors.length}
+              helperText={errors.length}
+              onBlur={handleChange}
+              inputProps={{ min: 0, step: 1 }}
             />
           </Grid>
           <Grid item xs={6}>
@@ -72,7 +155,10 @@ const EditBoxDialog = ({ open, order, onClose, onSave }) => {
               fullWidth
               value={boxInfo.width}
               onChange={handleChange}
-              inputProps={{ min: 0 }}
+              error={!!errors.width}
+              helperText={errors.width}
+              onBlur={handleChange}
+              inputProps={{ min: 0, step: 1 }}
             />
           </Grid>
           <Grid item xs={6}>
@@ -83,7 +169,10 @@ const EditBoxDialog = ({ open, order, onClose, onSave }) => {
               fullWidth
               value={boxInfo.height}
               onChange={handleChange}
-              inputProps={{ min: 0 }}
+              error={!!errors.height}
+              helperText={errors.height}
+              onBlur={handleChange}
+              inputProps={{ min: 0, step: 1 }}
             />
           </Grid>
         </Grid>
@@ -93,7 +182,7 @@ const EditBoxDialog = ({ open, order, onClose, onSave }) => {
         <Button
           onClick={handleSubmit}
           color="primary"
-          disabled={!boxInfo.weight || !boxInfo.length || !boxInfo.width || !boxInfo.height}
+          disabled={!isFormValid()}
         >
           Lưu thay đổi
         </Button>
