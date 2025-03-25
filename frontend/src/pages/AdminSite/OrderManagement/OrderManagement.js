@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import {
     Typography, Button, Table, TableBody, TableCell, TableContainer,
     TableHead, TableRow, Paper, IconButton, Box, Alert, TablePagination,
-    Snackbar, Select, MenuItem, FormControl, InputLabel
+    Snackbar, Select, MenuItem, FormControl, InputLabel,
+    Tooltip
 } from "@mui/material";
 
-import { Delete, Check, Edit, Visibility } from "@mui/icons-material";
+import { Delete, Check, Edit, Visibility, Warning } from "@mui/icons-material";
 import axios from "axios";
 import OrderDetailsDialog from "./OrderDetailsDialog";
 import EditBoxDialog from "./EditBoxDialog";
@@ -128,8 +129,13 @@ const OrderManagement = () => {
         }
     };
 
-    const handleConfirmOrder = async (orderId) => {
+    const handleConfirmOrder = async (orderId, totalAmount) => {
         try {
+            if (totalAmount > 500000) {
+                handleAlert("Không hỗ trợ thu tiền hộ với đơn hàng lớn hơn 500,000 VNĐ", "warning");
+                return;
+            }
+
             const token = localStorage.getItem("token") || sessionStorage.getItem("token");
             if (!token) return;
 
@@ -326,89 +332,103 @@ const OrderManagement = () => {
                     <TableBody>
                         {filteredOrders
                             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                            .map((order, index) => (
-                                <TableRow key={order._id}>
-                                    <TableCell>{order._id.slice(-6).toUpperCase()}</TableCell>
-                                    <TableCell>{order.user ? `${order.user.name} ` : 'N/A'}</TableCell>
-                                    <TableCell>{formatDate(order.createdAt)}</TableCell>
-                                    <TableCell>{getPaymentMethodTranslation(order.paymentMethod)}</TableCell>
-                                    <TableCell>
-                                        <Box
-                                            sx={{
-                                                color: getStatusColor(order.paymentStatus),
-                                                fontWeight: 'bold'
-                                            }}
-                                        >
-                                            {getPaymentStatusTranslation(order.paymentStatus)}
-                                        </Box>
-                                    </TableCell>
-                                    <TableCell>{calculateTotalAmount(order).toLocaleString('vi-VN')} VNĐ</TableCell>
-                                    <TableCell>
-                                        <Box
-                                            sx={{
-                                                color: getStatusColor(order.orderStatus),
-                                                fontWeight: 'bold'
-                                            }}
-                                        >
-                                            {getStatusTranslation(order.orderStatus)}
-                                        </Box>
-                                    </TableCell>
-                                    <TableCell>
-                                        {order.boxInfo ? (
-                                            <Typography variant="body2">
-                                                KT: {order.boxInfo.length}x{order.boxInfo.width}x{order.boxInfo.height}cm,
-                                                {order.boxInfo.weight}g
-                                            </Typography>
-                                        ) : (
-                                            <Typography variant="body2" color="text.secondary">Chưa có</Typography>
-                                        )}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Box
-                                            sx={{
-                                                display: 'flex',
-                                                flexWrap: 'wrap',
-                                                gap: 1,
-                                                maxWidth: 180,
-                                                justifyContent: 'space-between',
-                                            }}
-                                        >
-                                            <IconButton color="info" onClick={() => handleViewOrder(order)} title="Xem chi tiết">
-                                                <Visibility />
-                                            </IconButton>
-
-                                            {order.orderStatus === 'Pending' && (
-                                                <>
-                                                    <Box sx={{ display: 'flex', gap: 1 }}>
-                                                        <IconButton
-                                                            color="primary"
-                                                            onClick={() => handleConfirmOrder(order._id)}
-                                                            title="Xác nhận đơn hàng"
-                                                            disabled={!order.boxInfo}
-                                                        >
-                                                            <Check />
-                                                        </IconButton>
-
-                                                        <IconButton
-                                                            color="secondary"
-                                                            onClick={() => handleEditBox(order)}
-                                                            title="Chỉnh sửa đóng gói"
-                                                        >
-                                                            <Edit />
-                                                        </IconButton>
-                                                    </Box>
-
-                                                    <Box sx={{ display: 'flex', gap: 1 }}>
-                                                        <IconButton color="error" onClick={() => handleCancellOrder(order._id)} title="Huỷ đơn hàng">
-                                                            <CloseIcon />
-                                                        </IconButton>
-                                                    </Box>
-                                                </>
+                            .map((order, index) => {
+                                const totalAmount = calculateTotalAmount(order);
+                                return (
+                                    <TableRow key={order._id}>
+                                        <TableCell>{order._id.slice(-6).toUpperCase()}</TableCell>
+                                        <TableCell>{order.user ? `${order.user.name} ` : 'N/A'}</TableCell>
+                                        <TableCell>{formatDate(order.createdAt)}</TableCell>
+                                        <TableCell>{getPaymentMethodTranslation(order.paymentMethod)}</TableCell>
+                                        <TableCell>
+                                            <Box
+                                                sx={{
+                                                    color: getStatusColor(order.paymentStatus),
+                                                    fontWeight: 'bold'
+                                                }}
+                                            >
+                                                {getPaymentStatusTranslation(order.paymentStatus)}
+                                            </Box>
+                                        </TableCell>
+                                        <TableCell>{calculateTotalAmount(order).toLocaleString('vi-VN')} VNĐ</TableCell>
+                                        <TableCell>
+                                            <Box
+                                                sx={{
+                                                    color: getStatusColor(order.orderStatus),
+                                                    fontWeight: 'bold'
+                                                }}
+                                            >
+                                                {getStatusTranslation(order.orderStatus)}
+                                            </Box>
+                                        </TableCell>
+                                        <TableCell>
+                                            {order.boxInfo ? (
+                                                <Typography variant="body2">
+                                                    KT: {order.boxInfo.length}x{order.boxInfo.width}x{order.boxInfo.height}cm,
+                                                    {order.boxInfo.weight}g
+                                                </Typography>
+                                            ) : (
+                                                <Typography variant="body2" color="text.secondary">Chưa có</Typography>
                                             )}
-                                        </Box>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Box
+                                                sx={{
+                                                    display: 'flex',
+                                                    flexWrap: 'wrap',
+                                                    gap: 1,
+                                                    maxWidth: 180,
+                                                    justifyContent: 'space-between',
+                                                }}
+                                            >
+                                                <IconButton color="info" onClick={() => handleViewOrder(order)} title="Xem chi tiết">
+                                                    <Visibility />
+                                                </IconButton>
+
+                                                {order.orderStatus === 'Pending' && (
+                                                    <>
+                                                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                                                            {totalAmount > 500000 ? (
+                                                                <Tooltip
+                                                                    title="Không hỗ trợ thu tiền hộ với đơn hàng lớn hơn 500,000 VNĐ"
+                                                                    placement="top"
+                                                                >
+                                                                    <IconButton color="warning">
+                                                                        <Warning />
+                                                                    </IconButton>
+                                                                </Tooltip>
+                                                            ) : (
+                                                                <IconButton
+                                                                    color="primary"
+                                                                    onClick={() => handleConfirmOrder(order._id, totalAmount)}
+                                                                    title="Xác nhận đơn hàng"
+                                                                    disabled={!order.boxInfo}
+                                                                >
+                                                                    <Check />
+                                                                </IconButton>
+                                                            )}
+
+                                                            <IconButton
+                                                                color="secondary"
+                                                                onClick={() => handleEditBox(order)}
+                                                                title="Chỉnh sửa đóng gói"
+                                                            >
+                                                                <Edit />
+                                                            </IconButton>
+                                                        </Box>
+
+                                                        <Box sx={{ display: 'flex', gap: 1 }}>
+                                                            <IconButton color="error" onClick={() => handleCancellOrder(order._id)} title="Huỷ đơn hàng">
+                                                                <CloseIcon />
+                                                            </IconButton>
+                                                        </Box>
+                                                    </>
+                                                )}
+                                            </Box>
+                                        </TableCell>
+                                    </TableRow>
+                                )
+                            })}
                     </TableBody>
                 </Table>
                 <TablePagination
