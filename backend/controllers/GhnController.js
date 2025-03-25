@@ -129,13 +129,10 @@ const confirmOrder = async (req, res) => {
     for (const item of order.items) {
       const book = item.book;
       if (book.stock < item.quantity) {
-        return res
-          .status(400)
-          .json({ message: `Sách "${book.title}" không đủ hàng!` });
+        return res.status(400).json({ message: `Sách "${book.title}" không đủ hàng!` });
       }
       totalValue += item.price * item.quantity;
     }
-    totalValue += order?.shippingInfo?.fee;
 
     if (order.discountUsed) {
       if (order.discountUsed.type === "percentage") {
@@ -182,10 +179,16 @@ const confirmOrder = async (req, res) => {
       order.orderStatus = "Processing";
       const orderCode = dataResponse?.data?.order_code;
       order.trackingNumber = orderCode;
+
+      await Promise.all(
+        order.items.map(async (item) => {
+          const book = item.book;
+          book.stock -= item.quantity;
+          await book.save();
+        })
+      );
       await order.save();
-      res
-        .status(200)
-        .json({ message: "Xác nhận đơn hàng thành công", orderCode });
+      res.status(200).json({ message: "Xác nhận đơn hàng thành công", orderCode });
     } else {
       res.status(400).json({ message: dataResponse?.message });
     }

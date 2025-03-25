@@ -64,9 +64,9 @@ function Login({ onLoginSuccess }) {
       storageMethod.setItem("userEmail", formData.email);
       storageMethod.setItem("userRole", userRole);
       
-      // Call the onLoginSuccess prop with the email
+      // Call the onLoginSuccess prop with the email and role
       if (onLoginSuccess) {
-        onLoginSuccess(formData.email);
+        onLoginSuccess(formData.email, userRole);
       }
       
       handleAlert("Đăng nhập thành công!", "success");
@@ -76,11 +76,13 @@ function Login({ onLoginSuccess }) {
       
       // Direct navigation based on role - this is key!
       console.log("User role:", userRole);
-      if (userRole === "admin") {
-        window.location.href = "/admin/dashboard";
-      } else {
-        window.location.href = "/";
-      }
+      setTimeout(() => {
+        if (userRole === "admin") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/");
+        }
+      }, 1000); // Short delay to show success message
     } catch (error) {
       console.error("Login error:", error);
       handleAlert("Đăng nhập thất bại. Vui lòng kiểm tra lại email và mật khẩu.", "error");

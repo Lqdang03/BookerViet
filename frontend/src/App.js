@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Resgiter from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -28,15 +28,69 @@ import BookManagement from "./pages/AdminSite/BookManagement.js";
 import DiscountManagement from "./pages/AdminSite/DiscountManagement.js";
 import Analysis from "./pages/AdminSite/Analysis.js";
 
+// Protected Route Components
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const userRole = localStorage.getItem("userRole") || sessionStorage.getItem("userRole");
+  const isAuthenticated = localStorage.getItem("token") || sessionStorage.getItem("token");
+  
+  if (!isAuthenticated) {
+    // Redirect to login if not authenticated
+    return <Navigate to="/account/login" replace />;
+  }
+  
+  if (allowedRoles && !allowedRoles.includes(userRole)) {
+    // Redirect to forbidden page if role is not allowed
+    return <Navigate to="/forbidden" replace />;
+  }
+  
+  return children;
+};
+
+const AdminRoute = ({ children }) => {
+  return (
+    <ProtectedRoute allowedRoles={["admin"]}>
+      {children}
+    </ProtectedRoute>
+  );
+};
+
+const UserRoute = ({ children }) => {
+  return (
+    <ProtectedRoute allowedRoles={["user"]}>
+      {children}
+    </ProtectedRoute>
+  );
+};
+
+// Forbidden page component
+const ForbiddenPage = () => {
+  return (
+    <div style={{ 
+      padding: '50px 20px', 
+      textAlign: 'center', 
+      maxWidth: '600px', 
+      margin: '0 auto' 
+    }}>
+      <h1 style={{ color: '#d32f2f', fontSize: '2rem' }}>403 - Truy cập bị từ chối</h1>
+      <p style={{ fontSize: '1.1rem', marginTop: '20px' }}>
+        Bạn không có quyền truy cập vào trang này. Vui lòng liên hệ admin nếu bạn cho rằng đây là lỗi.
+      </p>
+    </div>
+  );
+};
+
 function App() {
   const [userEmail, setUserEmail] = useState(null);
+  const [userRole, setUserRole] = useState(null);
   const [wishlistCount, setWishlistCount] = useState(0);
   const [cartTotal, setCartTotal] = useState(0);
   const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
     const storedEmail = localStorage.getItem("userEmail") || sessionStorage.getItem("userEmail");
+    const storedRole = localStorage.getItem("userRole") || sessionStorage.getItem("userRole");
     setUserEmail(storedEmail);
+    setUserRole(storedRole);
 
     if (storedEmail) {
       fetchWishlistCount();
@@ -79,8 +133,11 @@ function App() {
     }
   };
 
-  const updateUserEmail = (email) => {
+  const updateUserEmail = (email, role = null) => {
     setUserEmail(email);
+    if (role) {
+      setUserRole(role);
+    }
 
     // If user logs in, fetch their data
     if (email) {
@@ -91,11 +148,13 @@ function App() {
       setWishlistCount(0);
       setCartTotal(0);
       setCartCount(0);
+      setUserRole(null);
     }
   };
-  console.log(AdminDashboard);
+
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith("/admin");
+  
   return (
     <>
       {!isAdminRoute &&
@@ -109,15 +168,16 @@ function App() {
       }
 
       <Routes>
-        <Route
-          path="/admin"
-          element={
+        {/* Admin Routes */}
+        <Route path="/admin" element={
+          <AdminRoute>
             <AdminLayout
               userEmail={userEmail}
               updateUserEmail={updateUserEmail}
             />
-          }>
-          <Route path="dashboard" element={< AdminDashboard />} />
+          </AdminRoute>
+        }>
+          <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="users" element={<UserManagement />} />
           <Route path="books" element={<BookManagement />} />
           <Route path="orders" element={<OrderManagement />} />
@@ -126,22 +186,64 @@ function App() {
           <Route path="reports" element={<ReportManagement />} />
           <Route path="analysis" element={<Analysis />} />
         </Route>
+
+        {/* Authentication Routes */}
         <Route path="/account/login" element={<Login onLoginSuccess={updateUserEmail} />} />
         <Route path="/account/register" element={<Resgiter />} />
         <Route path="/account/forgotpassword" element={<ForgotPassword />} />
+
+        {/* User Protected Routes */}
+        <Route path="/user/wishlist" element={
+          <UserRoute>
+            <Wishlist updateWishlistCount={fetchWishlistCount} />
+          </UserRoute>
+        } />
+        <Route path="/user/profile" element={
+          <UserRoute>
+            <AccountDetail />
+          </UserRoute>
+        } />
+        <Route path="/user/change-password" element={
+          <UserRoute>
+            <ChangePassword />
+          </UserRoute>
+        } />
+        <Route path="/cart" element={
+          <UserRoute>
+            <Cart updateCartData={fetchCartData} />
+          </UserRoute>
+        } />
+        <Route path="/checkout" element={
+          <UserRoute>
+            <OrderPage />
+          </UserRoute>
+        } />
+        <Route path="/payment-success" element={
+          <UserRoute>
+            <OrderSuccessPage updateCartData={fetchCartData} />
+          </UserRoute>
+        } />
+        <Route path="/track-order" element={
+          <UserRoute>
+            <TrackOrder />
+          </UserRoute>
+        } />
+        <Route path="/complaint" element={
+          <UserRoute>
+            <ComplaintPage />
+          </UserRoute>
+        } />
+
+        {/* Public Routes */}
         <Route path="/book/:id" element={<BookDetail updateWishlistCount={fetchWishlistCount} updateCartData={fetchCartData} />} />
-        <Route path="/book-result" element={<BookResult updateWishlistCount={fetchWishlistCount} updateCartData={fetchCartData}/>} />
+        <Route path="/book-result" element={<BookResult updateWishlistCount={fetchWishlistCount} updateCartData={fetchCartData} />} />
         <Route path="/" element={<HomePage updateWishlistCount={fetchWishlistCount} updateCartData={fetchCartData} />} />
-        <Route path="/user/wishlist" element={<Wishlist updateWishlistCount={fetchWishlistCount} />} />
-        <Route path="/cart" element={<Cart updateCartData={fetchCartData} />} />
-        <Route path="/user/profile" element={<AccountDetail/>} />
-        <Route path="/user/change-password" element={<ChangePassword/>} />
-        <Route path="/category/:id" element={<ViewBookByCategory updateWishlistCount={fetchWishlistCount}/>}/>
-        <Route path="/complaint" element={<ComplaintPage/>}/>
-        <Route path="/checkout" element={<OrderPage/>}/>
-        <Route path="/payment-success" element={<OrderSuccessPage updateCartData={fetchCartData} />} />
-        <Route path="/track-order" element={<TrackOrder/>} />
+        <Route path="/category/:id" element={<ViewBookByCategory updateWishlistCount={fetchWishlistCount} />} />
+        
+        {/* Forbidden/Error Route */}
+        <Route path="/forbidden" element={<ForbiddenPage />} />
       </Routes>
+      
       {!isAdminRoute && <Footer />}
     </>
   );
