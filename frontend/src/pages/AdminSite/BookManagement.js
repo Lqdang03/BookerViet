@@ -276,13 +276,6 @@ const BookManagement = () => {
     <Box sx={{ padding: 1, width: "100%", maxWidth: "calc(100% - 250px)", margin: "auto" }}>
       <Typography variant="h4" gutterBottom>Quản lý Sách</Typography>
       <Box sx={{ display: "flex", gap: 3, marginBottom: 2 }}>
-        <TextField
-          label="Tìm kiếm theo tên sách"
-          variant="outlined"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-
         <FormControl fullWidth variant="outlined">
           <InputLabel >Danh mục</InputLabel>
           <Select
@@ -297,7 +290,15 @@ const BookManagement = () => {
           </Select>
         </FormControl>
 
-        <Button style={{ padding: 0 }} variant="contained" color="primary" onClick={() => handleOpenBookDialog()}>Thêm Sách</Button>
+        <TextField
+          label="Tìm kiếm theo tên sách"
+          variant="outlined"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          fullWidth
+        />
+
+        <Button style={{ padding: 0, width: "17%" }} variant="contained" color="primary" onClick={() => handleOpenBookDialog()}>Thêm Sách</Button>
 
       </Box>
       <TableContainer component={Paper} sx={{ marginTop: 2 }}>
