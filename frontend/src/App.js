@@ -35,7 +35,7 @@ const AdminRoute = ({ children }) => {
   
   if (!isAuthenticated || userRole !== "admin") {
     // Redirect to forbidden page if not authenticated as admin
-    return <Navigate to="/forbidden" replace />;
+    return <Navigate to="/account/login" replace />;
   }
   
   return children;
