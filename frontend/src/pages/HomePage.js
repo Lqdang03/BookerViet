@@ -10,11 +10,10 @@ import {
     IconButton,
     Grid,
     Container,
-    // Button
+    Rating
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import FavoriteIcon from "@mui/icons-material/Favorite";
-// import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import axios from "axios";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
@@ -26,6 +25,7 @@ const HomePage = ({ updateWishlistCount, updateCartData }) => {
     const [books, setBooks] = useState([]);
     const [notifications, setNotifications] = useState([]);
     const [wishlist, setWishlist] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     // Sample banner images - replace with your actual images
     const bannerImages = [
@@ -47,26 +47,79 @@ const HomePage = ({ updateWishlistCount, updateCartData }) => {
             link: "/",
             alt: "Bestsellers Collection"
         },
-        // {
-        //     id: 4,
-        //     imageUrl: "/pictures/BookerViet.png",
-        //     link: "/",
-        //     alt: "Bestsellers Collection"
-        // }
     ];
 
+    // Function to fetch book ratings
+    const fetchBookRatings = async (bookList) => {
+        try {
+            // Create an array of promises for fetching ratings for each book
+            const ratingPromises = bookList.map(book => 
+                axios.get(`http://localhost:9999/reviews/${book._id}`)
+                    .then(response => ({
+                        bookId: book._id,
+                        averageRating: response.data.averageRating || 0
+                    }))
+                    .catch(() => ({
+                        bookId: book._id,
+                        averageRating: 0
+                    }))
+            );
+            
+            // Wait for all rating requests to complete
+            const ratingsResults = await Promise.all(ratingPromises);
+            
+            // Create a map of book IDs to ratings
+            const ratingsMap = {};
+            ratingsResults.forEach(result => {
+                ratingsMap[result.bookId] = result.averageRating;
+            });
+            
+            // Update the books with their ratings
+            const booksWithRatings = bookList.map(book => ({
+                ...book,
+                averageRating: ratingsMap[book._id] || 0
+            }));
+            
+            return booksWithRatings;
+        } catch (error) {
+            console.error("Error fetching book ratings:", error);
+            return bookList.map(book => ({
+                ...book,
+                averageRating: book.averageRating || 0
+            }));
+        }
+    };
+
     useEffect(() => {
+        setIsLoading(true);
+        
+        // Fetch books
         axios.get("http://localhost:9999/book/")
-            .then(response => {
+            .then(async response => {
                 const bookData = response.data.map(book => ({
                     ...book,
                     price: book.price,
-                    originalPrice: book.originalPrice
+                    originalPrice: book.originalPrice,
                 }));
-                setBooks(bookData);
+                
+                // Method 1: If the book data already includes average ratings
+                if (bookData.length > 0 && bookData[0].averageRating !== undefined) {
+                    setBooks(bookData);
+                    setIsLoading(false);
+                } 
+                // Method 2: Fetch ratings separately for each book
+                else {
+                    const booksWithRatings = await fetchBookRatings(bookData);
+                    setBooks(booksWithRatings);
+                    setIsLoading(false);
+                }
             })
-            .catch(error => console.error("Lỗi khi lấy danh sách sách:", error));
+            .catch(error => {
+                console.error("Lỗi khi lấy danh sách sách:", error);
+                setIsLoading(false);
+            });
 
+        // Fetch wishlist
         const token = localStorage.getItem("token") || sessionStorage.getItem("token");
         if (token) {
             axios.get("http://localhost:9999/user/wishlist", {
@@ -163,7 +216,9 @@ const HomePage = ({ updateWishlistCount, updateCartData }) => {
                 });
 
                 setWishlist(prev => prev.filter(id => id !== bookId));
-                updateWishlistCount(prev => prev - 1);
+                if (typeof updateWishlistCount === 'function') {
+                    updateWishlistCount(prev => prev - 1);
+                }
                 setNotifications(prev => [...prev, { id: Date.now(), message: "Đã xóa khỏi danh sách yêu thích", severity: "success" }]);
             } else {
                 // Add to wishlist
@@ -172,10 +227,13 @@ const HomePage = ({ updateWishlistCount, updateCartData }) => {
                 });
 
                 setWishlist(prev => [...prev, bookId]);
-                updateWishlistCount(prev => prev + 1);
+                if (typeof updateWishlistCount === 'function') {
+                    updateWishlistCount(prev => prev + 1);
+                }
                 setNotifications(prev => [...prev, { id: Date.now(), message: "Đã thêm vào danh sách yêu thích", severity: "success" }]);
             }
         } catch (error) {
+            console.error("Wishlist error:", error);
             setNotifications(prev => [...prev, { id: Date.now(), message: "Không thể cập nhật danh sách yêu thích", severity: "error" }]);
         }
     };
@@ -215,137 +273,163 @@ const HomePage = ({ updateWishlistCount, updateCartData }) => {
 
             <Box p={3} textAlign="center">
                 <Typography variant="h5" gutterBottom mb={3}>Danh sách sách</Typography>
-                <Grid container spacing={2} justifyContent="flex-start" >
-                    {books.map((book) => (
-                        <Grid item xs={12} sm={6} md={4} lg={2.4} key={book._id}>
-                            <Card sx={{
-                                maxWidth: "100%",
-                                height: '100%',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                position: 'relative',
-                                mb: 2
-                            }}>
-                                <Box sx={{ position: 'relative', width: '100%' }}>
-                                    {book.originalPrice > book.price && (
-                                        <Box
+                {isLoading ? (
+                    <Typography>Đang tải...</Typography>
+                ) : (
+                    <Grid container spacing={2} justifyContent="flex-start">
+                        {books.map((book) => (
+                            <Grid item xs={12} sm={6} md={4} lg={2.4} key={book._id}>
+                                <Card sx={{
+                                    maxWidth: "100%",
+                                    height: '100%',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    position: 'relative',
+                                    mb: 2
+                                }}>
+                                    <Box sx={{ position: 'relative', width: '100%' }}>
+                                        {book.originalPrice > book.price && (
+                                            <Box
+                                                sx={{
+                                                    position: 'absolute',
+                                                    top: 0,
+                                                    right: 0,
+                                                    width: '38px',
+                                                    height: '38px',
+                                                    backgroundImage: 'url(//bizweb.dktcdn.net/100/445/986/themes/848655/assets/label-sale.png?1737605118310)',
+                                                    backgroundRepeat: 'no-repeat',
+                                                    backgroundSize: 'contain',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    fontSize: '12px',
+                                                    fontWeight: 'bold',
+                                                    color: 'red',
+                                                    zIndex: 2
+                                                }}
+                                            >
+                                                -{Math.round((1 - book.price / book.originalPrice) * 100)}%
+                                            </Box>
+                                        )}
+                                        {book.stock === 0 && (
+                                            <Box
+                                                sx={{
+                                                    position: 'absolute',
+                                                    top: 0,
+                                                    left: 0,
+                                                    bgcolor: 'rgba(0, 0, 0, 0.7)',
+                                                    color: 'white',
+                                                    padding: '4px 8px',
+                                                    fontSize: '12px',
+                                                    fontWeight: 'bold',
+                                                    zIndex: 2,
+                                                    borderRadius: '0 0 4px 0'
+                                                }}
+                                            >
+                                                Hết hàng
+                                            </Box>
+                                        )}
+                                        <IconButton
+                                            onClick={() => toggleWishlist(book._id)}
+                                            color={wishlist.includes(book._id) ? "error" : "default"}
+                                            size="small"
                                             sx={{
                                                 position: 'absolute',
-                                                top: 0,
-                                                right: 0,
-                                                width: '38px',
-                                                height: '38px',
-                                                backgroundImage: 'url(//bizweb.dktcdn.net/100/445/986/themes/848655/assets/label-sale.png?1737605118310)',
-                                                backgroundRepeat: 'no-repeat',
-                                                backgroundSize: 'contain',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                fontSize: '12px',
-                                                fontWeight: 'bold',
-                                                color: 'red',
+                                                bottom: 5,
+                                                right: 20,
+                                                bgcolor: 'rgba(255, 255, 255, 0.8)',
+                                                '&:hover': {
+                                                    bgcolor: 'rgba(255, 255, 255, 0.9)'
+                                                },
                                                 zIndex: 2
                                             }}
                                         >
-                                            -{Math.round((1 - book.price / book.originalPrice) * 100)}%
-                                        </Box>
-                                    )}
-                                    {book.stock === 0 && (
-                                        <Box
-                                            sx={{
-                                                position: 'absolute',
-                                                top: 0,
-                                                left: 0,
-                                                bgcolor: 'rgba(0, 0, 0, 0.7)',
-                                                color: 'white',
-                                                padding: '4px 8px',
-                                                fontSize: '12px',
-                                                fontWeight: 'bold',
-                                                zIndex: 2,
-                                                borderRadius: '0 0 4px 0'
-                                            }}
-                                        >
-                                            Hết hàng
-                                        </Box>
-                                    )}
-                                    <IconButton
-                                        onClick={() => toggleWishlist(book._id)}
-                                        color={wishlist.includes(book._id) ? "error" : "default"}
-                                        size="small"
-                                        sx={{
-                                            position: 'absolute',
-                                            bottom: 5,
-                                            right: 20,
-                                            bgcolor: 'rgba(255, 255, 255, 0.8)',
-                                            '&:hover': {
-                                                bgcolor: 'rgba(255, 255, 255, 0.9)'
-                                            },
-                                            zIndex: 2
-                                        }}
-                                    >
-                                        <FavoriteIcon />
-                                    </IconButton>
-                                    {/* Rest of card content remains the same */}
-                                    <Link to={`/book/${book._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                                        <Box
-                                            sx={{
-                                                position: 'relative',
-                                                width: '180px',
-                                                height: '180px',
-                                                display: 'flex',
-                                                justifyContent: 'center',
-                                                alignItems: 'center',
-                                                overflow: 'hidden',
-                                                mt: 2,
-                                                mx: 'auto',
-                                                border: '1px solid #e0e0e0',
-                                                borderRadius: '4px',
-                                                backgroundColor: '#fff',
-                                                padding: '3px'
-                                            }}
-                                        >
-                                            <CardMedia
-                                                component="img"
-                                                image={book.images[0]}
-                                                alt={book.title}
+                                            <FavoriteIcon />
+                                        </IconButton>
+                                        <Link to={`/book/${book._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                            <Box
                                                 sx={{
-                                                    width: '100%',
-                                                    height: '100%',
-                                                    objectFit: 'contain',
-                                                    cursor: 'pointer',
-                                                    transition: 'transform 0.4s ease-in-out',
-                                                    '&:hover': {
-                                                        transform: 'scale(1.1)'
-                                                    }
+                                                    position: 'relative',
+                                                    width: '180px',
+                                                    height: '180px',
+                                                    display: 'flex',
+                                                    justifyContent: 'center',
+                                                    alignItems: 'center',
+                                                    overflow: 'hidden',
+                                                    mt: 2,
+                                                    mx: 'auto',
+                                                    border: '1px solid #e0e0e0',
+                                                    borderRadius: '4px',
+                                                    backgroundColor: '#fff',
+                                                    padding: '3px'
                                                 }}
+                                            >
+                                                <CardMedia
+                                                    component="img"
+                                                    image={book.images && book.images.length > 0 ? book.images[0] : ""}
+                                                    alt={book.title}
+                                                    sx={{
+                                                        width: '100%',
+                                                        height: '100%',
+                                                        objectFit: 'contain',
+                                                        cursor: 'pointer',
+                                                        transition: 'transform 0.4s ease-in-out',
+                                                        '&:hover': {
+                                                            transform: 'scale(1.1)'
+                                                        }
+                                                    }}
+                                                />
+                                            </Box>
+                                        </Link>
+                                    </Box>
+                                    <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', width: '180px', padding: '15px 0', "&:last-child": { paddingBottom: 0 } }}>
+                                        <Link to={`/book/${book._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                                            <Typography
+                                                gutterBottom
+                                                variant="h6"
+                                                sx={{
+                                                    fontSize: '0.9rem',
+                                                    textAlign: 'left',
+                                                    display: '-webkit-box',
+                                                    WebkitBoxOrient: 'vertical',
+                                                    WebkitLineClamp: 2,
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    height: '40px',
+                                                    cursor: 'pointer',
+                                                    marginBottom: '5px',
+                                                    paddingBottom: "5px",
+                                                    '&:hover': { color: '#187bcd' }
+                                                }}
+                                            >
+                                                {book.title}
+                                            </Typography>
+                                        </Link>
+                                        
+                                        {/* Rating display */}
+                                        <Box sx={{ 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            gap: 1, 
+                                            marginBottom: 1 
+                                        }}>
+                                            <Rating 
+                                                value={book.averageRating || 0} 
+                                                precision={0.1} 
+                                                readOnly 
+                                                size="small"
                                             />
+                                            {/* <Typography 
+                                                variant="body2" 
+                                                sx={{ 
+                                                    color: 'text.secondary', 
+                                                    fontSize: '0.75rem' 
+                                                }}
+                                            >
+                                                ({(book.averageRating || 0).toFixed(1)})
+                                            </Typography> */}
                                         </Box>
-                                    </Link>
-                                </Box>
-                                <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', width: '180px', padding: '15px 0', "&:last-child": { paddingBottom: 0 } }}>
-                                    <Link to={`/book/${book._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                                        <Typography
-                                            gutterBottom
-                                            variant="h6"
-                                            sx={{
-                                                fontSize: '0.9rem',
-                                                textAlign: 'left',
-                                                display: '-webkit-box',
-                                                WebkitBoxOrient: 'vertical',
-                                                WebkitLineClamp: 2,
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                height: '40px',
-                                                cursor: 'pointer',
-                                                marginBottom: '5px',
-                                                paddingBottom: "5px",
-                                                '&:hover': { color: '#187bcd' }
-                                            }}
-                                        >
-                                            {book.title}
-                                        </Typography>
-                                    </Link>
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                         <Typography variant="h5" color="error" sx={{ fontSize: '1.1rem', fontWeight: 'bold', textAlign: 'left', marginTop: '2px' }}>
                                             {book.price.toLocaleString()}₫
@@ -360,7 +444,8 @@ const HomePage = ({ updateWishlistCount, updateCartData }) => {
                             </Card>
                         </Grid>
                     ))}
-                </Grid>
+                    </Grid>
+                )}
             </Box>
             {notifications.map((notification) => (
                 <Snackbar

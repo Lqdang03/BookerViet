@@ -223,69 +223,83 @@ const ComplaintPage = () => {
 
   return (
     <>
-      <ComplaintBreadCrumb/>
-      <Container maxWidth="lg" sx={{ py: 2 }}>
-        <Typography variant="h5" component="h1" sx={{ mb: 2, fontWeight: 'bold' }}>
-            Phản Ánh Khiếu Nại
-        </Typography>
-        {!isAuthenticated ? (
-          <LoginPrompt />
-        ) : (
-          <>
-            <Grid container spacing={4}>
-              {/* Complaint Form */}
-              <Grid item xs={12} md={5}>
-                <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
-                  <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
-                    Gửi phản ánh 
-                  </Typography>
-                  <Divider sx={{ mb: 3 }} />
-                  
-                  <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <FormControl fullWidth required>
-                      <InputLabel id="complaint-type-label">Loại phản ánh</InputLabel>
-                      <Select
-                        labelId="complaint-type-label"
-                        id="type"
-                        name="type"
-                        value={formData.type}
-                        label="Loại phản ánh"
-                        onChange={handleInputChange}
-                      >
-                        <MenuItem value="Web">Website</MenuItem>
-                        <MenuItem value="Đơn hàng">Đơn hàng</MenuItem>
-                        <MenuItem value="Khác">Khác</MenuItem>
-                      </Select>
-                    </FormControl>
-                    
-                    <TextField
-                      id="description"
-                      name="description"
-                      label="Nội dung phản ánh"
-                      multiline
-                      rows={4}
-                      fullWidth
-                      required
-                      value={formData.description}
+    <ComplaintBreadCrumb/>
+    <Container maxWidth="lg" sx={{ py: 2 }}>
+      <Typography variant="h5" component="h1" sx={{ mb: 2, fontWeight: 'bold' }}>
+          Phản Ánh Khiếu Nại
+      </Typography>
+      {!isAuthenticated ? (
+        <LoginPrompt />
+      ) : (
+        <>
+          <Grid container spacing={4}>
+            {/* Complaint Form */}
+            <Grid item xs={12} md={5}>
+              <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
+                <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
+                  Gửi phản ánh 
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
+                
+                <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <FormControl fullWidth required>
+                    <InputLabel id="complaint-type-label">Loại phản ánh</InputLabel>
+                    <Select
+                      labelId="complaint-type-label"
+                      id="type"
+                      name="type"
+                      value={formData.type}
+                      label="Loại phản ánh"
                       onChange={handleInputChange}
-                      placeholder="Mô tả chi tiết về vấn đề bạn gặp phải..."
-                    />
-                    
-                    <Button 
-                      type="submit" 
-                      variant="contained" 
-                      sx={{ 
-                        bgcolor: '#187bcd', 
-                        '&:hover': { bgcolor: '#1565c0' },
-                        mt: 2
-                      }}
-                      disabled={loading}
                     >
-                      {loading ? <CircularProgress size={24} color="inherit" /> : 'Gửi phản ánh'}
-                    </Button>
-                  </Box>
-                </Paper>
-              </Grid>
+                      <MenuItem value="Web">Website</MenuItem>
+                      <MenuItem value="Đơn hàng">Đơn hàng</MenuItem>
+                      <MenuItem value="Khác">Khác</MenuItem>
+                    </Select>
+                  </FormControl>
+                  
+                  <TextField
+                    id="description"
+                    name="description"
+                    label="Nội dung phản ánh"
+                    multiline
+                    rows={4}
+                    fullWidth
+                    required
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    placeholder="Mô tả chi tiết về vấn đề bạn gặp phải..."
+                  />
+                  
+                  {/* New note added here */}
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary" 
+                    sx={{ 
+                      textAlign: 'center', 
+                      fontStyle: 'italic', 
+                      fontWeight: 'bold',
+                      mb: 1 
+                    }}
+                  >
+                    Sau khi gửi đơn chúng tôi sẽ liên hệ bạn qua email. Cảm ơn bạn đã góp ý
+                  </Typography>
+                  
+                  <Button 
+                    type="submit" 
+                    variant="contained" 
+                    sx={{ 
+                      bgcolor: '#187bcd', 
+                      '&:hover': { bgcolor: '#1565c0' },
+                      mt: 1
+                    }}
+                    disabled={loading}
+                  >
+                    {loading ? <CircularProgress size={24} color="inherit" /> : 'Gửi phản ánh'}
+                  </Button>
+                </Box>
+              </Paper>
+            </Grid>
               
               {/* Complaints List */}
               <Grid item xs={12} md={7}>
@@ -357,8 +371,8 @@ const ComplaintPage = () => {
           </>
         )}
         
-        {/* Notifications */}
-        <Snackbar
+         {/* Notifications */}
+         <Snackbar
           open={openSnackbar}
           autoHideDuration={6000}
           onClose={handleCloseSnackbar}

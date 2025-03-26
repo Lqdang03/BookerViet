@@ -26,6 +26,7 @@ import ReportManagement from "./pages/AdminSite/ReportManagement.js";
 import UserManagement from "./pages/AdminSite/UserManagement.js";
 import BookManagement from "./pages/AdminSite/BookManagement.js";
 import DiscountManagement from "./pages/AdminSite/DiscountManagement.js";
+import Refund from "./pages/Refund.js";
 
 // Protected Route Components
 const AdminRoute = ({ children }) => {
@@ -220,6 +221,11 @@ function App() {
         <Route path="/complaint" element={
           <UserOnlyRoute>
             <ComplaintPage />
+          </UserOnlyRoute>
+        } />
+        <Route path="/refund" element={
+          <UserOnlyRoute>
+            <Refund />
           </UserOnlyRoute>
         } />
 

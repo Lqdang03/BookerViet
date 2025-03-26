@@ -12,7 +12,8 @@ import {
   Box,
   CircularProgress,
   Container,
-  IconButton
+  IconButton,
+  Rating
 } from '@mui/material';
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import CategoryBreadCrumb from '../components/Breadcrumbs/CategoryBreadCrumb';
@@ -25,6 +26,34 @@ const ViewBookByCategory = ({ updateWishlistCount }) => {
   const [wishlist, setWishlist] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const { id: categoryId } = useParams();
+
+  // Function to fetch book ratings
+  const fetchBookRatings = async (bookList) => {
+    try {
+      // Create an array of promises for fetching ratings for each book
+      const ratingPromises = bookList.map(book => 
+        axios.get(`http://localhost:9999/reviews/${book._id}`)
+          .then(response => ({
+            ...book,
+            averageRating: response.data.averageRating || 0
+          }))
+          .catch(() => ({
+            ...book,
+            averageRating: 0
+          }))
+      );
+      
+      // Wait for all rating requests to complete
+      const booksWithRatings = await Promise.all(ratingPromises);
+      return booksWithRatings;
+    } catch (error) {
+      console.error("Error fetching book ratings:", error);
+      return bookList.map(book => ({
+        ...book,
+        averageRating: book.averageRating || 0
+      }));
+    }
+  };
 
   useEffect(() => {
     const fetchBooksByCategory = async () => {
@@ -50,7 +79,10 @@ const ViewBookByCategory = ({ updateWishlistCount }) => {
         const activeBooks = booksResponse.data.filter(book => book.isActivated !== false);
         console.log('Active Books:', activeBooks);
 
-        setBooks(activeBooks);
+        // Fetch ratings for books
+        const booksWithRatings = await fetchBookRatings(activeBooks);
+
+        setBooks(booksWithRatings);
         setCategoryName(categoryName);
         setLoading(false);
 
@@ -272,6 +304,22 @@ const ViewBookByCategory = ({ updateWishlistCount }) => {
                         {book.title}
                       </Typography>
                     </Link>
+
+                     {/* Rating display */}
+                     <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 1, 
+                      marginBottom: 1 
+                    }}>
+                      <Rating 
+                        value={book.averageRating || 0} 
+                        precision={0.1} 
+                        readOnly 
+                        size="small"
+                      />
+                    </Box>
+
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Typography variant="h5" color="error" sx={{ fontSize: '1.1rem', fontWeight: 'bold', textAlign: 'left', marginTop: '2px' }}>
                         {book.price.toLocaleString()}₫
