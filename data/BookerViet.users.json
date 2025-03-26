@@ -1,0 +1,155 @@
+[{
+  "_id": {
+    "$oid": "67c288c6e452f730bf8d3e92"
+  },
+  "name": "Nguyễn Thành Nhật",
+  "email": "thanhdeapool@gmail.com",
+  "password": "$2a$10$KCacqxSCrfQifqWPOGq4bexXwZKs/zTC2pfDkJZYPNgmcXyA4n.4C",
+  "phone": "0868524122",
+  "point": 0,
+  "wishlist": [],
+  "role": "user",
+  "createdAt": {
+    "$date": "2025-03-01T04:10:46.203Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-25T07:19:11.812Z"
+  },
+  "__v": 0,
+  "isActivated": true
+},
+{
+  "_id": {
+    "$oid": "67c2891ae452f730bf8d3e95"
+  },
+  "name": "Nguyễn Thành Nhật",
+  "email": "nhatnthe176486@fpt.edu.vn",
+  "password": "$2a$10$yGhdPOQtjZyAmGixUX4DGeXjzhV.0FbzB5h/YmIlZ6af9A.ARLFve",
+  "phone": "0868524122",
+  "point": 0,
+  "wishlist": [
+    {
+      "$oid": "67b09f7137ee5d7ec44f5f25"
+    },
+    {
+      "$oid": "67c1c565a66930346fb45951"
+    },
+    {
+      "$oid": "67b09f7137ee5d7ec44f5f21"
+    }
+  ],
+  "role": "admin",
+  "createdAt": {
+    "$date": "2025-03-01T04:12:10.932Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-01T04:27:05.214Z"
+  },
+  "__v": 5,
+  "isActivated": true
+},
+{
+  "_id": {
+    "$oid": "67c2e13a4e7756fe8d2e1b22"
+  },
+  "name": "Đỗ Đình Nam",
+  "email": "dinhthangdo890@gmail.com",
+  "password": "$2a$10$pOxRQn5upnrx6WqAnMo4Lue7sy6fjoSHXSb.DlpzrOyZdo.8Ohkg2",
+  "phone": "0389772182",
+  "point": 0,
+  "wishlist": [
+    {
+      "$oid": "67c1c40fa66930346fb45950"
+    },
+    {
+      "$oid": "67b09f7137ee5d7ec44f5f21"
+    },
+    {
+      "$oid": "67b09f7137ee5d7ec44f5f1d"
+    }
+  ],
+  "role": "user",
+  "createdAt": {
+    "$date": "2025-03-01T10:28:10.112Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-20T02:28:47.978Z"
+  },
+  "__v": 99,
+  "isActivated": true
+},
+{
+  "_id": {
+    "$oid": "67cde43ef6a74260e938781f"
+  },
+  "name": "Dang-hehehehe",
+  "email": "dangdang0xx@gmail.com",
+  "password": "$2a$10$JqKWv2JcRJAey47rwG6pMe3evJ272GSi3awu96QZkQKEZ91.VrOge",
+  "phone": "0123456789",
+  "point": 0,
+  "wishlist": [
+    {
+      "$oid": "67b09f7137ee5d7ec44f5f1f"
+    },
+    {
+      "$oid": "67b09f7137ee5d7ec44f5f1d"
+    },
+    {
+      "$oid": "67b09f7137ee5d7ec44f5f1e"
+    },
+    {
+      "$oid": "67b09f7137ee5d7ec44f5f21"
+    },
+    {
+      "$oid": "67c2d46ebb2c5e5590b82bf8"
+    }
+  ],
+  "role": "user",
+  "createdAt": {
+    "$date": "2025-03-09T18:55:58.638Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-25T07:09:05.611Z"
+  },
+  "__v": 7,
+  "isActivated": true
+},
+{
+  "_id": {
+    "$oid": "67e01e9c6352b8d8fbce09e9"
+  },
+  "name": "hehe",
+  "email": "danglqhe173350@fpt.edu.vn",
+  "password": "$2a$10$kgO9W/ruQftrcrQ1mEdI8.z6d5j1ew0rqGb9o9I87SZxDFtVlDJLy",
+  "phone": "0366950900",
+  "point": 0,
+  "wishlist": [],
+  "role": "admin",
+  "createdAt": {
+    "$date": "2025-03-23T14:45:48.937Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-25T03:31:39.053Z"
+  },
+  "__v": 0,
+  "isActivated": true
+},
+{
+  "_id": {
+    "$oid": "67e20bafdc0ff33fd948feb1"
+  },
+  "name": "Do Dinh Nam",
+  "email": "dinhnamdo456@gmail.com",
+  "password": "$2a$10$Vu0ZjVR1XuGgocxkPBgp8OXkk1eDgJ0KHGE0yVPmwqpUiHuoo5HI.",
+  "phone": "0389772182",
+  "point": 0,
+  "wishlist": [],
+  "role": "admin",
+  "createdAt": {
+    "$date": "2025-03-25T01:49:35.069Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-25T03:23:26.653Z"
+  },
+  "__v": 0
+}]

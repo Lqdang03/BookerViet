@@ -1,0 +1,180 @@
+[{
+  "_id": {
+    "$oid": "67d35d80b70c5b2bf3082ab2"
+  },
+  "book": {
+    "$oid": "67b09f7137ee5d7ec44f5f1e"
+  },
+  "user": {
+    "$oid": "67cde43ef6a74260e938781f"
+  },
+  "rating": 5,
+  "comment": "dhdhhdhddd",
+  "createdAt": {
+    "$date": "2025-03-13T22:34:40.763Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-13T23:45:49.239Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67d35f11b70c5b2bf3082c5f"
+  },
+  "book": {
+    "$oid": "67b09f7137ee5d7ec44f5f1f"
+  },
+  "user": {
+    "$oid": "67cde43ef6a74260e938781f"
+  },
+  "rating": 1,
+  "comment": "112312",
+  "createdAt": {
+    "$date": "2025-03-13T22:41:21.003Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-13T22:41:21.003Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67d365dc66cee1b01d235819"
+  },
+  "book": {
+    "$oid": "67cc462be25003210c21554b"
+  },
+  "user": {
+    "$oid": "67cde43ef6a74260e938781f"
+  },
+  "rating": 4.4,
+  "comment": "1231231",
+  "createdAt": {
+    "$date": "2025-03-13T23:10:20.023Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-13T23:10:20.023Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67d36ec51995c21369bd379b"
+  },
+  "book": {
+    "$oid": "67c1c565a66930346fb45951"
+  },
+  "user": {
+    "$oid": "67cde43ef6a74260e938781f"
+  },
+  "rating": 1.5,
+  "comment": "11111",
+  "createdAt": {
+    "$date": "2025-03-13T23:48:21.174Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-13T23:48:21.174Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67d36f191995c21369bd37db"
+  },
+  "book": {
+    "$oid": "67b09f7137ee5d7ec44f5f25"
+  },
+  "user": {
+    "$oid": "67cde43ef6a74260e938781f"
+  },
+  "rating": 4.2,
+  "comment": "12312312312",
+  "createdAt": {
+    "$date": "2025-03-13T23:49:45.027Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-13T23:49:45.027Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67d7f0189eb390124044f06c"
+  },
+  "book": {
+    "$oid": "67b09f7137ee5d7ec44f5f1f"
+  },
+  "user": {
+    "$oid": "67c2e13a4e7756fe8d2e1b22"
+  },
+  "rating": 4.7,
+  "comment": "123123",
+  "createdAt": {
+    "$date": "2025-03-17T09:49:12.014Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-17T09:49:12.014Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67e016ee836f9a2a3bb84b44"
+  },
+  "book": {
+    "$oid": "67b09f7137ee5d7ec44f5f23"
+  },
+  "user": {
+    "$oid": "67cde43ef6a74260e938781f"
+  },
+  "rating": 4,
+  "comment": "123",
+  "createdAt": {
+    "$date": "2025-03-23T14:13:02.965Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-23T14:13:02.965Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67e01e626352b8d8fbce09df"
+  },
+  "book": {
+    "$oid": "67c2d46ebb2c5e5590b82bf8"
+  },
+  "user": {
+    "$oid": "67cde43ef6a74260e938781f"
+  },
+  "rating": 3,
+  "comment": "31231",
+  "createdAt": {
+    "$date": "2025-03-23T14:44:50.012Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-23T14:44:50.012Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67e0237915faa875a873c8c7"
+  },
+  "book": {
+    "$oid": "67b09f7137ee5d7ec44f5f1d"
+  },
+  "user": {
+    "$oid": "67cde43ef6a74260e938781f"
+  },
+  "rating": 5,
+  "comment": "1231231",
+  "createdAt": {
+    "$date": "2025-03-23T15:06:33.744Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-23T15:06:33.744Z"
+  },
+  "__v": 0
+}]

@@ -1,0 +1,60 @@
+[{
+  "_id": {
+    "$oid": "67c28d0de452f730bf8d3f56"
+  },
+  "user": {
+    "$oid": "67c2891ae452f730bf8d3e95"
+  },
+  "cartItems": [],
+  "__v": 1
+},
+{
+  "_id": {
+    "$oid": "67c2e1f94e7756fe8d2e1b48"
+  },
+  "user": {
+    "$oid": "67c2e13a4e7756fe8d2e1b22"
+  },
+  "cartItems": [
+    {
+      "book": {
+        "$oid": "67b09f7137ee5d7ec44f5f21"
+      },
+      "quantity": 2,
+      "_id": {
+        "$oid": "67e0fa82384496435df6433e"
+      }
+    }
+  ],
+  "__v": 135
+},
+{
+  "_id": {
+    "$oid": "67c2e5a710acc8ffa1c81ada"
+  },
+  "user": {
+    "$oid": "67c288c6e452f730bf8d3e92"
+  },
+  "cartItems": [
+    {
+      "book": {
+        "$oid": "67b09f7137ee5d7ec44f5f1d"
+      },
+      "quantity": 5,
+      "_id": {
+        "$oid": "67e285e560461446d1891618"
+      }
+    }
+  ],
+  "__v": 10
+},
+{
+  "_id": {
+    "$oid": "67e256edb3a9e0b34a5f1257"
+  },
+  "user": {
+    "$oid": "67cde43ef6a74260e938781f"
+  },
+  "cartItems": [],
+  "__v": 4
+}]

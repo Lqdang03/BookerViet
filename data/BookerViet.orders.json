@@ -1,0 +1,386 @@
+[{
+  "_id": {
+    "$oid": "67db7931ea1131ac2dd2c2d6"
+  },
+  "user": {
+    "$oid": "67c2e13a4e7756fe8d2e1b22"
+  },
+  "items": [
+    {
+      "book": {
+        "$oid": "67b09f7137ee5d7ec44f5f1e"
+      },
+      "quantity": 1,
+      "price": 109000,
+      "_id": {
+        "$oid": "67db7931ea1131ac2dd2c2d7"
+      }
+    }
+  ],
+  "totalDiscount": 0,
+  "pointUsed": 0,
+  "paymentMethod": "Online",
+  "paymentStatus": "Pending",
+  "orderStatus": "Cancelled",
+  "shippingInfo": {
+    "name": "Đỗ Đình Nam",
+    "phoneNumber": "0389772182",
+    "address": "28 phạm tử nghi",
+    "provineName": "Kon Tum",
+    "districtName": "Huyện Tu Mơ Rông",
+    "wardName": "Xã Tu Mơ Rông",
+    "note": "",
+    "fee": 29001
+  },
+  "trackingNumber": null,
+  "boxInfo": null,
+  "createdAt": {
+    "$date": "2025-03-20T02:10:57.589Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-25T02:48:45.167Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67db7954ea1131ac2dd2c369"
+  },
+  "user": {
+    "$oid": "67c2e13a4e7756fe8d2e1b22"
+  },
+  "items": [
+    {
+      "book": {
+        "$oid": "67b09f7137ee5d7ec44f5f1e"
+      },
+      "quantity": 2,
+      "price": 109000,
+      "_id": {
+        "$oid": "67db7954ea1131ac2dd2c36a"
+      }
+    }
+  ],
+  "totalDiscount": 0,
+  "pointUsed": 0,
+  "paymentMethod": "Online",
+  "paymentStatus": "Completed",
+  "orderStatus": "Processing",
+  "shippingInfo": {
+    "name": "Đỗ Đình Nam",
+    "phoneNumber": "0389772182",
+    "address": "28 phạm tử nghi",
+    "provineName": "Hải Phòng",
+    "districtName": "Quận Lê Chân",
+    "wardName": "Phường Nghĩa Xá",
+    "note": "",
+    "fee": 31501
+  },
+  "trackingNumber": "G8EY4PQE",
+  "boxInfo": {
+    "weight": 300,
+    "length": 20,
+    "height": 20,
+    "width": 10,
+    "_id": {
+      "$oid": "67dc410f78a7bdbe27bdfd12"
+    }
+  },
+  "createdAt": {
+    "$date": "2025-03-20T02:11:32.629Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-20T16:23:49.165Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67dbcfdbca62e42e5a5cab79"
+  },
+  "user": {
+    "$oid": "67c288c6e452f730bf8d3e92"
+  },
+  "items": [
+    {
+      "book": {
+        "$oid": "67b09f7137ee5d7ec44f5f21"
+      },
+      "quantity": 1,
+      "price": 209000,
+      "_id": {
+        "$oid": "67dbcfdbca62e42e5a5cab7a"
+      }
+    }
+  ],
+  "totalDiscount": 0,
+  "pointUsed": 0,
+  "paymentMethod": "Online",
+  "paymentStatus": "Completed",
+  "orderStatus": "Processing",
+  "shippingInfo": {
+    "name": "Nguyễn Thành Nhật",
+    "phoneNumber": "0868524122",
+    "address": "Thôn Hủng 2, Xã Đao Tú",
+    "provineName": "Vĩnh Phúc",
+    "districtName": "Huyện Tam Dương",
+    "wardName": "Xã Đạo Tú",
+    "note": "ship giờ hành chính",
+    "fee": 29001
+  },
+  "trackingNumber": "G8EYC9RU",
+  "boxInfo": {
+    "weight": 200,
+    "length": 20,
+    "height": 20,
+    "width": 20,
+    "_id": {
+      "$oid": "67dbd0f0ca62e42e5a5cabe8"
+    }
+  },
+  "createdAt": {
+    "$date": "2025-03-20T08:20:43.658Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-20T08:25:21.571Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67e0f3100eaeba70f0e8d790"
+  },
+  "user": {
+    "$oid": "67c2e13a4e7756fe8d2e1b22"
+  },
+  "items": [
+    {
+      "book": {
+        "$oid": "67b09f7137ee5d7ec44f5f1e"
+      },
+      "quantity": 1,
+      "price": 109000,
+      "_id": {
+        "$oid": "67e0f3100eaeba70f0e8d791"
+      }
+    }
+  ],
+  "discountUsed": {
+    "$oid": "67e034a581581a4fef198002"
+  },
+  "pointUsed": 0,
+  "paymentMethod": "COD",
+  "paymentStatus": "Completed",
+  "orderStatus": "Pending",
+  "shippingInfo": {
+    "name": "Đỗ Đình Nam",
+    "phoneNumber": "0389772182",
+    "address": "28 phạm tử nghi",
+    "provineName": "Phú Yên",
+    "districtName": "Huyện Tây Hòa",
+    "wardName": "Xã Hòa Thịnh",
+    "note": "",
+    "fee": 39001
+  },
+  "trackingNumber": null,
+  "boxInfo": null,
+  "createdAt": {
+    "$date": "2025-03-24T05:52:16.665Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-24T05:52:16.665Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67e19dd1f284ea0f54a4f6b3"
+  },
+  "user": {
+    "$oid": "67c288c6e452f730bf8d3e92"
+  },
+  "items": [
+    {
+      "book": {
+        "$oid": "67b09f7137ee5d7ec44f5f23"
+      },
+      "quantity": 1,
+      "price": 189000,
+      "_id": {
+        "$oid": "67e19dd1f284ea0f54a4f6b4"
+      }
+    }
+  ],
+  "discountUsed": null,
+  "pointUsed": 0,
+  "paymentMethod": "COD",
+  "paymentStatus": "Completed",
+  "orderStatus": "Processing",
+  "shippingInfo": {
+    "name": "Nguyễn Thành Nhật",
+    "phoneNumber": "0868524122",
+    "address": "Thôn Hủng 2, Xã Đao Tú",
+    "provineName": "Vĩnh Phúc",
+    "districtName": "Huyện Tam Dương",
+    "wardName": "Xã Đạo Tú",
+    "note": "",
+    "fee": 29001
+  },
+  "trackingNumber": "GYQQMNFL",
+  "boxInfo": {
+    "weight": 500,
+    "length": 20,
+    "height": 5,
+    "width": 15,
+    "_id": {
+      "$oid": "67e19e19f284ea0f54a4f6e1"
+    }
+  },
+  "createdAt": {
+    "$date": "2025-03-24T18:00:49.388Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-24T18:02:09.771Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67e2582ab3a9e0b34a5f1363"
+  },
+  "user": {
+    "$oid": "67cde43ef6a74260e938781f"
+  },
+  "items": [
+    {
+      "book": {
+        "$oid": "67b09f7137ee5d7ec44f5f1d"
+      },
+      "quantity": 1,
+      "price": 129000,
+      "_id": {
+        "$oid": "67e2582ab3a9e0b34a5f1364"
+      }
+    }
+  ],
+  "discountUsed": null,
+  "pointUsed": 0,
+  "paymentMethod": "COD",
+  "paymentStatus": "Completed",
+  "orderStatus": "Pending",
+  "shippingInfo": {
+    "name": "Dang-hehehehe",
+    "phoneNumber": "0123456789",
+    "address": "đawa",
+    "provineName": "Bình Thuận",
+    "districtName": "Huyện Hàm Tân",
+    "wardName": "Xã Tân Thắng",
+    "note": "ădawd",
+    "fee": 39001
+  },
+  "trackingNumber": null,
+  "boxInfo": null,
+  "createdAt": {
+    "$date": "2025-03-25T07:15:54.647Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-25T07:15:54.647Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67e25e568fea4f6b58a5a9a3"
+  },
+  "user": {
+    "$oid": "67cde43ef6a74260e938781f"
+  },
+  "items": [
+    {
+      "book": {
+        "$oid": "67b09f7137ee5d7ec44f5f23"
+      },
+      "quantity": 1,
+      "price": 189000,
+      "_id": {
+        "$oid": "67e25e568fea4f6b58a5a9a4"
+      }
+    }
+  ],
+  "discountUsed": null,
+  "pointUsed": 0,
+  "paymentMethod": "COD",
+  "paymentStatus": "Completed",
+  "orderStatus": "Pending",
+  "shippingInfo": {
+    "name": "Dang-hehehehe",
+    "phoneNumber": "0123456789",
+    "address": "231",
+    "provineName": "Kon Tum",
+    "districtName": "Huyện Sa Thầy",
+    "wardName": "Xã Ya Tăng",
+    "note": "",
+    "fee": 39001
+  },
+  "trackingNumber": null,
+  "boxInfo": null,
+  "createdAt": {
+    "$date": "2025-03-25T07:42:14.716Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-25T07:42:14.716Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67e25e8b8fea4f6b58a5aa0b"
+  },
+  "user": {
+    "$oid": "67cde43ef6a74260e938781f"
+  },
+  "items": [
+    {
+      "book": {
+        "$oid": "67cc462be25003210c21554b"
+      },
+      "quantity": 1,
+      "price": 499000,
+      "_id": {
+        "$oid": "67e25e8b8fea4f6b58a5aa0c"
+      }
+    }
+  ],
+  "discountUsed": null,
+  "pointUsed": 0,
+  "paymentMethod": "Online",
+  "paymentStatus": "Pending",
+  "orderStatus": "Pending",
+  "shippingInfo": {
+    "name": "Dang-hehehe1he",
+    "phoneNumber": "0123456789",
+    "address": "312321",
+    "provineName": "Kon Tum",
+    "districtName": "Huyện Tu Mơ Rông",
+    "wardName": "Xã Tu Mơ Rông",
+    "note": "",
+    "fee": 29001
+  },
+  "trackingNumber": null,
+  "boxInfo": {
+    "weight": 200,
+    "length": 10,
+    "height": 20,
+    "width": 10,
+    "_id": {
+      "$oid": "67e31dda4da5005bda104934"
+    }
+  },
+  "createdAt": {
+    "$date": "2025-03-25T07:43:07.800Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-25T21:19:22.796Z"
+  },
+  "__v": 0
+}]
