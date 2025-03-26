@@ -76,11 +76,18 @@ const ReviewAndRatingManagement = () => {
 
       let url = "http://localhost:9999/admin/reviews";
 
-      if (selectedUser) {
+      // Check if only selectedUser is chosen
+      if (selectedUser && !selectedBook) {
         url = `http://localhost:9999/admin/users/${selectedUser}/reviews`;
       }
 
-      if (selectedBook && selectedUser) {
+      // Check if only selectedBook is chosen
+      if (!selectedUser && selectedBook) {
+        url = `http://localhost:9999/admin/books/${selectedBook}/reviews`;
+      }
+
+      // Check if both are selected
+      if (selectedUser && selectedBook) {
         url = `http://localhost:9999/admin/books/${selectedBook}/reviews?userEmail=${selectedUser}`;
       }
 
@@ -100,6 +107,10 @@ const ReviewAndRatingManagement = () => {
       console.error("Error filtering feedbacks", error);
     }
   }, 500); // Debounce delay of 500ms
+
+  useEffect(() => {
+    filterFeedbacks();
+  }, [selectedBook, selectedUser]); // Trigger filtering when either of the filters change
 
   const confirmDelete = (review) => {
     setSelectedReview(review);
@@ -188,7 +199,7 @@ const ReviewAndRatingManagement = () => {
                 filterFeedbacks();
               }}
               displayEmpty
-              label="Tìm kiếm theo người dùng" // Đúng label
+              label="Tìm kiếm theo người dùng"
             >
 
               <MenuItem value="">All</MenuItem>
