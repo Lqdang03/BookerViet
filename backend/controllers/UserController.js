@@ -88,7 +88,7 @@ const changePassword = async (req, res) => {
     const user = req.user;
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Mật khẩu không đúng!" });
+      return res.status(400).json({ message: "Mật khẩu cũ không đúng!" });
     }
 
     const salt = await bcrypt.genSalt(10);
