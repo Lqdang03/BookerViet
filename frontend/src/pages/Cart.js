@@ -14,6 +14,7 @@ import {
   Box,
   Snackbar,
   Alert,
+  CircularProgress
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
@@ -27,12 +28,15 @@ function Cart({ updateCartData }) {
   const [cartItems, setCartItems] = useState([]);
   const [message, setMessage] = useState("");
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const fetchCart = useCallback(async () => {
+    setLoading(true);
     try {
       const token = localStorage.getItem("token") || sessionStorage.getItem("token");
       if (!token) {
         console.error("Không tìm thấy token, vui lòng đăng nhập lại.");
+        setLoading(false);
         return;
       }
 
@@ -48,8 +52,10 @@ function Cart({ updateCartData }) {
       }
     } catch (error) {
       console.error("Error fetching cart:", error.response?.data || error.message);
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  }, [updateCartData]);
 
   // Fetch cart items when the component mounts
   useEffect(() => {
@@ -156,7 +162,12 @@ function Cart({ updateCartData }) {
         <Typography variant="h5" gutterBottom>
           Giỏ hàng của bạn
         </Typography>
-        {cartItems.length === 0 ? (
+
+        {loading ? (
+          <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="50vh">
+            <CircularProgress size={60} />
+          </Box>
+        ) : cartItems.length === 0 ? (
           <Typography variant="body1" color="textSecondary" align="center" mb={17}>
             <ShoppingBagOutlinedIcon sx={{ fontSize: 100 }} />
             <br />

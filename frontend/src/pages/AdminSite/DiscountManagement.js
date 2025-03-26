@@ -127,8 +127,24 @@ const DiscountManagement = () => {
         if (!currentDiscount.startDate) newErrors.startDate = "Ngày bắt đầu không được để trống";
         if (!currentDiscount.endDate) newErrors.endDate = "Ngày kết thúc không được để trống";
 
+        // Validate value based on discount type
+        if (!currentDiscount.value) {
+            newErrors.value = "Giá trị không được để trống";
+        } else {
+            // Additional validation for percentage type
+            if (currentDiscount.type === "percentage") {
+                if (currentDiscount.value < 0) {
+                    newErrors.value = "Giá trị phần trăm không được là số âm";
+                } else if (currentDiscount.value > 100) {
+                    newErrors.value = "Giá trị phần trăm không được vượt quá 100%";
+                }
+            } else if (currentDiscount.value < 0) {
+                // Validation for fixed type
+                newErrors.value = "Giá trị không được là số âm";
+            }
+        }
+        
         // Validate non-negative values
-        if (currentDiscount.value < 0) newErrors.value = "Giá trị không được là số âm";
         if (currentDiscount.minPurchase < 0) newErrors.minPurchase = "Giá trị tối thiểu không được là số âm";
         if (currentDiscount.usageLimit < 0) newErrors.usageLimit = "Số lượng mã giới hạn không được là số âm";
 
@@ -299,7 +315,7 @@ const DiscountManagement = () => {
                 result = result.filter(discount =>
                     discount.usedCount >= discount.usageLimit
                 );
-            }else if(filterStatus == "false"){
+            } else if (filterStatus == "false") {
                 result = result.filter(discount =>
                     discount.isActive == false
                 );
@@ -323,7 +339,7 @@ const DiscountManagement = () => {
             return "Đã hết hạn";
         } else if (discount.isActive == false) {
             return "Chưa kích hoạt";
-        }else {
+        } else {
             return "Đang hoạt động";
         }
     };

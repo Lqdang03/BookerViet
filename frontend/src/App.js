@@ -26,7 +26,7 @@ import ReportManagement from "./pages/AdminSite/ReportManagement.js";
 import UserManagement from "./pages/AdminSite/UserManagement.js";
 import BookManagement from "./pages/AdminSite/BookManagement.js";
 import DiscountManagement from "./pages/AdminSite/DiscountManagement.js";
-import Analysis from "./pages/AdminSite/Analysis.js";
+import Refund from "./pages/Refund.js";
 
 // Protected Route Components
 const AdminRoute = ({ children }) => {
@@ -175,7 +175,6 @@ function App() {
           <Route path="discounts" element={<DiscountManagement />} />
           <Route path="review_rating" element={<ReviewAndRatingManagement />} />
           <Route path="reports" element={<ReportManagement />} />
-          <Route path="analysis" element={<Analysis />} />
         </Route>
 
         {/* Authentication Routes */}
@@ -222,6 +221,11 @@ function App() {
         <Route path="/complaint" element={
           <UserOnlyRoute>
             <ComplaintPage />
+          </UserOnlyRoute>
+        } />
+        <Route path="/refund" element={
+          <UserOnlyRoute>
+            <Refund />
           </UserOnlyRoute>
         } />
 
