@@ -101,6 +101,9 @@ const login = async (req, res) => {
     if (!isMatch)
       return res.status(400).json({ message: "Mật khẩu không đúng!" });
 
+    if(user.isActivated === false)
+      return res.status(400).json({ message: "Tài khoản bị khóa!" });
+
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,

@@ -76,11 +76,18 @@ const ReviewAndRatingManagement = () => {
 
       let url = "http://localhost:9999/admin/reviews";
 
-      if (selectedUser) {
+      // Check if only selectedUser is chosen
+      if (selectedUser && !selectedBook) {
         url = `http://localhost:9999/admin/users/${selectedUser}/reviews`;
       }
 
-      if (selectedBook && selectedUser) {
+      // Check if only selectedBook is chosen
+      if (!selectedUser && selectedBook) {
+        url = `http://localhost:9999/admin/books/${selectedBook}/reviews`;
+      }
+
+      // Check if both are selected
+      if (selectedUser && selectedBook) {
         url = `http://localhost:9999/admin/books/${selectedBook}/reviews?userEmail=${selectedUser}`;
       }
 
@@ -100,6 +107,10 @@ const ReviewAndRatingManagement = () => {
       console.error("Error filtering feedbacks", error);
     }
   }, 500); // Debounce delay of 500ms
+
+  useEffect(() => {
+    filterFeedbacks();
+  }, [selectedBook, selectedUser]); // Trigger filtering when either of the filters change
 
   const confirmDelete = (review) => {
     setSelectedReview(review);
@@ -150,32 +161,59 @@ const ReviewAndRatingManagement = () => {
   return (
     <Box sx={{ padding: 2, width: "100%", maxWidth: "calc(100% - 250px)", margin: "auto" }}>
       <Typography variant="h4" gutterBottom>Quản lý các đánh giá</Typography>
-
       <Grid container spacing={2} sx={{ marginBottom: 2 }}>
         <Grid item xs={12} sm={6} md={4}>
-          <FormControl fullWidth>
-            <InputLabel>Tìm kiếm theo tên sách</InputLabel>
-            <Select value={selectedBook} onChange={(e) => { setSelectedBook(e.target.value); filterFeedbacks(); }}>
+          <FormControl fullWidth sx={{ mt: 1 }} variant="outlined">
+            <InputLabel id="book-label" shrink>Tìm kiếm theo tên sách</InputLabel>
+            <Select
+              labelId="book-label"
+              value={selectedBook}
+              onChange={(e) => {
+                setSelectedBook(e.target.value);
+                filterFeedbacks();
+              }}
+              displayEmpty
+              label="Tìm kiếm theo tên sách"
+            >
+
               <MenuItem value="">All</MenuItem>
               {books.map((book) => (
-                <MenuItem key={book._id} value={book._id}>{book.title}</MenuItem>
+                <MenuItem key={book._id} value={book._id}>
+                  {book.title}
+                </MenuItem>
               ))}
             </Select>
           </FormControl>
+
         </Grid>
 
         <Grid item xs={12} sm={6} md={4}>
-          <FormControl fullWidth>
-            <InputLabel>Tìm kiếm theo người dùng</InputLabel>
-            <Select value={selectedUser} onChange={(e) => { setSelectedUser(e.target.value); filterFeedbacks(); }}>
+          <FormControl fullWidth sx={{ mt: 1 }}>
+            <InputLabel id="user-label" shrink>Tìm kiếm theo người dùng</InputLabel>
+
+            <Select
+              labelId="user-label"
+              value={selectedUser}
+              onChange={(e) => {
+                setSelectedUser(e.target.value);
+                filterFeedbacks();
+              }}
+              displayEmpty
+              label="Tìm kiếm theo người dùng"
+            >
+
               <MenuItem value="">All</MenuItem>
               {users.map((user) => (
-                <MenuItem key={user._id} value={user._id}>{user.email}</MenuItem>
+                <MenuItem key={user._id} value={user._id}>
+                  {user.email}
+                </MenuItem>
               ))}
             </Select>
           </FormControl>
         </Grid>
       </Grid>
+
+
 
       <TableContainer component={Paper} sx={{ marginTop: 2 }}>
         <Table>
