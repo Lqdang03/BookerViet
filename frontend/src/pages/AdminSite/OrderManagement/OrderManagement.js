@@ -276,7 +276,7 @@ const OrderManagement = () => {
     const handleChangeRowsPerPage = (event) => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
-    };
+    }; 
     return (
         <Box sx={{ padding: 1, width: "100%", maxWidth: "calc(100% - 250px)", margin: "auto" }}>
             <Typography variant="h4" gutterBottom>Quản lý đơn hàng</Typography>
@@ -318,7 +318,6 @@ const OrderManagement = () => {
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>Mã đơn hàng</TableCell>
                             <TableCell>Khách hàng</TableCell>
                             <TableCell>Ngày đặt</TableCell>
                             <TableCell>Phương thức thanh toán</TableCell>
@@ -336,7 +335,6 @@ const OrderManagement = () => {
                                 const totalAmount = calculateTotalAmount(order);
                                 return (
                                     <TableRow key={order._id}>
-                                        <TableCell>{order._id.slice(-6).toUpperCase()}</TableCell>
                                         <TableCell>{order.user ? `${order.user.name} ` : 'N/A'}</TableCell>
                                         <TableCell>{formatDate(order.createdAt)}</TableCell>
                                         <TableCell>{getPaymentMethodTranslation(order.paymentMethod)}</TableCell>
@@ -398,14 +396,19 @@ const OrderManagement = () => {
                                                                     </IconButton>
                                                                 </Tooltip>
                                                             ) : (
-                                                                <IconButton
-                                                                    color="primary"
-                                                                    onClick={() => handleConfirmOrder(order._id, totalAmount)}
-                                                                    title="Xác nhận đơn hàng"
-                                                                    disabled={!order.boxInfo}
+                                                                <Tooltip
+                                                                    title="Chưa thể xác nhận đơn hàng khi chưa điền thông tin hàng hóa"
+                                                                    placement="top"
                                                                 >
-                                                                    <Check />
-                                                                </IconButton>
+                                                                    <IconButton
+                                                                        color="primary"
+                                                                        onClick={() => handleConfirmOrder(order._id, totalAmount)}
+                                                                        title="Xác nhận đơn hàng"
+                                                                        disabled={!order.boxInfo}
+                                                                    >
+                                                                        <Check />
+                                                                    </IconButton>
+                                                                </Tooltip>
                                                             )}
 
                                                             <IconButton
