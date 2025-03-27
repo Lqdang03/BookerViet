@@ -64,7 +64,7 @@ const OrderDetailsDialog = ({ open, order, onClose }) => {
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-      <DialogTitle>Chi tiết đơn hàng #{order._id.slice(-6).toUpperCase()}</DialogTitle>
+      <DialogTitle>Chi tiết đơn hàng</DialogTitle>
       <DialogContent dividers>
         <Grid container spacing={3}>
           {/* Thông tin khách hàng */}
