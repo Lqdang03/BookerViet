@@ -210,8 +210,8 @@ const OrderManagement = () => {
 
         if (order.items && order.items.length > 0) {
             order.items.forEach(item => {
-                if (item.book && item.book.price) {
-                    total += item.book.price * item.quantity;
+                if (item.price) {
+                    total += item.price * item.quantity;
                 }
             });
         }
