@@ -117,6 +117,10 @@ const confirmOrder = async (req, res) => {
       return res.status(404).json({ message: "Không tìm thấy đơn hàng" });
     }
 
+    if (order.orderStatus !== "Pending") {
+      return res.status(400).json({ message: "Đơn hàng đã được xác nhận" });
+    }
+
     if(order.paymentStatus !== "Completed"){
       return res.status(400).json({ message: "Đơn hàng chưa được thanh toán" });
     }
