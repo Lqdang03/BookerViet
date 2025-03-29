@@ -20,7 +20,7 @@ const OrderDetailsDialog = ({ open, order, onClose }) => {
   if (!order) return null;
 
   const calculateSubtotal = () => {
-    return order.items.reduce((acc, item) => acc + (item.book.price * item.quantity), 0);
+    return order.items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   };
 
   const calculateTotal = () => {
