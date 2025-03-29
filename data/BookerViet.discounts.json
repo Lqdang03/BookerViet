@@ -1,0 +1,75 @@
+[{
+  "_id": {
+    "$oid": "67e034a581581a4fef198002"
+  },
+  "code": "NTN000",
+  "type": "percentage",
+  "value": 5,
+  "minPurchase": 0,
+  "usageLimit": 100,
+  "usedCount": 5,
+  "startDate": {
+    "$date": "2025-03-01T00:00:00.000Z"
+  },
+  "endDate": {
+    "$date": "2025-04-01T00:00:00.000Z"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2025-03-23T16:19:49.160Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-25T07:27:04.908Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67e0352581581a4fef198008"
+  },
+  "code": "NTN001",
+  "type": "fixed",
+  "value": 20000,
+  "minPurchase": 300000,
+  "usageLimit": 100,
+  "usedCount": 3,
+  "startDate": {
+    "$date": "2025-03-01T00:00:00.000Z"
+  },
+  "endDate": {
+    "$date": "2025-04-01T00:00:00.000Z"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2025-03-23T16:21:57.700Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-23T18:03:29.824Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67e212b12866654b832a384c"
+  },
+  "code": "NTN002",
+  "type": "percentage",
+  "value": 10,
+  "minPurchase": 30000,
+  "usageLimit": 20,
+  "usedCount": 0,
+  "startDate": {
+    "$date": "2025-03-26T00:00:00.000Z"
+  },
+  "endDate": {
+    "$date": "2025-03-31T00:00:00.000Z"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2025-03-25T02:19:29.502Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-25T21:22:21.816Z"
+  },
+  "__v": 0
+}]

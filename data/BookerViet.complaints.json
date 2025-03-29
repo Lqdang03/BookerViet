@@ -1,0 +1,72 @@
+[{
+  "_id": {
+    "$oid": "67c978671c99130dcdef2a66"
+  },
+  "user": {
+    "$oid": "67c2e13a4e7756fe8d2e1b22"
+  },
+  "type": "Khác",
+  "description": "cho tôi xin link facebook của thằng admin",
+  "status": "Đã hủy",
+  "createdAt": {
+    "$date": "2025-03-06T10:26:47.584Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-06T10:27:09.737Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67c978ae1c99130dcdef2a8b"
+  },
+  "user": {
+    "$oid": "67c2e13a4e7756fe8d2e1b22"
+  },
+  "type": "Đơn hàng",
+  "description": "đơn hàng của tôi sao chưa thấy có mã vận đơn",
+  "status": "Đã tiếp nhận",
+  "createdAt": {
+    "$date": "2025-03-06T10:27:58.845Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-23T14:41:45.920Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67e256afb3a9e0b34a5f1207"
+  },
+  "user": {
+    "$oid": "67cde43ef6a74260e938781f"
+  },
+  "type": "Đơn hàng",
+  "description": "Hàng bị bong tróc.",
+  "status": "Đang chờ xử lý",
+  "createdAt": {
+    "$date": "2025-03-25T07:09:35.002Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-25T07:09:35.002Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "67e256c9b3a9e0b34a5f120c"
+  },
+  "user": {
+    "$oid": "67cde43ef6a74260e938781f"
+  },
+  "type": "Web",
+  "description": "Không có chỗ đổi sdt\n",
+  "status": "Đang chờ xử lý",
+  "createdAt": {
+    "$date": "2025-03-25T07:10:01.401Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-25T07:10:01.401Z"
+  },
+  "__v": 0
+}]
