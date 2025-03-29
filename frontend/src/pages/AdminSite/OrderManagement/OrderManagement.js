@@ -131,10 +131,6 @@ const OrderManagement = () => {
 
     const handleConfirmOrder = async (orderId, totalAmount) => {
         try {
-            if (totalAmount > 500000) {
-                handleAlert("Không hỗ trợ thu tiền hộ với đơn hàng lớn hơn 500,000 VNĐ", "warning");
-                return;
-            }
 
             const token = localStorage.getItem("token") || sessionStorage.getItem("token");
             if (!token) return;
@@ -386,7 +382,7 @@ const OrderManagement = () => {
                                                 {order.orderStatus === 'Pending' && (
                                                     <>
                                                         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                                                            {totalAmount > 500000 ? (
+                                                            {totalAmount > 500000 && order.paymentMethod === 'COD' ? (
                                                                 <Tooltip
                                                                     title="Không hỗ trợ thu tiền hộ với đơn hàng lớn hơn 500,000 VNĐ"
                                                                     placement="top"

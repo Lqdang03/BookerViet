@@ -166,7 +166,7 @@ const confirmOrder = async (req, res) => {
         length: order?.boxInfo?.length,
         width: order?.boxInfo?.width,
         height: order?.boxInfo?.height,
-        cod_failed_amount: totalValue,
+        cod_failed_amount: order?.paymentMethod === "COD" ? totalValue : 0,
         insurance_value: totalValue,
         service_type_id: 2,
       },
