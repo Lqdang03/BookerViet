@@ -16,13 +16,23 @@ const AdminLayout = ({ userEmail, updateUserEmail }) => {
 
 
     const handleLogout = () => {
+        // Remove all auth-related items from localStorage
         localStorage.removeItem("token");
         localStorage.removeItem("userEmail");
+        localStorage.removeItem("userRole");
+        
+        // Remove all auth-related items from sessionStorage
         sessionStorage.removeItem("token");
         sessionStorage.removeItem("userEmail");
+        sessionStorage.removeItem("userRole");
+        
+        // Update state in parent component
         updateUserEmail(null);
+        console.log(sessionStorage)
+        console.log(localStorage)
+        // Navigate to login page
         navigate("/account/login");
-    };
+      };
 
     return (
         <Box sx={{ display: "flex" }}>

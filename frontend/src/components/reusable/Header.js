@@ -229,25 +229,36 @@ const Header = ({
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userEmail");
-    localStorage.removeItem("userRole");
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("userEmail");
-    sessionStorage.removeItem("userRole");
-    updateUserEmail(null);
-    if (typeof updateCartCount === "function") {
-      updateCartCount(0);
-    }
-    if (typeof updateCartTotal === "function") {
-      updateCartTotal(0);
-    }
-    if (typeof updateWishlistCount === "function") {
-      updateWishlistCount(0);
-    }
-    setUserMenuAnchorEl(null);
-    navigate("/account/login");
-  };
+  // Remove all auth-related items from localStorage
+  localStorage.removeItem("token");
+  localStorage.removeItem("userEmail");
+  localStorage.removeItem("userRole");
+  
+  // Remove all auth-related items from sessionStorage
+  sessionStorage.removeItem("token");
+  sessionStorage.removeItem("userEmail");
+  sessionStorage.removeItem("userRole");
+  
+  // Update state in parent component
+  updateUserEmail(null);
+  
+  // Reset cart and wishlist counts if the functions exist
+  if (typeof updateCartCount === "function") {
+    updateCartCount(0);
+  }
+  if (typeof updateCartTotal === "function") {
+    updateCartTotal(0);
+  }
+  if (typeof updateWishlistCount === "function") {
+    updateWishlistCount(0);
+  }
+  
+  // Close the user menu dropdown
+  setUserMenuAnchorEl(null);
+  
+  // Navigate to login page
+  navigate("/account/login");
+};
 
   const handleCategoryMouseEnter = (event) => {
     setAnchorEl(event.currentTarget);

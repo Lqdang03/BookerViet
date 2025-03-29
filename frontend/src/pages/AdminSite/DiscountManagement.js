@@ -3,7 +3,8 @@ import {
     Container, Typography, Button, Table, TableBody, TableCell, TableContainer,
     TableHead, TableRow, Paper, IconButton, Dialog, DialogTitle, DialogContent,
     DialogActions, TextField, Grid, MenuItem, Select, InputLabel, FormControl,
-    Box, TablePagination, FormHelperText, Card, CardContent
+    Box, TablePagination, FormHelperText, Card, CardContent,
+    Switch
 } from "@mui/material";
 import { Delete, Edit, Search, Refresh } from "@mui/icons-material";
 import axios from "axios";
@@ -20,7 +21,12 @@ const DiscountManagement = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
-    
+    const [backendErrors, setBackendErrors] = useState(null);
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: '',
+        severity: 'success'
+    });
     // Filter states
     const [filterCode, setFilterCode] = useState("");
     const [filterType, setFilterType] = useState("all");
@@ -65,6 +71,32 @@ const DiscountManagement = () => {
     const handleClose = () => {
         setOpen(false);
     };
+    // New method to handle error responses consistently
+    const handleErrorResponse = (error) => {
+        console.error("Error:", error);
+
+        // Check if error has response from server
+        if (error.response) {
+            const errorMessage =
+                error.response.data.errors ?
+                    error.response.data.errors.join(', ') :
+                    error.response.data.message || 'An error occurred';
+
+            setBackendErrors(errorMessage);
+            setSnackbar({
+                open: true,
+                message: errorMessage,
+                severity: 'error'
+            });
+        } else {
+            // Network error or other type of error
+            setSnackbar({
+                open: true,
+                message: error.message || 'Network error occurred',
+                severity: 'error'
+            });
+        }
+    };
 
     const handleChange = (e) => {
         setCurrentDiscount({ ...currentDiscount, [e.target.name]: e.target.value });
@@ -80,47 +112,67 @@ const DiscountManagement = () => {
     const validateForm = () => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        
+
         const newErrors = {};
-        
+        const discountCodeRegex = /^[A-Z0-9]{6}$/;
         // Check for empty fields (except usedCount)
-        if (!currentDiscount.code.trim()) newErrors.code = "Mã không được để trống";
+        if (!currentDiscount.code.trim()) {
+            newErrors.code = "Mã không được để trống";
+        } else if (!discountCodeRegex.test(currentDiscount.code.trim())) {
+            newErrors.code = "Mã giảm giá phải có đúng 6 ký tự, chỉ bao gồm chữ in hoa và số";
+        }
         if (!currentDiscount.value) newErrors.value = "Giá trị không được để trống";
         if (!currentDiscount.minPurchase) newErrors.minPurchase = "Giá trị tối thiểu không được để trống";
         if (!currentDiscount.usageLimit) newErrors.usageLimit = "Số lượng mã giới hạn không được để trống";
         if (!currentDiscount.startDate) newErrors.startDate = "Ngày bắt đầu không được để trống";
         if (!currentDiscount.endDate) newErrors.endDate = "Ngày kết thúc không được để trống";
+
+        // Validate value based on discount type
+        if (!currentDiscount.value) {
+            newErrors.value = "Giá trị không được để trống";
+        } else {
+            // Additional validation for percentage type
+            if (currentDiscount.type === "percentage") {
+                if (currentDiscount.value < 0) {
+                    newErrors.value = "Giá trị phần trăm không được là số âm";
+                } else if (currentDiscount.value > 100) {
+                    newErrors.value = "Giá trị phần trăm không được vượt quá 100%";
+                }
+            } else if (currentDiscount.value < 0) {
+                // Validation for fixed type
+                newErrors.value = "Giá trị không được là số âm";
+            }
+        }
         
         // Validate non-negative values
-        if (currentDiscount.value < 0) newErrors.value = "Giá trị không được là số âm";
         if (currentDiscount.minPurchase < 0) newErrors.minPurchase = "Giá trị tối thiểu không được là số âm";
         if (currentDiscount.usageLimit < 0) newErrors.usageLimit = "Số lượng mã giới hạn không được là số âm";
-        
+
         // Validate minPurchase > 0
         if (currentDiscount.minPurchase <= 0) newErrors.minPurchase = "Giá trị tối thiểu phải lớn hơn 0";
-        
+
         // Validate usageLimit >= 1
         if (currentDiscount.usageLimit < 1) newErrors.usageLimit = "Số lượng mã giới hạn phải lớn hơn hoặc bằng 1";
-        
+
         // Validate dates not in the past
         const startDate = new Date(currentDiscount.startDate);
         const endDate = new Date(currentDiscount.endDate);
-        
+
         if (startDate < today) newErrors.startDate = "Ngày bắt đầu không được ở trong quá khứ";
         if (endDate < today) newErrors.endDate = "Ngày kết thúc không được ở trong quá khứ";
-        
+
         // Validate endDate is after startDate
         if (startDate && endDate && endDate <= startDate) {
             newErrors.endDate = "Ngày kết thúc phải sau ngày bắt đầu";
         }
-        
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
     const handleSubmit = async () => {
         if (!validateForm()) return;
-        
+
         try {
             const token = localStorage.getItem("token") || sessionStorage.getItem("token");
             if (!token) return;
@@ -129,35 +181,63 @@ const DiscountManagement = () => {
                 startDate: currentDiscount.startDate ? new Date(currentDiscount.startDate).toISOString() : "",
                 endDate: currentDiscount.endDate ? new Date(currentDiscount.endDate).toISOString() : "",
             };
+
             if (isEditing) {
-                await axios.put(`http://localhost:9999/admin/discounts/${currentDiscount._id}`, formattedDiscount, {
+                const edit = await axios.put(`http://localhost:9999/admin/discounts/${currentDiscount._id}`, formattedDiscount, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
+                console.log(edit);
             } else {
-                await axios.post("http://localhost:9999/admin/discounts", formattedDiscount, {
+                const add = await axios.post("http://localhost:9999/admin/discounts", formattedDiscount, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
+                console.log(add);
             }
             fetchDiscounts();
             handleClose();
+            // Show success message
+            setSnackbar({
+                open: true,
+                message: isEditing ? 'Cập nhật mã giảm giá thành công' : 'Tạo mã giảm giá thành công',
+                severity: 'success'
+            });
         } catch (error) {
-            console.error("Error saving discount", error);
+            handleErrorResponse(error);
         }
     };
-
-    const handleDelete = async (id) => {
+    // New method to change discount status
+    const handleChangeStatus = async (discount) => {
         try {
             const token = localStorage.getItem("token") || sessionStorage.getItem("token");
             if (!token) return;
-            await axios.delete(`http://localhost:9999/admin/discounts/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
+
+            const response = await axios.put(
+                `http://localhost:9999/admin/discounts/${discount._id}/change-status`,
+                {},
+                {
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+
+            // Update the local state to reflect the status change
+            const updatedDiscounts = discounts.map(d =>
+                d._id === discount._id
+                    ? { ...d, isActive: !d.isActive }
+                    : d
+            );
+
+            setDiscounts(updatedDiscounts);
+
+            // Show success message
+            setSnackbar({
+                open: true,
+                message: 'Trạng thái mã giảm giá đã được cập nhật',
+                severity: 'success'
             });
-            fetchDiscounts();
         } catch (error) {
-            console.error("Error deleting discount", error);
+            handleErrorResponse(error);
         }
     };
-
     //Chỉnh giá tiền theo format
     const formatPrice = (price) => {
         return new Intl.NumberFormat("vi-VN").format(price) + " VNĐ";
@@ -203,7 +283,7 @@ const DiscountManagement = () => {
 
         // Filter by code
         if (filterCode.trim() !== "") {
-            result = result.filter(discount => 
+            result = result.filter(discount =>
                 discount.code.toLowerCase().includes(filterCode.toLowerCase())
             );
         }
@@ -232,8 +312,12 @@ const DiscountManagement = () => {
                     return startDate > today;
                 });
             } else if (filterStatus === "depleted") {
-                result = result.filter(discount => 
+                result = result.filter(discount =>
                     discount.usedCount >= discount.usageLimit
+                );
+            } else if (filterStatus == "false") {
+                result = result.filter(discount =>
+                    discount.isActive == false
                 );
             }
         }
@@ -253,6 +337,8 @@ const DiscountManagement = () => {
             return "Sắp có hiệu lực";
         } else if (endDate < today) {
             return "Đã hết hạn";
+        } else if (discount.isActive == false) {
+            return "Chưa kích hoạt";
         } else {
             return "Đang hoạt động";
         }
@@ -261,7 +347,7 @@ const DiscountManagement = () => {
     return (
         <Box sx={{ padding: 1, width: "100%", maxWidth: "calc(100% - 250px)", margin: "auto" }}>
             <Typography variant="h4" gutterBottom>Quản lý mã giảm giá</Typography>
-            
+
             {/* Filter Section */}
             <Card sx={{ mb: 2 }}>
                 <CardContent>
@@ -304,21 +390,22 @@ const DiscountManagement = () => {
                                     <MenuItem value="upcoming">Sắp có hiệu lực</MenuItem>
                                     <MenuItem value="expired">Đã hết hạn</MenuItem>
                                     <MenuItem value="depleted">Đã hết lượt dùng</MenuItem>
+                                    <MenuItem value="false">Chưa kích hoạt</MenuItem>
                                 </Select>
                             </FormControl>
                         </Grid>
                         <Grid item xs={12} sm={3} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                            <Button 
-                                variant="outlined" 
-                                startIcon={<Refresh />} 
+                            <Button
+                                variant="outlined"
+                                startIcon={<Refresh />}
                                 onClick={resetFilters}
                                 sx={{ mr: 1 }}
                             >
                                 Đặt lại
                             </Button>
-                            <Button 
-                                variant="contained" 
-                                color="primary" 
+                            <Button
+                                variant="contained"
+                                color="primary"
                                 onClick={() => handleOpen()}
                             >
                                 Tạo mã giảm giá
@@ -339,6 +426,7 @@ const DiscountManagement = () => {
                             <TableCell>Ngày bắt đầu</TableCell>
                             <TableCell>Ngày kết thúc</TableCell>
                             <TableCell>Trạng thái</TableCell>
+                            <TableCell>Kích hoạt</TableCell>
                             <TableCell>Hành động</TableCell>
                         </TableRow>
                     </TableHead>
@@ -365,8 +453,13 @@ const DiscountManagement = () => {
                                         <TableCell>{new Date(discount.endDate).toLocaleDateString("vi-VN")}</TableCell>
                                         <TableCell>{getDiscountStatus(discount)}</TableCell>
                                         <TableCell>
+                                            <Switch
+                                                checked={discount.isActive}
+                                                onChange={() => handleChangeStatus(discount)}
+                                                color="primary"
+                                            /></TableCell>
+                                        <TableCell>
                                             <IconButton color="primary" onClick={() => handleOpen(discount)}><Edit /></IconButton>
-                                            <IconButton color="error" onClick={() => handleDelete(discount._id)}><Delete /></IconButton>
                                         </TableCell>
                                     </TableRow>
                                 ))
@@ -383,31 +476,33 @@ const DiscountManagement = () => {
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 />
             </TableContainer>
-            
+
             <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
                 <DialogTitle>{isEditing ? "Chỉnh sửa mã giảm giá" : "Tạo mã giảm giá"}</DialogTitle>
                 <DialogContent>
                     <Grid container spacing={2} mt={1}>
                         <Grid item xs={6}>
-                            <TextField 
-                                label="Mã" 
-                                name="code" 
-                                fullWidth 
-                                value={currentDiscount.code} 
-                                onChange={handleChange} 
+                            <TextField
+                                label="Mã"
+                                name="code"
+                                fullWidth
+                                value={currentDiscount.code}
+                                onChange={handleChange}
                                 InputLabelProps={{ shrink: true }}
                                 error={!!errors.code}
                                 helperText={errors.code}
+                                disabled={isEditing}
                             />
                         </Grid>
                         <Grid item xs={6}>
                             <FormControl fullWidth variant="outlined" error={!!errors.type}>
                                 <InputLabel>Loại</InputLabel>
-                                <Select 
-                                    name="type" 
-                                    value={currentDiscount.type} 
-                                    onChange={handleChange} 
+                                <Select
+                                    name="type"
+                                    value={currentDiscount.type}
+                                    onChange={handleChange}
                                     label="Loại"
+                                    disabled={isEditing}
                                 >
                                     <MenuItem value="fixed">Fixed</MenuItem>
                                     <MenuItem value="percentage">Percentage</MenuItem>
@@ -416,41 +511,43 @@ const DiscountManagement = () => {
                             </FormControl>
                         </Grid>
                         <Grid item xs={6}>
-                            <TextField 
-                                label="Giá trị" 
-                                name="value" 
-                                type="number" 
-                                fullWidth 
-                                value={currentDiscount.value} 
-                                onChange={handleChange} 
+                            <TextField
+                                label="Giá trị"
+                                name="value"
+                                type="number"
+                                fullWidth
+                                value={currentDiscount.value}
+                                onChange={handleChange}
                                 InputLabelProps={{ shrink: true }}
                                 error={!!errors.value}
                                 helperText={errors.value}
                                 inputProps={{ min: 0 }}
+                                disabled={isEditing}
                             />
                         </Grid>
                         <Grid item xs={6}>
-                            <TextField 
-                                label="Giá trị tối thiểu áp dụng" 
-                                name="minPurchase" 
-                                type="number" 
-                                fullWidth 
-                                value={currentDiscount.minPurchase} 
-                                onChange={handleChange} 
+                            <TextField
+                                label="Giá trị tối thiểu áp dụng"
+                                name="minPurchase"
+                                type="number"
+                                fullWidth
+                                value={currentDiscount.minPurchase}
+                                onChange={handleChange}
                                 InputLabelProps={{ shrink: true }}
                                 error={!!errors.minPurchase}
                                 helperText={errors.minPurchase}
                                 inputProps={{ min: 1 }}
+                                disabled={isEditing}
                             />
                         </Grid>
                         <Grid item xs={6}>
-                            <TextField 
-                                label="Số lượng mã giới hạn" 
-                                name="usageLimit" 
-                                type="number" 
-                                fullWidth 
-                                value={currentDiscount.usageLimit} 
-                                onChange={handleChange} 
+                            <TextField
+                                label="Số lượng mã giới hạn"
+                                name="usageLimit"
+                                type="number"
+                                fullWidth
+                                value={currentDiscount.usageLimit}
+                                onChange={handleChange}
                                 InputLabelProps={{ shrink: true }}
                                 error={!!errors.usageLimit}
                                 helperText={errors.usageLimit}
@@ -458,38 +555,38 @@ const DiscountManagement = () => {
                             />
                         </Grid>
                         <Grid item xs={6}>
-                            <TextField 
-                                label="Số lượng mã đã dùng" 
-                                name="usedCount" 
-                                type="number" 
-                                fullWidth 
-                                value={currentDiscount.usedCount} 
-                                onChange={handleChange} 
-                                disabled 
+                            <TextField
+                                label="Số lượng mã đã dùng"
+                                name="usedCount"
+                                type="number"
+                                fullWidth
+                                value={currentDiscount.usedCount}
+                                onChange={handleChange}
+                                disabled
                                 InputLabelProps={{ shrink: true }}
                             />
                         </Grid>
                         <Grid item xs={6}>
-                            <TextField 
-                                label="Ngày bắt đầu" 
-                                name="startDate" 
-                                type="date" 
-                                fullWidth 
-                                value={currentDiscount.startDate} 
-                                onChange={handleChange} 
+                            <TextField
+                                label="Ngày bắt đầu"
+                                name="startDate"
+                                type="date"
+                                fullWidth
+                                value={currentDiscount.startDate}
+                                onChange={handleChange}
                                 InputLabelProps={{ shrink: true }}
                                 error={!!errors.startDate}
                                 helperText={errors.startDate}
                             />
                         </Grid>
                         <Grid item xs={6}>
-                            <TextField 
-                                label="Ngày kết thúc" 
-                                name="endDate" 
-                                type="date" 
-                                fullWidth 
-                                value={currentDiscount.endDate} 
-                                onChange={handleChange} 
+                            <TextField
+                                label="Ngày kết thúc"
+                                name="endDate"
+                                type="date"
+                                fullWidth
+                                value={currentDiscount.endDate}
+                                onChange={handleChange}
                                 InputLabelProps={{ shrink: true }}
                                 error={!!errors.endDate}
                                 helperText={errors.endDate}

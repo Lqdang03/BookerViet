@@ -39,7 +39,6 @@ const Sidebar = ({ isSidebarOpen }) => {
           { text: "Quản lý mã giảm giá", icon: <LocalOfferIcon />, link: "/admin/discounts" },
           { text: "Quản lý các báo cáo", icon: <FeedbackIcon />, link: "/admin/reports" },
           { text: "Quản lý các đánh giá", icon: <RateReview />, link: "/admin/review_rating" },
-          { text: "Thống kê", icon: <BarChartIcon />, link: "/admin/analysis" }
         ].map((item) => (
           <Tooltip title={!isSidebarOpen ? item.text : ""} placement="right" key={item.text}>
             <ListItem component={Link} to={item.link} button>

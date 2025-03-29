@@ -26,40 +26,31 @@ import ReportManagement from "./pages/AdminSite/ReportManagement.js";
 import UserManagement from "./pages/AdminSite/UserManagement.js";
 import BookManagement from "./pages/AdminSite/BookManagement.js";
 import DiscountManagement from "./pages/AdminSite/DiscountManagement.js";
-import Analysis from "./pages/AdminSite/Analysis.js";
+import Refund from "./pages/Refund.js";
 
 // Protected Route Components
-const ProtectedRoute = ({ children, allowedRoles }) => {
+const AdminRoute = ({ children }) => {
   const userRole = localStorage.getItem("userRole") || sessionStorage.getItem("userRole");
   const isAuthenticated = localStorage.getItem("token") || sessionStorage.getItem("token");
   
-  if (!isAuthenticated) {
-    // Redirect to login if not authenticated
+  if (!isAuthenticated || userRole !== "admin") {
+    // Redirect to forbidden page if not authenticated as admin
     return <Navigate to="/account/login" replace />;
-  }
-  
-  if (allowedRoles && !allowedRoles.includes(userRole)) {
-    // Redirect to forbidden page if role is not allowed
-    return <Navigate to="/forbidden" replace />;
   }
   
   return children;
 };
 
-const AdminRoute = ({ children }) => {
-  return (
-    <ProtectedRoute allowedRoles={["admin"]}>
-      {children}
-    </ProtectedRoute>
-  );
-};
-
-const UserRoute = ({ children }) => {
-  return (
-    <ProtectedRoute allowedRoles={["user"]}>
-      {children}
-    </ProtectedRoute>
-  );
+// Route specifically for user content - prevent admin access
+const UserOnlyRoute = ({ children }) => {
+  const userRole = localStorage.getItem("userRole") || sessionStorage.getItem("userRole");
+  
+  // If the user is an admin, redirect to forbidden
+  if (userRole === "admin") {
+    return <Navigate to="/forbidden" replace />;
+  }
+  
+  return children;
 };
 
 // Forbidden page component
@@ -184,7 +175,6 @@ function App() {
           <Route path="discounts" element={<DiscountManagement />} />
           <Route path="review_rating" element={<ReviewAndRatingManagement />} />
           <Route path="reports" element={<ReportManagement />} />
-          <Route path="analysis" element={<Analysis />} />
         </Route>
 
         {/* Authentication Routes */}
@@ -192,46 +182,51 @@ function App() {
         <Route path="/account/register" element={<Resgiter />} />
         <Route path="/account/forgotpassword" element={<ForgotPassword />} />
 
-        {/* User Protected Routes */}
+        {/* User Routes - Protected from admin access */}
         <Route path="/user/wishlist" element={
-          <UserRoute>
+          <UserOnlyRoute>
             <Wishlist updateWishlistCount={fetchWishlistCount} />
-          </UserRoute>
+          </UserOnlyRoute>
         } />
         <Route path="/user/profile" element={
-          <UserRoute>
+          <UserOnlyRoute>
             <AccountDetail />
-          </UserRoute>
+          </UserOnlyRoute>
         } />
         <Route path="/user/change-password" element={
-          <UserRoute>
+          <UserOnlyRoute>
             <ChangePassword />
-          </UserRoute>
+          </UserOnlyRoute>
         } />
         <Route path="/cart" element={
-          <UserRoute>
+          <UserOnlyRoute>
             <Cart updateCartData={fetchCartData} />
-          </UserRoute>
+          </UserOnlyRoute>
         } />
         <Route path="/checkout" element={
-          <UserRoute>
+          <UserOnlyRoute>
             <OrderPage />
-          </UserRoute>
+          </UserOnlyRoute>
         } />
         <Route path="/payment-success" element={
-          <UserRoute>
+          <UserOnlyRoute>
             <OrderSuccessPage updateCartData={fetchCartData} />
-          </UserRoute>
+          </UserOnlyRoute>
         } />
         <Route path="/track-order" element={
-          <UserRoute>
+          <UserOnlyRoute>
             <TrackOrder />
-          </UserRoute>
+          </UserOnlyRoute>
         } />
         <Route path="/complaint" element={
-          <UserRoute>
+          <UserOnlyRoute>
             <ComplaintPage />
-          </UserRoute>
+          </UserOnlyRoute>
+        } />
+        <Route path="/refund" element={
+          <UserOnlyRoute>
+            <Refund />
+          </UserOnlyRoute>
         } />
 
         {/* Public Routes */}

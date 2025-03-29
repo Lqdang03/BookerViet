@@ -2,12 +2,15 @@ import React, { useState, useEffect } from "react";
 import {
     Typography, Button, Table, TableBody, TableCell, TableContainer,
     TableHead, TableRow, Paper, IconButton, Box, Alert, TablePagination,
-    Snackbar
+    Snackbar, Select, MenuItem, FormControl, InputLabel,
+    Tooltip
 } from "@mui/material";
-import { Delete, Check, Edit, Visibility } from "@mui/icons-material";
+
+import { Delete, Check, Edit, Visibility, Warning } from "@mui/icons-material";
 import axios from "axios";
 import OrderDetailsDialog from "./OrderDetailsDialog";
 import EditBoxDialog from "./EditBoxDialog";
+import CloseIcon from '@mui/icons-material/Close';
 
 const OrderManagement = () => {
     const [page, setPage] = useState(0);
@@ -20,7 +23,18 @@ const OrderManagement = () => {
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [currentOrder, setCurrentOrder] = useState(null);
     const [alert, setAlert] = useState({ open: false, message: "", severity: "info" });
+    // New states for filtering and sorting
+    const [filterStatus, setFilterStatus] = useState('All');
+    const [sortOrder, setSortOrder] = useState('newest'); // 'newest' or 'oldest'
+    const [filteredOrders, setFilteredOrders] = useState([]);
 
+    // Extend existing status translations to include 'All'
+    const statusOptions = [
+        'All',
+        'Pending',
+        'Processing',
+        'Cancelled'
+    ];
     // hiển thị thông báo
     const handleAlert = (message, severity = "info") => {
         setAlert({ open: true, message, severity });
@@ -35,6 +49,30 @@ const OrderManagement = () => {
         fetchOrders();
     }, []);
 
+    useEffect(() => {
+        filterAndSortOrders();
+    }, [orders, filterStatus, sortOrder]);
+
+    //Sửa dụng filer
+    const filterAndSortOrders = () => {
+        let result = [...orders];
+
+        // Filter theo status
+        if (filterStatus !== 'All') {
+            result = result.filter(order => order.orderStatus === filterStatus);
+        }
+
+        // Sort theo createdAt
+        result.sort((a, b) => {
+            const dateA = new Date(a.createdAt);
+            const dateB = new Date(b.createdAt);
+            return sortOrder === 'newest'
+                ? dateB.getTime() - dateA.getTime()
+                : dateA.getTime() - dateB.getTime();
+        });
+
+        setFilteredOrders(result);
+    };
     //Lấy các dữ liệu orders
     const fetchOrders = async () => {
         try {
@@ -59,27 +97,45 @@ const OrderManagement = () => {
     };
 
     //Hàm xác nhận đơn hàng
-    const handleDeleteOrder = async (orderId) => {
-        if (window.confirm("Bạn có chắc chắn muốn xóa đơn hàng này không?")) {
+    const handleCancellOrder = async (orderId) => {
+        if (window.confirm("Bạn có chắc chắn muốn hủy đơn hàng này không?")) {
             try {
                 const token = localStorage.getItem("token") || sessionStorage.getItem("token");
                 if (!token) return;
 
-                await axios.delete(`http://localhost:9999/admin/orders/${orderId}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                handleAlert("xoá thông tin đơn hàng thành công", "success");
-                // Refresh danh sách đơn hàng sau khi xóa
+                await axios.put(`http://localhost:9999/admin/orders/${orderId}/change-status`,
+                    { orderStatus: 'Cancelled' },
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+
+                handleAlert("Hủy đơn hàng thành công", "success");
+                // Refresh danh sách đơn hàng sau khi hủy
                 fetchOrders();
             } catch (error) {
-                console.error("Lỗi khi xóa đơn hàng", error);
-                setError("Có lỗi xảy ra khi xóa đơn hàng");
+                console.error("Lỗi khi hủy đơn hàng", error);
+
+                // Hiển thị thông báo lỗi từ backend nếu có
+                if (error.response && error.response.data && error.response.data.message) {
+                    handleAlert(`${error.response.data.message}`, "error");
+                } else {
+                    handleAlert("Có lỗi xảy ra khi hủy đơn hàng", "error");
+                }
             }
         }
     };
 
-    const handleConfirmOrder = async (orderId) => {
+    const handleConfirmOrder = async (orderId, totalAmount) => {
         try {
+            if (totalAmount > 500000) {
+                handleAlert("Không hỗ trợ thu tiền hộ với đơn hàng lớn hơn 500,000 VNĐ", "warning");
+                return;
+            }
+
             const token = localStorage.getItem("token") || sessionStorage.getItem("token");
             if (!token) return;
 
@@ -154,8 +210,8 @@ const OrderManagement = () => {
 
         if (order.items && order.items.length > 0) {
             order.items.forEach(item => {
-                if (item.book && item.book.price) {
-                    total += item.book.price * item.quantity;
+                if (item.price) {
+                    total += item.price * item.quantity;
                 }
             });
         }
@@ -220,16 +276,48 @@ const OrderManagement = () => {
     const handleChangeRowsPerPage = (event) => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
-    };
+    }; 
     return (
         <Box sx={{ padding: 1, width: "100%", maxWidth: "calc(100% - 250px)", margin: "auto" }}>
             <Typography variant="h4" gutterBottom>Quản lý đơn hàng</Typography>
+            {/*  filter and sort controls */}
+            <Box sx={{
+                display: 'flex',
+                gap: 2,
+                marginBottom: 2,
+                alignItems: 'center'
+            }}>
+                <FormControl variant="outlined" sx={{ minWidth: 200 }}>
+                    <InputLabel>Trạng thái đơn hàng</InputLabel>
+                    <Select
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                        label="Trạng thái đơn hàng"
+                    >
+                        {statusOptions.map(status => (
+                            <MenuItem key={status} value={status}>
+                                {status === 'All' ? 'Tất cả' : getStatusTranslation(status)}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
 
+                <FormControl variant="outlined" sx={{ minWidth: 200 }}>
+                    <InputLabel>Sắp xếp theo ngày</InputLabel>
+                    <Select
+                        value={sortOrder}
+                        onChange={(e) => setSortOrder(e.target.value)}
+                        label="Sắp xếp theo ngày"
+                    >
+                        <MenuItem value="newest">Mới nhất</MenuItem>
+                        <MenuItem value="oldest">Cũ nhất</MenuItem>
+                    </Select>
+                </FormControl>
+            </Box>
             <TableContainer component={Paper} sx={{ marginTop: 2 }}>
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>Mã đơn hàng</TableCell>
                             <TableCell>Khách hàng</TableCell>
                             <TableCell>Ngày đặt</TableCell>
                             <TableCell>Phương thức thanh toán</TableCell>
@@ -241,97 +329,115 @@ const OrderManagement = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {orders
+                        {filteredOrders
                             .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                            .map((order, index) => (
-                                <TableRow key={order._id}>
-                                    <TableCell>{order._id.slice(-6).toUpperCase()}</TableCell>
-                                    <TableCell>{order.user ? `${order.user.name} ` : 'N/A'}</TableCell>
-                                    <TableCell>{formatDate(order.createdAt)}</TableCell>
-                                    <TableCell>{getPaymentMethodTranslation(order.paymentMethod)}</TableCell>
-                                    <TableCell>
-                                        <Box
-                                            sx={{
-                                                color: getStatusColor(order.paymentStatus),
-                                                fontWeight: 'bold'
-                                            }}
-                                        >
-                                            {getPaymentStatusTranslation(order.paymentStatus)}
-                                        </Box>
-                                    </TableCell>
-                                    <TableCell>{calculateTotalAmount(order).toLocaleString('vi-VN')} VNĐ</TableCell>
-                                    <TableCell>
-                                        <Box
-                                            sx={{
-                                                color: getStatusColor(order.orderStatus),
-                                                fontWeight: 'bold'
-                                            }}
-                                        >
-                                            {getStatusTranslation(order.orderStatus)}
-                                        </Box>
-                                    </TableCell>
-                                    <TableCell>
-                                        {order.boxInfo ? (
-                                            <Typography variant="body2">
-                                                KT: {order.boxInfo.length}x{order.boxInfo.width}x{order.boxInfo.height}cm,
-                                                {order.boxInfo.weight}g
-                                            </Typography>
-                                        ) : (
-                                            <Typography variant="body2" color="text.secondary">Chưa có</Typography>
-                                        )}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Box
-                                            sx={{
-                                                display: 'flex',
-                                                flexWrap: 'wrap',
-                                                gap: 1,
-                                                maxWidth: 180,
-                                                justifyContent: 'space-between',
-                                            }}
-                                        >
-                                            <IconButton color="info" onClick={() => handleViewOrder(order)} title="Xem chi tiết">
-                                                <Visibility />
-                                            </IconButton>
-
-                                            {order.orderStatus === 'Pending' && (
-                                                <>
-                                                    <Box sx={{ display: 'flex', gap: 1 }}>
-                                                        <IconButton
-                                                            color="primary"
-                                                            onClick={() => handleConfirmOrder(order._id)}
-                                                            title="Xác nhận đơn hàng"
-                                                            disabled={!order.boxInfo}
-                                                        >
-                                                            <Check />
-                                                        </IconButton>
-
-                                                        <IconButton
-                                                            color="secondary"
-                                                            onClick={() => handleEditBox(order)}
-                                                            title="Chỉnh sửa đóng gói"
-                                                        >
-                                                            <Edit />
-                                                        </IconButton>
-                                                    </Box>
-
-                                                    <Box sx={{ display: 'flex', gap: 1 }}>
-                                                        <IconButton color="error" onClick={() => handleDeleteOrder(order._id)} title="Xóa đơn hàng">
-                                                            <Delete />
-                                                        </IconButton>
-                                                    </Box>
-                                                </>
+                            .map((order, index) => {
+                                const totalAmount = calculateTotalAmount(order);
+                                return (
+                                    <TableRow key={order._id}>
+                                        <TableCell>{order.user ? `${order.user.name} ` : 'N/A'}</TableCell>
+                                        <TableCell>{formatDate(order.createdAt)}</TableCell>
+                                        <TableCell>{getPaymentMethodTranslation(order.paymentMethod)}</TableCell>
+                                        <TableCell>
+                                            <Box
+                                                sx={{
+                                                    color: getStatusColor(order.paymentStatus),
+                                                    fontWeight: 'bold'
+                                                }}
+                                            >
+                                                {getPaymentStatusTranslation(order.paymentStatus)}
+                                            </Box>
+                                        </TableCell>
+                                        <TableCell>{calculateTotalAmount(order).toLocaleString('vi-VN')} VNĐ</TableCell>
+                                        <TableCell>
+                                            <Box
+                                                sx={{
+                                                    color: getStatusColor(order.orderStatus),
+                                                    fontWeight: 'bold'
+                                                }}
+                                            >
+                                                {getStatusTranslation(order.orderStatus)}
+                                            </Box>
+                                        </TableCell>
+                                        <TableCell>
+                                            {order.boxInfo ? (
+                                                <Typography variant="body2">
+                                                    KT: {order.boxInfo.length}x{order.boxInfo.width}x{order.boxInfo.height}cm,
+                                                    {order.boxInfo.weight}g
+                                                </Typography>
+                                            ) : (
+                                                <Typography variant="body2" color="text.secondary">Chưa có</Typography>
                                             )}
-                                        </Box>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Box
+                                                sx={{
+                                                    display: 'flex',
+                                                    flexWrap: 'wrap',
+                                                    gap: 1,
+                                                    maxWidth: 180,
+                                                    justifyContent: 'space-between',
+                                                }}
+                                            >
+                                                <IconButton color="info" onClick={() => handleViewOrder(order)} title="Xem chi tiết">
+                                                    <Visibility />
+                                                </IconButton>
+
+                                                {order.orderStatus === 'Pending' && (
+                                                    <>
+                                                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                                                            {totalAmount > 500000 ? (
+                                                                <Tooltip
+                                                                    title="Không hỗ trợ thu tiền hộ với đơn hàng lớn hơn 500,000 VNĐ"
+                                                                    placement="top"
+                                                                >
+                                                                    <IconButton color="warning">
+                                                                        <Warning />
+                                                                    </IconButton>
+                                                                </Tooltip>
+                                                            ) : (
+                                                                <Tooltip
+                                                                    title="Chưa thể xác nhận đơn hàng khi chưa điền thông tin hàng hóa"
+                                                                    placement="top"
+                                                                >
+                                                                    <IconButton
+                                                                        color="primary"
+                                                                        onClick={() => handleConfirmOrder(order._id, totalAmount)}
+                                                                        title="Xác nhận đơn hàng"
+                                                                        disabled={!order.boxInfo}
+                                                                    >
+                                                                        <Check />
+                                                                    </IconButton>
+                                                                </Tooltip>
+                                                            )}
+
+                                                            <IconButton
+                                                                color="secondary"
+                                                                onClick={() => handleEditBox(order)}
+                                                                title="Chỉnh sửa đóng gói"
+                                                            >
+                                                                <Edit />
+                                                            </IconButton>
+                                                        </Box>
+
+                                                        <Box sx={{ display: 'flex', gap: 1 }}>
+                                                            <IconButton color="error" onClick={() => handleCancellOrder(order._id)} title="Huỷ đơn hàng">
+                                                                <CloseIcon />
+                                                            </IconButton>
+                                                        </Box>
+                                                    </>
+                                                )}
+                                            </Box>
+                                        </TableCell>
+                                    </TableRow>
+                                )
+                            })}
                     </TableBody>
                 </Table>
                 <TablePagination
                     rowsPerPageOptions={[5, 10, 25]}
                     component="div"
-                    count={orders.length}
+                    count={filteredOrders.length}
                     rowsPerPage={rowsPerPage}
                     page={page}
                     onPageChange={handleChangePage}

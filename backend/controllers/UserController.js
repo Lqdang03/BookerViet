@@ -88,7 +88,7 @@ const changePassword = async (req, res) => {
     const user = req.user;
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Mật khẩu không đúng!" });
+      return res.status(400).json({ message: "Mật khẩu cũ không đúng!" });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -152,7 +152,7 @@ const cancelComplaint = async (req, res) => {
 
 const changeStatusUser = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const userId = req.params.id;
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: `Không tìm thấy user với id ${userId}` });

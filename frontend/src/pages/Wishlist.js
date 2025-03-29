@@ -9,7 +9,9 @@ import {
     CardContent,
     IconButton,
     Grid,
-    Container
+    Container,
+    Rating,
+    CircularProgress
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import FavoriteIcon from "@mui/icons-material/Favorite";
@@ -23,6 +25,7 @@ function Wishlist({ updateWishlistCount }) {
     const [notifications, setNotifications] = useState([]);
     const [error, setError] = useState(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     // Improved token verification
     const verifyAuth = () => {
@@ -41,8 +44,10 @@ function Wishlist({ updateWishlistCount }) {
     };
 
     const fetchWishlist = useCallback(async () => {
+        setLoading(true);
         const token = verifyAuth();
         if (!token) {
+            setLoading(false);
             return;
         }
 
@@ -55,9 +60,15 @@ function Wishlist({ updateWishlistCount }) {
             });
 
             if (response.data && response.data.wishlist) {
-                setWishlist(response.data.wishlist);
+                // Get books from wishlist
+                const wishlistBooks = response.data.wishlist;
+                
+                // Fetch ratings for each book
+                const booksWithRatings = await fetchBookRatings(wishlistBooks);
+                
+                setWishlist(booksWithRatings);
                 if (updateWishlistCount) {
-                    updateWishlistCount(response.data.wishlist.length);
+                    updateWishlistCount(booksWithRatings.length);
                 }
                 setError(null);
             }
@@ -72,9 +83,38 @@ function Wishlist({ updateWishlistCount }) {
                 return;
             }
             setError("Không thể tải danh sách yêu thích. Vui lòng thử lại sau.");
+        } finally {
+            setLoading(false);
         }
     }, [updateWishlistCount]);
 
+    // Function to fetch book ratings
+    const fetchBookRatings = async (bookList) => {
+        try {
+            // Create an array of promises for fetching ratings for each book
+            const ratingPromises = bookList.map(book => 
+                axios.get(`http://localhost:9999/reviews/${book._id}`)
+                    .then(response => ({
+                        ...book,
+                        averageRating: response.data.averageRating || 0
+                    }))
+                    .catch(() => ({
+                        ...book,
+                        averageRating: 0
+                    }))
+            );
+            
+            // Wait for all rating requests to complete
+            const booksWithRatings = await Promise.all(ratingPromises);
+            return booksWithRatings;
+        } catch (error) {
+            console.error("Error fetching book ratings:", error);
+            return bookList.map(book => ({
+                ...book,
+                averageRating: book.averageRating || 0
+            }));
+        }
+    };
 
     const removeFromWishlist = async (bookId) => {
         const token = verifyAuth();
@@ -128,6 +168,14 @@ function Wishlist({ updateWishlistCount }) {
 
 
     const WishlistContent = () => {
+        if (loading) {
+            return (
+                <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="60vh">
+                    <CircularProgress size={60} />
+                </Box>
+            );
+        }
+        
         if (!isAuthenticated) {
             return (
                 <Box display="flex" flexDirection="column" alignItems="center" py={3} mb={42}>
@@ -323,7 +371,20 @@ function Wishlist({ updateWishlistCount }) {
                                                 {book.title}
                                             </Typography>
                                         </Link>
-
+                                        {/* Rating display */}
+                                        <Box sx={{ 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            gap: 1, 
+                                            marginBottom: 1 
+                                        }}>
+                                            <Rating 
+                                                value={book.averageRating || 0} 
+                                                precision={0.1} 
+                                                readOnly 
+                                                size="small"
+                                            />
+                                        </Box>
                                         <Box sx={{
                                             display: 'flex',
                                             alignItems: 'center',

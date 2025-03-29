@@ -20,13 +20,13 @@ const OrderDetailsDialog = ({ open, order, onClose }) => {
   if (!order) return null;
 
   const calculateSubtotal = () => {
-    return order.items.reduce((acc, item) => acc + (item.book.price * item.quantity), 0);
+    return order.items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   };
 
   const calculateTotal = () => {
     const subtotal = calculateSubtotal();
     let discount = 0;
-    
+
     // Tính giảm giá từ discountUsed
     if (order.discountUsed) {
       if (order.discountUsed.type === 'fixed') {
@@ -35,17 +35,17 @@ const OrderDetailsDialog = ({ open, order, onClose }) => {
         discount += (subtotal * order.discountUsed.value) / 100;
       }
     }
-    
+
     // Thêm giảm giá từ totalDiscount nếu có
     if (order.totalDiscount) {
       discount += order.totalDiscount;
     }
-    
+
     // Thêm giảm giá từ pointUsed nếu có
     if (order.pointUsed) {
       discount += order.pointUsed;
     }
-    
+
     const shippingFee = order.shippingInfo.fee || 0;
 
     return subtotal - discount + shippingFee;
@@ -53,7 +53,7 @@ const OrderDetailsDialog = ({ open, order, onClose }) => {
 
   const getDiscountAmount = () => {
     if (!order.discountUsed) return 0;
-    
+
     if (order.discountUsed.type === 'fixed') {
       return order.discountUsed.value;
     } else if (order.discountUsed.type === 'percentage') {
@@ -64,7 +64,7 @@ const OrderDetailsDialog = ({ open, order, onClose }) => {
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-      <DialogTitle>Chi tiết đơn hàng #{order._id.slice(-6).toUpperCase()}</DialogTitle>
+      <DialogTitle>Chi tiết đơn hàng</DialogTitle>
       <DialogContent dividers>
         <Grid container spacing={3}>
           {/* Thông tin khách hàng */}
@@ -77,6 +77,9 @@ const OrderDetailsDialog = ({ open, order, onClose }) => {
           {/* Thông tin vận chuyển */}
           <Grid item xs={12} md={6}>
             <Typography variant="h6" gutterBottom>Thông tin vận chuyển</Typography>
+            {order.trackingNumber != null && (
+              <Typography><strong>Mã vận đơn:</strong> {order.trackingNumber}</Typography>
+            )}
             <Typography><strong>Địa chỉ:</strong> {order.shippingInfo.address}</Typography>
             <Typography><strong>Tỉnh/TP:</strong> {order.shippingInfo.provineName}</Typography>
             <Typography><strong>Quận/Huyện:</strong> {order.shippingInfo.districtName}</Typography>
