@@ -94,7 +94,7 @@ const getAdminDashboardStats = async (req, res) => {
 
         // Detailed Revenue Analysis
         const revenueAnalysis = await Order.aggregate([
-            { $match: { paymentStatus: 'Completed' } },
+            { $match: { paymentStatus: 'Completed', orderStatus: 'Processing' } },
             { $unwind: "$items" },
             {
                 $lookup: {
