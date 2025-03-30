@@ -340,7 +340,7 @@ const BookManagement = () => {
                   <TableCell>{book.stock}</TableCell>
                   <TableCell>
                     <IconButton onClick={() => handleOpenBookDialog(book)} color="primary"><EditIcon /></IconButton>
-                    <IconButton color="error" onClick={() => handleDelete(book._id)}><DeleteIcon /></IconButton>
+                    {/* <IconButton color="error" onClick={() => handleDelete(book._id)}><DeleteIcon /></IconButton> */}
                   </TableCell>
                 </TableRow>
               ))}
