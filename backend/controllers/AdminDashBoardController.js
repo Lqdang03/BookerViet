@@ -55,7 +55,7 @@ const getAdminDashboardStats = async (req, res) => {
 
         // Total Revenue Calculation
         const totalRevenueResult = await Order.aggregate([
-            { $match: { paymentStatus: 'Completed' } },
+            { $match: { paymentStatus: 'Completed', orderStatus: 'Processing' } },
             { $unwind: "$items" },
             {
                 $lookup: {
